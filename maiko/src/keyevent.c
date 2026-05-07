@@ -59,6 +59,13 @@ void Mouse_hndlr(void); /* Fields mouse events from driver        */
 #ifdef XWINDOW
 #include "xwinmandefs.h"
 #endif
+#ifdef SDL
+#if SDL == 2
+#include <SDL2/SDL.h>
+#elif SDL == 3
+#include <SDL3/SDL.h>
+#endif
+#endif
 
 #if defined(MAIKO_ENABLE_ETHERNET) || defined(MAIKO_ENABLE_NETHUB)
 #include "etherdefs.h"
@@ -298,12 +305,25 @@ void process_io_events(void)
 
 int block_until_event(int max_ms)
 {
-#if defined(XWINDOW) && !defined(DOS)
+  if (max_ms <= 0) return NIL_PTR;
+
+#if defined(SDL) && SDL >= 2
+  /* SDL3 / SDL2 path: park in SDL_WaitEventTimeout.  SDL handles the
+   * underlying socket waits (X11 / Wayland / native).  SIGIO from
+   * raw ethernet / RS232 / log fds still wakes us via signal — the
+   * call returns false (no SDL event), the IRQ window then runs
+   * process_io_events() to drain those.  We pass NULL so we don't
+   * consume the event; process_SDLevents() drains it on the next
+   * IRQ window. */
+  bool got = SDL_WaitEventTimeout(NULL, max_ms);
+  Irq_Stk_End = Irq_Stk_Check = 0;
+  return got ? ATOM_T : NIL_PTR;
+
+#elif defined(XWINDOW) && !defined(DOS)
+  /* X11 path: select on the X connection FD + LispReadFds. */
   fd_set rfds;
   int xfd, nfds, i, n;
   struct timeval tv;
-
-  if (max_ms <= 0) return NIL_PTR;
 
   /* Fast path: events already queued locally on the X connection. */
   if (currentdsp != NULL && currentdsp->display_id != NULL
@@ -339,10 +359,11 @@ int block_until_event(int max_ms)
    */
   Irq_Stk_End = Irq_Stk_Check = 0;
   return (n > 0) ? ATOM_T : NIL_PTR;
+
 #else
   (void)max_ms;
   return NIL_PTR;
-#endif /* XWINDOW && !DOS */
+#endif
 } /* end block_until_event */
 
 

@@ -113,11 +113,15 @@ int main(int argc, char *argv[]) {
   if (doFork) fork_Unix();
 
 #ifdef SDL
+  /* SDL is the default.  Use it unless the user explicitly asked for
+   * X11 via -display X11 or by passing an X11-style display string
+   * (containing a colon, e.g. ":0", "host:0.0"). */
 #ifdef XWINDOW
-  /* if we have SDL *and* XWINDOW we only do SDL if requested */
-  if (displayName && (0 == strcmp(displayName, "SDL"))) {
+  if (displayName == NULL
+      || strcmp(displayName, "SDL") == 0
+      || (strcmp(displayName, "X11") != 0 && strchr(displayName, ':') == NULL)) {
 #else
-  /* otherwise SDL is it */
+  /* No X11 in this build — SDL is the only option */
   {
 #endif
     filetorun = LDESDL;
@@ -127,10 +131,11 @@ int main(int argc, char *argv[]) {
 
 #ifdef XWINDOW
   /* If an X server exists as specified in the -display option
-   * or environment variable DISPLAY, ldex is started.
-   */
+   * or environment variable DISPLAY, ldex is started.  -display X11
+   * means "use X11 with the default display from $DISPLAY". */
   {
-    Display *Xdisplay = XOpenDisplay(displayName);
+    char *xDisplay = (displayName && strcmp(displayName, "X11") == 0) ? NULL : displayName;
+    Display *Xdisplay = XOpenDisplay(xDisplay);
 
     if (Xdisplay) {
       /* success connecting to X server. Close it now, it will be reopened by ldex */
@@ -139,7 +144,7 @@ int main(int argc, char *argv[]) {
       goto run;
     } else {
       (void)fprintf(stderr, "Unable to open X11 display %s\n",
-              displayName ? displayName : "from DISPLAY");
+              xDisplay ? xDisplay : "from DISPLAY");
       exit(1);
     }
   }

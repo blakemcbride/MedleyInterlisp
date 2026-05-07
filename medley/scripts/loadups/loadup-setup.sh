@@ -184,6 +184,12 @@ loadup_finish () {
 }
 
 run_medley () {
+    # Pin the loadup to the X11 emulator (ldex).  The runtime default
+    # is SDL3 (via the lde dispatcher), but the loadup runs Lisp code
+    # that has been tested under X11; routing it directly to ldex
+    # avoids any SDL3-specific surprises during sysout build.
+    # Override with LOADUP_MAIKOPROG=ldesdl etc. if needed.
+    : "${LOADUP_MAIKOPROG:=ldex}"
     /bin/sh "${MEDLEYDIR}/scripts/medley/medley.command"         \
              --config -                                          \
              --id "${script_name_for_id}_+"                       \
@@ -193,6 +199,7 @@ run_medley () {
              --rem.cm "${cmfile}"                                \
              --greet "${initfile}"                               \
              --sysout "$1"                                       \
+             --maikoprog "${LOADUP_MAIKOPROG}"                   \
              --vnc "${LOADUP_USE_VNC}"                           \
              --automation                                        \
              "$2" "$3" "$4" "$5" "$6" "$7"                       ;

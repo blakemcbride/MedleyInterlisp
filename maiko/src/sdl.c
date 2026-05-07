@@ -1,6 +1,7 @@
 #include "version.h"
 #include <assert.h>
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include "sdldefs.h"
@@ -15,10 +16,33 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
 #elif SDL == 3
+/* Map SDL2-era names (SDLK_a..z, SDLK_BACKQUOTE, SDLK_QUOTE, ...) to
+ * their SDL3 replacements so the shared keymap[] table compiles. */
+#define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_keycode.h>
 #else
 #error Unrecognized SDL version number, neither 2 nor 3
+#endif
+
+/* SDL3 flattened SDL_KeyboardEvent: event.key.keysym.{sym,mod,scancode}
+ * became event.key.{key,mod,scancode}. */
+#if SDL == 2
+#define EVENT_KEY_SYM(e)      ((e).key.keysym.sym)
+#define EVENT_KEY_MOD(e)      ((e).key.keysym.mod)
+#define EVENT_KEY_SCANCODE(e) ((e).key.keysym.scancode)
+#elif SDL == 3
+#define EVENT_KEY_SYM(e)      ((e).key.key)
+#define EVENT_KEY_MOD(e)      ((e).key.mod)
+#define EVENT_KEY_SCANCODE(e) ((e).key.scancode)
+#endif
+
+/* SDL2 had a struct SDL_PixelFormat; SDL3 renamed the struct to
+ * SDL_PixelFormatDetails (SDL_PixelFormat is now an enum value). */
+#if SDL == 2
+typedef SDL_PixelFormat *pixfmt_t;
+#elif SDL == 3
+typedef const SDL_PixelFormatDetails *pixfmt_t;
 #endif
 
 /* if SDLRENDERING is defined, render to a texture rather than
@@ -32,7 +56,9 @@
 static SDL_Window *sdl_window = NULL;
 #if defined(SDLRENDERING)
 static SDL_Renderer *sdl_renderer = NULL;
+#if SDL == 2
 static SDL_RendererInfo sdl_rendererinfo = {0};
+#endif
 static SDL_Texture *sdl_texture = NULL;
 #else
 static SDL_Surface *sdl_windowsurface = NULL;
@@ -45,7 +71,7 @@ static Uint32 sdl_background_color;
 static Uint32 sdl_foreground;
 static Uint32 sdl_background;
 static int sdl_bytesperpixel;
-static SDL_PixelFormat *sdl_pixelformat;
+static pixfmt_t sdl_pixelformat;
 static int sdl_window_focusp = 0;
 extern void kb_trans(u_short keycode, u_short upflg);
 extern int error(const char *s);
@@ -953,7 +979,7 @@ extern char backgroundColorName[64];
  * through the X11 color names table, returning an SDL pixel
  * according to the given pixel format
  */
-static Uint32 sdl_MapColorName(const SDL_PixelFormat * format, char *name) {
+static Uint32 sdl_MapColorName(pixfmt_t format, char *name) {
   /* check for #RRBBGG format */
   if (name[0]=='#' && strlen(name) == 7 && strspn(&name[1], "0123456789abcdefABCDEF") == 6) {
     unsigned long pixval = strtoul(&name[1], NULL, 16);
@@ -1446,14 +1472,14 @@ void process_SDLevents() {
 #if 0
         printf("dn ts: %x, type: %x, state: %x, repeat: %x, scancode: %x, sym: %x <%s>, mod: %x\n",
                event.key.timestamp, event.key.type, event.key.state, event.key.repeat,
-               event.key.keysym.scancode, event.key.keysym.sym,
-               SDL_GetKeyName(event.key.keysym.sym), event.key.keysym.mod);
+               EVENT_KEY_SCANCODE(event), EVENT_KEY_SYM(event),
+               SDL_GetKeyName(EVENT_KEY_SYM(event)), EVENT_KEY_MOD(event));
 #endif
         if (event.key.repeat) {
           /* Lisp needs to see the UP transition before the DOWN transition */
-          handle_keyup(event.key.keysym.sym, event.key.keysym.mod);
+          handle_keyup(EVENT_KEY_SYM(event), EVENT_KEY_MOD(event));
         }
-        handle_keydown(event.key.keysym.sym, event.key.keysym.mod);
+        handle_keydown(EVENT_KEY_SYM(event), EVENT_KEY_MOD(event));
         break;
 #if SDL_MAJOR_VERSION == 2
       case SDL_KEYUP:
@@ -1463,10 +1489,10 @@ void process_SDLevents() {
 #if 0
         printf("up ts: %x, type: %x, state: %x, repeat: %x, scancode: %x, sym: %x <%s>, mod: %x\n",
                event.key.timestamp, event.key.type, event.key.state, event.key.repeat,
-               event.key.keysym.scancode, event.key.keysym.sym,
-               SDL_GetKeyName(event.key.keysym.sym), event.key.keysym.mod);
+               EVENT_KEY_SCANCODE(event), EVENT_KEY_SYM(event),
+               SDL_GetKeyName(EVENT_KEY_SYM(event)), EVENT_KEY_MOD(event));
 #endif
-        handle_keyup(event.key.keysym.sym, event.key.keysym.mod);
+        handle_keyup(EVENT_KEY_SYM(event), EVENT_KEY_MOD(event));
         break;
 #if SDL_MAJOR_VERSION == 2
       case SDL_MOUSEMOTION: {
@@ -1587,13 +1613,15 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
 #if SDL_MAJOR_VERSION == 2
   sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED);
 #else
-  sdl_renderer = SDL_CreateRenderer(sdl_window, NULL, SDL_RENDERER_ACCELERATED);
+  sdl_renderer = SDL_CreateRenderer(sdl_window, NULL);
 #endif
   if (NULL == sdl_renderer) {
     printf("SDL Error: %s\n", SDL_GetError());
     return 3;
   }
+#if SDL_MAJOR_VERSION == 2
   SDL_GetRendererInfo(sdl_renderer, &sdl_rendererinfo);
+#endif
   SDL_SetRenderDrawColor(sdl_renderer, 127, 127, 127, 255);
   SDL_RenderClear(sdl_renderer);
   SDL_RenderPresent(sdl_renderer);
@@ -1602,7 +1630,9 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
   sdl_pixelformat = SDL_AllocFormat(sdl_rendererinfo.texture_formats[0]);
 #else
   SDL_SetRenderScale(sdl_renderer, 1.0, 1.0);
-  sdl_pixelformat = SDL_CreatePixelFormat(sdl_rendererinfo.texture_formats[0]);
+  /* SDL3 dropped SDL_RendererInfo / SDL_GetRendererInfo / SDL_CreatePixelFormat.
+   * Pick a portable 32-bit format and let the renderer convert internally. */
+  sdl_pixelformat = SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA8888);
 #endif
   printf("Creating texture...\n");
   sdl_texture = SDL_CreateTexture(sdl_renderer, sdl_pixelformat->format,

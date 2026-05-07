@@ -18,12 +18,12 @@ Building produces *sysouts* (binary memory images): `init.sysout` → `mid.sysou
 Blake's stated priorities (from `README.md`):
 1. Simplify and correct system build
 2. Stop the system from pegging the CPU
-3. Port from X11 (with some SDL2 support) to **SDL3, dropping X11 entirely**
+3. Default the display backend to **SDL3** (Wayland-compatible; smooths native macOS / Windows ports). X11 is retained for the loadup tools and as a runtime fallback; long term it can be retired entirely.
 4. Dynamic window sizes (instead of a limited range of static sizes)
 5. Stop polluting the home directory
 6. Native macOS and Windows ports (Linux is the primary dev platform)
 
-Lean toward changes that move these forward; flag changes that work against them. Note the SDL3 work is incomplete: `MAIKO_DISPLAY_SDL=3` is a CMake option but `maiko/README.md` warns the SDL3 API support is not actually wired up yet — only SDL2 is functional.
+Lean toward changes that move these forward; flag changes that work against them.
 
 ## Top-level layout
 
@@ -68,17 +68,17 @@ mkdir -p build && cd build
 cmake .. && cmake --build .
 ```
 Targets defined in `CMakeLists.txt`:
-- `lde` — main emulator (X11 by default)
-- `ldex` — X11 variant built only when `MAIKO_DISPLAY_X11=ON` (built from the same sources as `lde`)
-- `ldeinit` — bootstrap variant; built only when X11 is on; loads `init.dlinit` symbolic-init format instead of a sysout (used by the `loadup-mid` stage)
-- `ldesdl` — SDL variant; built only when `MAIKO_DISPLAY_SDL` is `2` or `3`
-- `ldeether`, `mkvdate`, `setsout`, `tstsout` — utilities
-- `INSTALL` rule places `lde` (and `ldex`/`ldeinit` when X11) in `${release_dir}`
+- `lde` — runtime dispatcher; re-execs as `ldesdl` by default, or as `ldex` when invoked with `-display X11` or an X11-style display string (`:0`, `host:0`, ...).
+- `ldesdl` — SDL3 emulator (default runtime). Built when `MAIKO_DISPLAY_SDL` is `2` or `3`.
+- `ldex` — X11 emulator. Built when `MAIKO_DISPLAY_X11=ON`. Used by the loadup pipeline (`run_medley` in `loadup-setup.sh` pins `--maikoprog ldex`) and as a runtime fallback.
+- `ldeinit` — bootstrap variant used by the `loadup-mid` stage; built when `MAIKO_DISPLAY_X11=ON`.
+- `ldeether`, `mkvdate`, `setsout`, `tstsout` — utilities.
+- `INSTALL` places everything in `${release_dir}` = `${os_ver}.${machine_type}`.
 
 CMake options (all live in the cache, configurable via `-D...` or `cmake-gui`):
 - `MAIKO_RELEASE` — `351` (default), `350`, `300`, `210`, `201`, `200`, `115`. See `inc/version.h`.
-- `MAIKO_DISPLAY_X11` — `ON` (default) / `OFF`. Adds `-DXWINDOW`, links `X11::X11`, includes `src/xbbt.c`, `src/xinit.c`, `src/xwinman.c`, etc.
-- `MAIKO_DISPLAY_SDL` — `OFF` (default) / `2` / `3`. Adds `-DSDL=2` or `-DSDL=3`, includes `src/sdl.c`. SDL3 is selectable but not yet functional in the C code.
+- `MAIKO_DISPLAY_X11` — `ON` (default) / `OFF`. Adds `-DXWINDOW`, links `X11::X11`, includes `src/xbbt.c`, `src/xinit.c`, `src/xwinman.c`, etc. Required for the loadup-stage tools (`ldex`, `ldeinit`).
+- `MAIKO_DISPLAY_SDL` — `3` (default) / `2` / `OFF`. Adds `-DSDL=3` (or `=2`) and includes `src/sdl.c`. SDL3 path is functional; SDL2 retained for legacy systems.
 - `MAIKO_NETWORK_TYPE` — `NONE` (default), `SUN_DLPI`, `SUN_NIT`, `NETHUB`.
 
 clang-tidy is detected and applied if available (with `cert-*` checks, plus a hand-curated set of suppressions for legacy strcpy/bzero usage).
@@ -200,7 +200,7 @@ cd medley
 
 Exit from a running system: `(LOGOUT)` (Interlisp prompt) or `(IL:LOGOUT)` (CL prompt). Logout writes `~/lisp.virtualmem` (override via `$LDEDESTSYSOUT` or `$LOGINDIR`); the next launch without an explicit sysout restores from there. **Note Blake priority #5** — home-dir pollution like this is a known target for cleanup.
 
-Display: Medley's own window system runs over X11. macOS needs XQuartz with "Emulate three button mouse" enabled; pixel-doubling X servers are preferable on hi-DPI displays. WSL2 needs an X server (vcxsrv) or the VNC option in `medley.command`. SDL2 path works (`ldesdl`); SDL3 selectable in CMake but not functional yet.
+Display: SDL3 is the default runtime. SDL3 transparently uses Wayland or X11 on Linux and the native compositor on macOS / Windows. The `lde` dispatcher prefers `ldesdl`; pass `-display X11` (or any X-style display name) to force `ldex` instead. The loadup pipeline pins `--maikoprog ldex` (X11) so sysout builds don't depend on the SDL3 path.
 
 ## Testing
 

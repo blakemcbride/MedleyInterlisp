@@ -14,25 +14,26 @@ The rest of this document covers prerequisites, optional targets, the underlying
 
 ## Prerequisites
 
-A C compiler (clang preferred), CMake ≥ 3.15, and X11 client headers (or SDL2).
+A C compiler (clang preferred), CMake ≥ 3.15, **SDL3** (the default display backend), and X11 client headers (still required for the loadup-stage tools `ldex` / `ldeinit`).
 
 ### Linux (Debian / Ubuntu)
 ```sh
 sudo apt update
-sudo apt install build-essential clang cmake pkg-config libx11-dev libbsd-overlay-dev
-# Optional, for the SDL2 display:
-sudo apt install libsdl2-dev
+sudo apt install build-essential clang cmake pkg-config libx11-dev libbsd-overlay-dev libsdl3-dev
+```
+
+### Linux (Fedora / RHEL)
+```sh
+sudo dnf install clang cmake pkgconf-pkg-config libX11-devel libbsd-devel SDL3-devel
 ```
 
 ### macOS
 ```sh
-brew install --cask xquartz       # X11 server + client libraries
-brew install cmake
-# Optional, for the SDL2 display:
-brew install sdl2
+brew install cmake sdl3
+brew install --cask xquartz       # only if you also want the X11 fallback
 ```
 
-In XQuartz preferences, enable "Emulate three button mouse".
+In XQuartz preferences, enable "Emulate three button mouse" (only relevant if you run the X11 emulator).
 
 ### `apps.sysout` (optional)
 
@@ -78,9 +79,10 @@ After a default `make`:
 
 | Path | Contents |
 |---|---|
-| `maiko/<os>.<cpu>/lde` | X11 emulator |
-| `maiko/<os>.<cpu>/ldex` | X11 variant |
-| `maiko/<os>.<cpu>/ldeinit` | bootstrap variant |
+| `maiko/<os>.<cpu>/lde` | runtime dispatcher (re-execs as `ldesdl` by default, `ldex` if you pass `-display X11` or an X11-style display string) |
+| `maiko/<os>.<cpu>/ldesdl` | SDL3 emulator (default runtime) |
+| `maiko/<os>.<cpu>/ldex` | X11 emulator (used by the loadup pipeline; runtime fallback) |
+| `maiko/<os>.<cpu>/ldeinit` | bootstrap emulator used by the `mid` loadup stage |
 | `medley/loadups/lisp.sysout` | base Lisp environment |
 | `medley/loadups/full.sysout` | + library/lispusers + modernizations |
 | `medley/loadups/exports.all` | external declarations |
@@ -90,14 +92,15 @@ After a default `make`:
 
 `<os>.<cpu>` is detected automatically (`linux.x86_64`, `darwin.aarch64`, etc.).
 
-### SDL2 variant
+### Display backends
 
-The Makefile builds the X11 emulator. To also build `ldesdl` (SDL2 variant):
+By default the build produces both SDL3 and X11 emulators; the `lde` dispatcher picks SDL3 at runtime unless you ask for X11. To opt out of either backend:
 
 ```sh
-cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=2
-cmake --build maiko/build
-cmake --install maiko/build
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=OFF   # X11 only
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_X11=OFF   # SDL3 only — note the loadup pipeline currently requires ldex/ldeinit
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=2     # legacy SDL2 instead of SDL3
+cmake --build maiko/build && cmake --install maiko/build
 ```
 
 ## Step 2 — Direct build (without `make`)
@@ -139,12 +142,14 @@ The loadup scripts find the Maiko binaries automatically because `maiko/` is the
 
 ### Display
 
-Medley needs an X11 display (or SDL, if you built `ldesdl`).
+By default Medley runs through SDL3 (`ldesdl`).  SDL3 transparently uses Wayland or X11 underneath on Linux, the native compositor on macOS, and the native compositor on Windows.
 
-- **Linux:** start in any X session — no extra setup.
-- **macOS:** launch XQuartz first (`open -a XQuartz`) and confirm `echo $DISPLAY` is non-empty.
-- **WSL2:** install an X server (e.g. VcXsrv) and export `DISPLAY` to point at it, or use the `--vnc` option below.
-- **Headless / SSH:** use `--vnc` (see below) or run `Xvfb`/`Xvnc` and set `DISPLAY` accordingly.
+- **Linux (Wayland or X11):** start in any normal session — no extra setup.
+- **macOS:** no extra setup with SDL3.  (XQuartz is only needed if you opt into the X11 emulator with `-d X11`.)
+- **WSL2:** SDL3 works through WSLg if available; otherwise install an X server (e.g. VcXsrv) and use `-d X11`.
+- **Headless / SSH:** use `--vnc` (see below) or run `Xvfb`/`Xvnc` and set `DISPLAY`.
+
+To force the X11 emulator instead of SDL3 — `./medley -d X11 ...`.
 
 ### Pick a launcher
 
