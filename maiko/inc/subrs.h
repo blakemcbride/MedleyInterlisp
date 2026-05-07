@@ -147,4 +147,5 @@
 /* Assigned USER SUBR numbers */
 #define user_subr_DUMMY                               012
 #define user_subr_SAMPLE_USER_SUBR                    00
+#define user_subr_BLOCK_UNTIL_EVENT                   01
 #endif

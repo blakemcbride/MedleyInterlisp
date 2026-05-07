@@ -282,6 +282,63 @@ void process_io_events(void)
 
 
 /************************************************************************/
+/*                                                                      */
+/*              b l o c k _ u n t i l _ e v e n t                       */
+/*                                                                      */
+/*  Cooperative idle: block in select() up to max_ms milliseconds, or   */
+/*  until an X event arrives, any FD in LispReadFds becomes readable,   */
+/*  or a signal interrupts.  Called from Lisp via the BLOCK_UNTIL_EVENT */
+/*  user-subr when the Lisp scheduler has nothing better to do.         */
+/*                                                                      */
+/*  Returns ATOM_T if select reported activity, NIL_PTR on timeout or   */
+/*  signal.  Does not drain X events itself; the caller's next IRQ      */
+/*  window will do that via process_Xevents().                          */
+/*                                                                      */
+/************************************************************************/
+
+int block_until_event(int max_ms)
+{
+#if defined(XWINDOW) && !defined(DOS)
+  fd_set rfds;
+  int xfd, nfds, i, n;
+  struct timeval tv;
+
+  if (max_ms <= 0) return NIL_PTR;
+
+  /* Fast path: events already queued locally on the X connection. */
+  if (currentdsp != NULL && currentdsp->display_id != NULL
+      && XPending(currentdsp->display_id) > 0)
+    return ATOM_T;
+
+  memcpy(&rfds, &LispReadFds, sizeof(rfds));
+  nfds = -1;
+  if (currentdsp != NULL && currentdsp->display_id != NULL) {
+    xfd = ConnectionNumber(currentdsp->display_id);
+    FD_SET(xfd, &rfds);
+    nfds = xfd;
+  }
+  for (i = 0; i < FD_SETSIZE; i++) {
+    if (FD_ISSET(i, &rfds) && i > nfds) nfds = i;
+  }
+  if (nfds < 0) return NIL_PTR; /* nothing to wait on */
+
+  tv.tv_sec  = max_ms / 1000;
+  tv.tv_usec = (max_ms % 1000) * 1000;
+
+  n = select(nfds + 1, &rfds, NULL, NULL, &tv);
+  /* n < 0: EINTR or error.  SIGVTALRM and SIGIO handlers run; just return.
+   * n == 0: timeout, nothing happened.
+   * n > 0:  at least one FD is ready.
+   */
+  return (n > 0) ? ATOM_T : NIL_PTR;
+#else
+  (void)max_ms;
+  return NIL_PTR;
+#endif /* XWINDOW && !DOS */
+} /* end block_until_event */
+
+
+/************************************************************************/
 /*									*/
 /*			   k b _ t r a n s				*/
 /*									*/

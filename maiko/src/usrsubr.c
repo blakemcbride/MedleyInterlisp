@@ -12,6 +12,10 @@
 
 #include <stdio.h>
 
+#include "lispemul.h"
+#include "lsptypes.h"
+#include "arith.h"
+#include "subrs.h"
 #include "usrsubrdefs.h"
 
 /** User defined subrs here.  Do NOT attempt to use this unless you FULLY
@@ -20,19 +24,23 @@
 int UserSubr(int user_subr_index, int num_args, unsigned *args) {
   int result = 0;
 
-  /* *** remove the printf when finished debugging your user subr *** */
-
-  printf("debug: case: 0x%x, args: 0x%x\n", user_subr_index, num_args);
-  {
-    int i;
-    for (i = 0; i < num_args; i++) printf("debug: arg[%d]: 0x%x\n", i, args[i]);
-  }
-
   switch (user_subr_index) {
-    case 0:
+    case user_subr_SAMPLE_USER_SUBR:
       printf("sample UFN\n");
       result = args[0];
       break;
+
+    case user_subr_BLOCK_UNTIL_EVENT: {
+      int max_ms;
+      if (num_args < 1) { result = NIL_PTR; break; }
+      N_GETNUMBER(args[0], max_ms, badarg);
+      result = block_until_event(max_ms);
+      break;
+    badarg:
+      result = NIL_PTR;
+      break;
+    }
+
   default:
       return (-1); /* DO UFN */
   }
