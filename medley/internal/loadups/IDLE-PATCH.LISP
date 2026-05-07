@@ -11,6 +11,10 @@
 ;;;   - lispusers/BACKGROUND-YIELD: existing per-tick yield that does
 ;;;     a 833-microsecond nanosleep ~100 times per second.  Redirected
 ;;;     through the new sleep so it actually goes deep.
+;;;
+;;; CL:COMPILE NIL '(LAMBDA ...) is used in place of (COMPILE ...) so
+;;; no interactive prompts ("listing? " / "output file? ") fire during
+;;; the loadup.
 
 (cl:in-package "INTERLISP")
 
@@ -19,8 +23,7 @@
 ;;; and would risk breaking the loadup if the entry already exists).
 
 (PUTD '|\BLOCK.UNTIL.EVENT|
-      '(LAMBDA (MS) (MISCN USER-SUBR 1 MS)))
-(NLSETQ (COMPILE '(|\BLOCK.UNTIL.EVENT|)) T)
+      (CL:COMPILE NIL '(LAMBDA (MS) (MISCN USER-SUBR 1 MS))))
 
 ;;; Idle sleep hook.  Added to TTYBACKGROUNDFNS so the existing
 ;;; \TTYBACKGROUND iteration calls it on each keyboard-wait pass.
@@ -30,8 +33,7 @@
 ;;; on the timeout.
 
 (PUTD '|\IDLE.SLEEP.HOOK|
-      '(LAMBDA NIL (|\BLOCK.UNTIL.EVENT| 100)))
-(NLSETQ (COMPILE '(|\IDLE.SLEEP.HOOK|)) T)
+      (CL:COMPILE NIL '(LAMBDA NIL (|\BLOCK.UNTIL.EVENT| 100))))
 
 (SETQ TTYBACKGROUNDFNS
       (APPEND (REMOVE '|\IDLE.SLEEP.HOOK| TTYBACKGROUNDFNS)
@@ -41,9 +43,8 @@
 ;;; nanosleep called ~100 times per second, do a single deeper block.
 
 (PUTD 'BACKGROUND-YIELD
-      '(LAMBDA NIL
-         (LET ((|\BACKGROUND| T))
-           (DECLARE (SPECVARS |\BACKGROUND|))
-           (|\BLOCK.UNTIL.EVENT| 100)
-           (SUBRCALL CAUSE-INTERRUPT))))
-(NLSETQ (COMPILE '(BACKGROUND-YIELD)) T)
+      (CL:COMPILE NIL '(LAMBDA NIL
+                         (LET ((|\BACKGROUND| T))
+                           (DECLARE (SPECVARS |\BACKGROUND|))
+                           (|\BLOCK.UNTIL.EVENT| 100)
+                           (SUBRCALL CAUSE-INTERRUPT)))))

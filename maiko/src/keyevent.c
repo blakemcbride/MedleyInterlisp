@@ -329,7 +329,15 @@ int block_until_event(int max_ms)
   /* n < 0: EINTR or error.  SIGVTALRM and SIGIO handlers run; just return.
    * n == 0: timeout, nothing happened.
    * n > 0:  at least one FD is ready.
+   *
+   * Force the IRQ window to fire on the next bytecode dispatch.  After
+   * a long select() the ITIMER_VIRTUAL clock has been paused, so
+   * SIGVTALRM hasn't fired and Irq_Stk_Check still holds its pre-sleep
+   * value.  Without this clobber, X events queued while we were
+   * blocked don't get drained by process_Xevents() until the next
+   * 10 ms of CPU bytecode time accumulates — a visible input latency.
    */
+  Irq_Stk_End = Irq_Stk_Check = 0;
   return (n > 0) ? ATOM_T : NIL_PTR;
 #else
   (void)max_ms;
