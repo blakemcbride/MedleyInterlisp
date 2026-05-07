@@ -1255,7 +1255,7 @@
 
     (fetch (EXTERNALFORMAT NAME) of (SETQ *SYSTEM-EXTERNALFORMAT*
                                      (FIND-FORMAT (FOR X IN '("LC_CTYPE" "LC_ALL" "LANG")
-                                                     WHEN (STRPOS ".UTF-8" (UNIX-GETENV X))
+                                                     WHEN (STRPOS "UTF" (U-CASE (UNIX-GETENV X)))
                                                      DO (RETURN :UTF-8) FINALLY (RETURN :THROUGH])
 
 (MTOSYSSTRING

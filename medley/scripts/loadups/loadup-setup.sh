@@ -4,6 +4,23 @@
 MEDLEYDIR=$(cd "${LOADUP_SCRIPTDIR}/../.." || exit; pwd)
 export MEDLEYDIR
 
+# Workaround for Medley's UTF-8 detection in sources/UNICODE-FORMATS:
+# SYSTEM-EXTERNALFORMAT does (STRPOS ".UTF-8" (UNIX-GETENV X)) on LC_CTYPE / LC_ALL / LANG
+# and falls back to :THROUGH (no MCCS<->UTF-8 translation) if no match.
+# Modern Linux distros set LANG to "*.utf8" (lowercase, no hyphen) which doesn't match.
+# Without the right format, MTOSYSSTRING passes MCCS arrow chars (where Interlisp's reader
+# stores `_`) through as raw 0xAC bytes, so e.g. UNIX-GETENV LOADUP_WORKDIR ends up
+# asking the OS for "LOADUP\xACWORKDIR" and gets NIL, breaking MAKESYS.
+# Normalize the LANG/LC_* values so Medley's regex matches.
+case "${LC_ALL}${LC_CTYPE}${LANG}" in
+  *.UTF-8*) ;; # already in matching form
+  *.utf8*|*.UTF8*|*.utf-8*)
+    if [ -n "${LC_ALL}" ];   then export LC_ALL=$(echo   "${LC_ALL}"   | sed 's/\.[uU][tT][fF]-\?8/.UTF-8/'); fi
+    if [ -n "${LC_CTYPE}" ]; then export LC_CTYPE=$(echo "${LC_CTYPE}" | sed 's/\.[uU][tT][fF]-\?8/.UTF-8/'); fi
+    if [ -n "${LANG}" ];     then export LANG=$(echo     "${LANG}"     | sed 's/\.[uU][tT][fF]-\?8/.UTF-8/'); fi
+    ;;
+esac
+
 export LOADUP_CPV="${MEDLEYDIR}/scripts/cpv"
 
 if [ -z "${LOADUP_SOURCEDIR}" ]
