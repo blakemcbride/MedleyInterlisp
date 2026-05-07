@@ -1,0 +1,499 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "28-Feb-2025 23:52:01" |{WMEDLEY}<lispusers>tmax>TMAX-NGRAPH.;14| 27479  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS NGROUP.CHARTYPE.CONVERT UPDATE.NUMBEROBJS DOWNDATE.NUMBEROBJS NGROUP.CHARTYPE
+                       INITIAL.NGROUP.GRAPH RESET.DEPENDENT.CLASSES GET.NCOUNTER GRAPHMENU 
+                       CREATE.NGROUP.NODE FLATTEN.TREE.TO.STRING)
+                  (VARS TMAX-NGRAPHCOMS)
+
+      :PREVIOUS-DATE "23-Feb-2025 22:59:05" |{WMEDLEY}<lispusers>tmax>TMAX-NGRAPH.;11|)
+
+
+(PRETTYCOMPRINT TMAX-NGRAPHCOMS)
+
+(RPAQQ TMAX-NGRAPHCOMS
+       (
+        (* |;;| "Developed under support from NIH grant RR-00785.")
+
+        
+        (* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+        
+        (* |;;| "Number Group GRAPH functions")
+
+        (FNS GRAPHMENU INITIAL.NGROUP.GRAPH NGROUP.MAKE.ROOTNODE TSPGRAPHREGION CLOSE.NGROUP.GRAPH 
+             NGROUP.GRAPH.CLOSEFN ADD.NGROUP.TO.MOTHER.NODE ADD.NODE.TO.GRAPH COLLECT.HASHARRAY 
+             CREATE.NGROUP.NODE GET.FROMNODES GET.TONODES FIND.NODE TSP.GET.NGROUP.ARRAY TSP.LEGALID
+             LIST.ANCESTORS TOPLEVEL.SISTERS GET.NGROUP.MOTHER)
+        
+
+(* |;;;| "Number counting functions")
+
+        (FNS DOWNDATE.NUMBEROBJS UPDATE.NUMBEROBJS RESET.DEPENDENT.CLASSES RESET.NCOUNTER 
+             GET.NCOUNTER NCOUNTER? FLATTEN.TREE.TO.STRING NGROUP.CHARTYPE NGROUP.CHARTYPE.CONVERT 
+             NUMBER.TO.LETTER REMOVE.ALL.COUNTERS)))
+
+
+
+(* |;;| "Developed under support from NIH grant RR-00785.")
+
+
+
+
+(* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+
+
+
+(* |;;| "Number Group GRAPH functions")
+
+(DEFINEQ
+
+(GRAPHMENU
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 28-Feb-2025 09:10 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:24 by rmk")
+                                                             (* |fsg| "11-Jul-87 12:17")
+    (LET* ((GRAPH (OR (AND (NOT (TMAXPROP TSTREAM 'REBUILD.GRAPHFLG))
+                           (TMAXPROP TSTREAM 'NGROUP.GRAPH))
+                      (INITIAL.NGROUP.GRAPH TSTREAM)))
+           (REGION (TSPGRAPHREGION GRAPH T))
+           (GRAPHW (CREATEW REGION "Number Group Graph" NIL T)))
+          (CL:WHEN (NGROUPMENU.ENABLED? TSTREAM)
+                 (CLOSE.NGROUP.GRAPH TSTREAM))
+          (WINDOWPROP GRAPHW 'REPAINTFN NIL)
+          (ATTACHWINDOW GRAPHW (\\TEDIT.PRIMARYPANE TSTREAM)
+                 'TOP
+                 'JUSTIFY
+                 'LOCALCLOSE)
+          (SHOWGRAPH GRAPH GRAPHW (FUNCTION INSERT.NGROUP)
+                 (FUNCTION CHANGE.NGROUP))
+          (TMAXPROP TSTREAM 'REBUILD.GRAPHFLG NIL)
+          (TMAXPROP TSTREAM 'NGROUPW GRAPHW)
+          (TMAXPROP TSTREAM 'NGROUP.GRAPH GRAPH)
+          (WINDOWPROP GRAPHW 'CLOSEFN (FUNCTION NGROUP.GRAPH.CLOSEFN))
+          (WINDOWPROP GRAPHW 'TSTREAM TSTREAM))))
+
+(INITIAL.NGROUP.GRAPH
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 26-Feb-2025 10:08 by rmk")
+                                                            (* \; "Edited 20-Feb-2025 23:41 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:56")
+    (LET* ((ROOTNODE (NGROUP.MAKE.ROOTNODE))
+           (NODELST (|for| NODE |in| (COLLECT.HASHARRAY (TSP.GET.NGROUP.ARRAY TSTREAM))
+                       |collect| (CADR NODE))))
+          (CL:UNLESS (FIND.NODE 'NEW.NGROUP TSTREAM)
+              (SETQ NODELST (CONS ROOTNODE NODELST))
+              (ADD.NGROUP.TO.DBASE 'NEW.NGROUP NIL NIL NIL ROOTNODE TSTREAM))
+          (LAYOUTGRAPH NODELST '(NEW.NGROUP)))))
+
+(ngroup.make.rootnode
+  (lambda nil                                                (* |ss:| "27-Jun-87 16:14")
+    (nodecreate 'new.ngroup '|NGroups| nil nil nil (fontcreate 'helvetica 10 'brr)
+           1)))
+
+(TSPGRAPHREGION
+  (LAMBDA (GRAPH TITLEFLG BORDER)                           (* \; "Edited 20-Feb-2025 23:47 by rmk")
+                                                             (* |ss:| " 2-Apr-86 16:28")
+    (LET ((R (GRAPHREGION GRAPH)))
+         (|replace| (REGION WIDTH) |of| R |with| (WIDTHIFWINDOW (|fetch| (REGION WIDTH) |of| R)))
+         (|replace| (REGION HEIGHT) |of| R |with| (HEIGHTIFWINDOW (|fetch| (REGION HEIGHT)
+                                                                     |of| R)
+                                                         TITLEFLG BORDER))
+         R)))
+
+(CLOSE.NGROUP.GRAPH
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| "11-Jul-87 12:51")
+
+(* |;;;| "Program invoked close of the NGroup menu graph window.  PROGRAM.CLOSE is used to distinguish between our closing the window and the user buttoning the Window Menu CLOSE command.")
+
+    (LET ((GRAPH.WINDOW (TMAXPROP TSTREAM 'NGROUPW)))
+         (WINDOWPROP GRAPH.WINDOW 'PROGRAM.CLOSE T)
+         (FREEATTACHEDWINDOW GRAPH.WINDOW)
+         (CLOSEW GRAPH.WINDOW))))
+
+(NGROUP.GRAPH.CLOSEFN
+  (LAMBDA (GRAPH.WINDOW)                                    (* \; "Edited 21-Feb-2025 23:55 by rmk")
+                                                             (* \; "Edited 29-Sep-87 15:04 by fsg")
+
+(* |;;;| "Clean up a few things when user CLOSEs the NGroup menu graph window.")
+
+    (CL:UNLESS (WINDOWPROP GRAPH.WINDOW 'PROGRAM.CLOSE)
+        (LET ((FMWINDOW (TMAXPROP (WINDOWPROP GRAPH.WINDOW 'TSTREAM)
+                               'IMAGEOBJ.MENUW)))
+             (FM.CHANGESTATE (FM.GETITEM 'NGROUP.MENU NIL FMWINDOW)
+                    NIL FMWINDOW)
+             (FREEATTACHEDWINDOW GRAPH.WINDOW)))))
+
+(ADD.NGROUP.TO.MOTHER.NODE
+  (LAMBDA (ID MOTHERID TSTREAM)                             (* \; "Edited 20-Feb-2025 23:20 by rmk")
+                                                             (* |ss:| " 3-Apr-86 17:50")
+    (LET* ((MOTHER.NODE (FIND.NODE MOTHERID TSTREAM))
+           (TONODES (|fetch| (GRAPHNODE TONODES) |of| MOTHER.NODE)))
+          (OR (MEMBER ID TONODES)
+              (|replace| (GRAPHNODE TONODES) |of| MOTHER.NODE |with| (CONS ID TONODES))))))
+
+(ADD.NODE.TO.GRAPH
+  (LAMBDA (NODE GRAPH TSTREAM)                              (* \; "Edited 21-Feb-2025 00:36 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:57")
+    (LET* ((PARENT.NODE (FIND.NODE (CAR (|fetch| (GRAPHNODE FROMNODES) |of| NODE))
+                               TSTREAM))
+           (TONODES (|fetch| (GRAPHNODE TONODES) |of| NODE)))
+          (OR (MEMBER (|fetch| (GRAPHNODE NODEID) |of| NODE)
+                     TONODES)
+              (PROGN (|replace| (GRAPHNODE TONODES) |of| PARENT.NODE
+                        |with| (CONS (|fetch| (GRAPHNODE NODEID) |of| NODE)
+                                     (|fetch| (GRAPHNODE TONODES) |of| PARENT.NODE)))
+                     (|replace| (GRAPH GRAPHNODES) |of| GRAPH |with| (CONS NODE (|fetch| (GRAPH
+                                                                                          GRAPHNODES)
+                                                                                   |of| GRAPH)))))
+          (LAYOUTGRAPH (|fetch| (GRAPH GRAPHNODES) |of| GRAPH)
+                 '(NEW.NGROUP)))))
+
+(collect.hasharray
+  (lambda (harray)                                           (* |ss:| "27-Jun-87 16:03")
+    (let ((result nil))
+         (maphash harray (function (lambda (val ky)
+                                     (setq result (cons val result)))))
+         result)))
+
+(CREATE.NGROUP.NODE
+  (LAMBDA (ID MOTHER USERDATA TSTREAM)                      (* \; "Edited 28-Feb-2025 09:21 by rmk")
+                                                            (* \; "Edited 20-Feb-2025 23:19 by rmk")
+                                                             (* |fsg| "22-Jun-87 13:27")
+    (LET* ((NGROUP.HARRAY (TSP.GET.NGROUP.ARRAY TSTREAM))
+           (NODE (GETHASH ID NGROUP.HARRAY)))
+          (CL:UNLESS NODE
+              (PUTHASH ID (LIST USERDATA (SELECTQ ID
+                                             (NEW.NGROUP (NGROUP.MAKE.ROOTNODE))
+                                             (SETQ NODE (NODECREATE ID ID NIL NIL (LIST MOTHER)))))
+                     NGROUP.HARRAY))
+          (CL:WHEN (AND NODE (NULL (CAR NODE)))
+                 (RPLACA NODE USERDATA)))))
+
+(GET.FROMNODES
+  (LAMBDA (NGID TSTREAM)                                    (* \; "Edited 21-Feb-2025 00:23 by rmk")
+                                                             (* |ss:| " 3-Apr-86 16:00")
+    (CAR (|fetch| (GRAPHNODE FROMNODES) |of| (FIND.NODE NGID TSTREAM)))))
+
+(get.tonodes
+  (lambda (ngid window)                                      (* |fsg| "28-Jul-87 10:54")
+          (* * i\f ngid |has| |only| |one| |child| |then| |return| |that| |child's| 
+          |name| |as| |an| |atom.| |Else| |return| |the| |list| |of| |NGID's| |children.|)
+
+          (* * a\s |of| |the| |date| |above,| |this| |function| |is| not |called.|)
+
+    (let ((tonodes (|fetch| (graphnode tonodes) |of| (find.node ngid window))))
+         (cond
+            ((cdr tonodes)
+             (reverse tonodes))
+            (t (car tonodes))))))
+
+(FIND.NODE
+  (LAMBDA (NGID TSTREAM)                                    (* \; "Edited 20-Feb-2025 23:20 by rmk")
+                                                             (* |fsg| " 4-Mar-87 10:22")
+    (CADR (GETHASH NGID (TSP.GET.NGROUP.ARRAY TSTREAM)))))
+
+(TSP.GET.NGROUP.ARRAY
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:21")
+    (TMAXPROP TSTREAM 'TSP.NGROUP.ARRAY)))
+
+(tsp.legalid
+  (lambda (prev.ngroups stream)                              (* |fsg| " 3-Aug-87 17:04")
+          (* * |Get| \a |new| |NGroup| id |and| |make| |sure| |it's| |not| |already| 
+          |defined.|)
+
+    (let ((ngroup.id (mkatom (tedit.getinput stream "Group name:"))))
+         (|while| (member ngroup.id prev.ngroups)
+            |do| (setq ngroup.id (mkatom (tedit.getinput stream (concat ngroup.id
+                                                                       (cond
+                                                                          ((eq ngroup.id 'new.ngroup)
+                                                                           
+                                                                  " is a reserved name...Group name:"
+                                                                           )
+                                                                          (t 
+                                                                      " already exists...Group name:"
+                                                                             )))))))
+         ngroup.id)))
+
+(LIST.ANCESTORS
+  (LAMBDA (NID ANCESTORS TSTREAM)                           (* \; "Edited 21-Feb-2025 00:23 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:09")
+
+(* |;;;| "Return a list of the parents of the given node.")
+
+    (LET ((MOTHER (GET.FROMNODES NID TSTREAM)))
+         (COND
+            ((AND MOTHER (NEQ MOTHER 'NEW.NGROUP))
+             (LIST.ANCESTORS MOTHER (CONS MOTHER ANCESTORS)
+                    TSTREAM))
+            (T ANCESTORS)))))
+
+(TOPLEVEL.SISTERS
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 00:52 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:21")
+
+(* |;;;| "Returns a list of the top level NGroup nodes.  A top level node is a node whose mother is NEW.NGROUP.")
+
+    (REVERSE (|fetch| (GRAPHNODE TONODES) |of| (FIND.NODE 'NEW.NGROUP TSTREAM)))))
+
+(GET.NGROUP.MOTHER
+  (LAMBDA (NGID TSTREAM)                                    (* \; "Edited 21-Feb-2025 00:53 by rmk")
+                                                             (* |fsg| " 4-Mar-87 11:24")
+
+(* |;;;| "Return the top level mother of a branch of the Ngroup tree.")
+
+    (LET ((ANCESTORS (LIST.ANCESTORS NGID NIL TSTREAM)))
+         (COND
+            (ANCESTORS (CAR ANCESTORS))
+            (T (COND
+                  ((FIND.NODE NGID TSTREAM)
+                   NGID)
+                  (T NIL)))))))
+)
+
+
+
+(* |;;;| "Number counting functions")
+
+(DEFINEQ
+
+(DOWNDATE.NUMBEROBJS
+  (LAMBDA (TSTREAM OBJSELECTFN)                             (* \; "Edited 25-Feb-2025 14:40 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:47 by rmk")
+                                                             (* |fsg| "25-Sep-87 09:45")
+
+(* |;;;| "Undoes what UPDATE.NUMBEROBJS does.")
+
+    (LET ((NBROBJ.LIST (TSP.LIST.OF.OBJECTS TSTREAM OBJSELECTFN)))
+         (CL:WHEN NBROBJ.LIST
+             (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Undoing Update of " (SELECTQ OBJSELECTFN
+                                                                         (NGROUPP "Number Groups")
+                                                                         (ENDNOTEP "Endnotes")
+                                                                         "Number Groups and Endnotes"
+                                                                      )
+                                               "...")
+                    T)
+             (|for| NBROBJ |in| NBROBJ.LIST
+                |do| 
+                     (* |;;| "CAR because of TSP.LIST.OF.OBJECTS returns (obj ch#)")
+
+                     (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| (CAR NBROBJ))
+                            (SETQ PAGE.NUMBER NIL)
+                            (CL:WHEN UPDATED.OBJ
+                                (SETQ UPDATED.OBJ NIL)
+                                (|replace| (NGTEMPLATE NG.CURRENTVAL) |of| TEMPLATE |with| NIL)
+                                (SETQ NUMSTRING (SELECTQ USE
+                                                    (NGROUP (CONCAT "[" REF.TYPE "]"))
+                                                    (NOTE "[Note#]")
+                                                    NIL))
+                                (TEDIT.OBJECT.CHANGED TSTREAM (CAR NBROBJ)))))
+             (TEDIT.PROMPTPRINT TSTREAM "done")))))
+
+(UPDATE.NUMBEROBJS
+  (LAMBDA (TSTREAM OBJSELECTFN)                             (* \; "Edited 25-Feb-2025 14:38 by rmk")
+                                                            (* \; "Edited 23-Feb-2025 22:58 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:27 by rmk")
+                                                             (* |fsg| "25-Sep-87 09:34")
+
+(* |;;;| 
+"Convert the NGroup and Endnote markers to their corresponding numeric and display-string values.")
+
+    (LET ((NBROBJ.LIST (TSP.LIST.OF.OBJECTS TSTREAM OBJSELECTFN)))
+         (CL:WHEN NBROBJ.LIST
+             (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Updating " (SELECTQ OBJSELECTFN
+                                                                (NGROUPP "Number Groups")
+                                                                (ENDNOTEP "Endnotes")
+                                                                "Number Groups and Endnotes")
+                                               "...")
+                    T)
+             (|for| NBROBJ NEW.COUNT DATUM |in| NBROBJ.LIST
+                |do| (SETQ DATUM (|fetch| OBJECTDATUM |of| NBROBJ))
+                     (|with| NUMBEROBJ DATUM (RESET.DEPENDENT.CLASSES TSTREAM USE REF.TYPE)
+                            (SETQ NEW.COUNT (GET.NCOUNTER TSTREAM USE REF.TYPE NGROUP.MOTHER TEMPLATE
+                                                   DATUM))
+                            (CL:WHEN (NUMBER.NUMSTRING DATUM NEW.COUNT)
+                                (SETQ UPDATED.OBJ T)
+                                (TEDIT.OBJECT.CHANGED TSTREAM NBROBJ))))
+             (REMOVE.ALL.COUNTERS TSTREAM)
+             (TEDIT.PROMPTPRINT TSTREAM "done")))))
+
+(RESET.DEPENDENT.CLASSES
+  (LAMBDA (TSTREAM USE REF.TYPE)                            (* \; "Edited 26-Feb-2025 18:19 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:24 by rmk")
+                                                             (* |fsg| "12-Dec-86 10:50")
+    (|for| DEPENDENT |in| (|fetch| (GRAPHNODE TONODES) |of| (FIND.NODE REF.TYPE TSTREAM))
+       |do| (RESET.NCOUNTER TSTREAM USE DEPENDENT)
+            (RESET.DEPENDENT.CLASSES TSTREAM USE DEPENDENT))))
+
+(RESET.NCOUNTER
+  (LAMBDA (TSTREAM USE REF.TYPE)                            (* \; "Edited 21-Feb-2025 00:38 by rmk")
+                                                             (* |fsg| "12-Dec-86 11:07")
+    (LET* ((TEMPLATE (SELECTQ USE
+                         (NGROUP (|fetch| (NUMBEROBJ TEMPLATE) |of| (CAR (GETHASH REF.TYPE
+                                                                                (TSP.GET.NGROUP.ARRAY
+                                                                                 TSTREAM)))))
+                         NIL))
+           (COUNTER (NCOUNTER? TSTREAM USE REF.TYPE TEMPLATE)))
+          (|replace| NCOUNT |of| COUNTER |with| (COND
+                                                   (TEMPLATE (SUB1 (|fetch| NG.START |of| TEMPLATE)))
+                                                   (T 0))))))
+
+(GET.NCOUNTER
+  (LAMBDA (TSTREAM USE REF.TYPE MOTHER.CLASS TEMPLATE NBR.DATUM)
+                                                            (* \; "Edited 26-Feb-2025 18:29 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 00:17 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:25 by rmk")
+                                                             (* |fsg| "11-Aug-87 15:26")
+    (LET ((COUNTER (NCOUNTER? TSTREAM USE REF.TYPE TEMPLATE)))
+         (CL:WHEN COUNTER
+             (|add| (|fetch| (NGCOUNTER NCOUNT) |of| COUNTER)
+                    1)
+             (CL:WHEN (AND (EQ USE 'NGROUP)
+                           TEMPLATE)
+                 (|replace| (NGTEMPLATE NG.CURRENTVAL) |of| TEMPLATE |with| (|fetch| (NGCOUNTER
+                                                                                      NCOUNT)
+                                                                               |of| COUNTER)))
+             (CL:IF MOTHER.CLASS
+                 (FLATTEN.TREE.TO.STRING TSTREAM USE REF.TYPE NBR.DATUM)
+                 (MKSTRING (|fetch| NCOUNT |of| COUNTER)))))))
+
+(NCOUNTER?
+  (LAMBDA (TSTREAM USE REF.TYPE TEMPLATE)                   (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| "14-Jul-87 14:10")
+
+(* |;;;| "Return the record for this number counter.  If the record doesn't exist, we create one based on the USE value.")
+
+    (LET ((COUNTER.ID (MKATOM (CONCAT (SELECTQ USE
+                                          (NGROUP (CONCAT "NGROUP." REF.TYPE "."))
+                                          (NOTE "ENDNOTE.")
+                                          (ERROR "Unknown NUMBER type" USE))
+                                     "COUNTER"))))
+         (OR (TMAXPROP TSTREAM COUNTER.ID)
+             (PROGN (TMAXPROP TSTREAM COUNTER.ID (|create| NGCOUNTER
+                                                        NCOUNT _ (COND
+                                                                    ((AND (EQ USE 'NGROUP)
+                                                                          TEMPLATE)
+                                                                     (SUB1 (|fetch| NG.START
+                                                                              |of| TEMPLATE)))
+                                                                    (T 0))
+                                                        ANCESTRY _
+                                                        (SELECTQ USE
+                                                            (NGROUP (LIST.ANCESTORS REF.TYPE NIL 
+                                                                           TSTREAM))
+                                                            NIL)))
+                    (STREAMADDPROP TSTREAM 'COUNTERS COUNTER.ID)
+                    (TMAXPROP TSTREAM COUNTER.ID))))))
+
+(FLATTEN.TREE.TO.STRING
+  (LAMBDA (TSTREAM USE REF.TYPE NBR.DATUM)                  (* \; "Edited 25-Feb-2025 00:20 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:39 by rmk")
+                                                             (* |fsg| " 5-Aug-87 14:12")
+    (LET* ((NGROUP.COUNTER (NCOUNTER? TSTREAM USE REF.TYPE))
+           (NGROUP.LIST (APPEND (|fetch| (NGCOUNTER ANCESTRY) |of| NGROUP.COUNTER)))
+           (ABBREVVAL (|with| NUMBEROBJ NBR.DATUM (AND ABBREV-VAL (LIST.ANCESTORS ABBREV-VAL NIL 
+                                                                         TSTREAM))))
+           (FLAT.TREE "")
+           ANCESTOR)
+          (CL:WHEN NGROUP.LIST
+              (|while| (SETQ ANCESTOR (|pop| NGROUP.LIST)) |unless| (AND ABBREVVAL (MEMB ANCESTOR 
+                                                                                         ABBREVVAL))
+                 |do| (SETQ FLAT.TREE (CONCAT FLAT.TREE (NGROUP.CHARTYPE TSTREAM ANCESTOR
+                                                               (|fetch| (NGCOUNTER NCOUNT)
+                                                                  |of| (NCOUNTER? TSTREAM USE 
+                                                                              ANCESTOR))
+                                                               (OR (CAR NGROUP.LIST)
+                                                                   REF.TYPE))))))
+          (SETQ FLAT.TREE (CONCAT FLAT.TREE (NGROUP.CHARTYPE TSTREAM REF.TYPE (|fetch| (NGCOUNTER
+                                                                                        NCOUNT)
+                                                                                 |of| NGROUP.COUNTER)
+                                                   NIL))))))
+
+(NGROUP.CHARTYPE
+  (LAMBDA (TSTREAM REF.TYPE NCOUNT NEXT.NGROUP)             (* \; "Edited 26-Feb-2025 14:54 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:39 by rmk")
+                                                             (* |fsg| "11-Aug-87 15:23")
+
+(* |;;;| "Convert the number NCOUNT to the format specified in TEMPLATE.  DELIMITFLG is the next NGroup's preceding delimiter or NIL if either the next NGroup has no preceding delimiter or there is no next NGroup.")
+
+    (LET ((TEMPLATE (|fetch| (NUMBEROBJ TEMPLATE) |of| (CAR (GETHASH REF.TYPE (TSP.GET.NGROUP.ARRAY
+                                                                               TSTREAM)))))
+          (DELIMITFLG (AND NEXT.NGROUP (|fetch| (NGTEMPLATE NG.DELIMBEFORE)
+                                          |of| (|fetch| (NUMBEROBJ TEMPLATE)
+                                                  |of| (CAR (GETHASH NEXT.NGROUP (
+                                                                                 TSP.GET.NGROUP.ARRAY
+                                                                                  TSTREAM))))))))
+         (CONCAT (OR (|fetch| (NGTEMPLATE NG.DELIMBEFORE) |of| TEMPLATE)
+                     "")
+                (NGROUP.CHARTYPE.CONVERT TEMPLATE NCOUNT)
+                (CL:IF DELIMITFLG
+                    ""
+                    (OR (|fetch| (NGTEMPLATE NG.DELIMAFTER) |of| TEMPLATE)
+                        ""))))))
+
+(NGROUP.CHARTYPE.CONVERT
+  (LAMBDA (TEMPLATE NCOUNT)                                 (* \; "Edited 28-Feb-2025 23:51 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 22:44 by rmk")
+                                                             (* |fsg| "28-Jul-87 11:12")
+    (CL:UNLESS (FIX NCOUNT)
+           (ERROR "Invalid integer" NCOUNT))
+    (LET ((CHARTYPE (|fetch| (NGTEMPLATE NG.CHARTYPE) |of| TEMPLATE)))
+         (CL:UNLESS (OR (IGEQ NCOUNT 1)
+                        (MEMB CHARTYPE '(|Number| |Null String|)))
+                (ERROR "Invalid integer" NCOUNT))
+         (|if| (OR (IGEQ NCOUNT 1)
+                   (MEMB CHARTYPE '(|Number| |Null String|)))
+             |then| "Number out of order?"
+           |else| (SELECTQ CHARTYPE
+                      (UPPERCASE\ LETTER 
+                           (NUMBER.TO.LETTER NCOUNT T))
+                      (|lowercase letter| 
+                           (NUMBER.TO.LETTER NCOUNT))
+                      (UPPERCASE\ ROMAN 
+                           (ROMANNUMERALS NCOUNT T))
+                      (|lowercase roman| 
+                           (ROMANNUMERALS NCOUNT))
+                      (|Null String| "")
+                      (|Number| (MKSTRING NCOUNT))
+                      (ERROR "Unknown display type" CHARTYPE))))))
+
+(number.to.letter
+  (lambda (number ucflg)                                     (* |fsg| " 5-Dec-86 10:18")
+          (* * |Convert| number |to| |equivalent| |letter| |code.|)
+
+    (let ((ltrlst (mkstring (character (iplus (charcode a)
+                                              (iremainder (sub1 number)
+                                                     26)))))
+          (ltrnbr (iquotient (sub1 number)
+                         26)))
+         (|until| (zerop ltrnbr) |do| (setq ltrlst (concat (character (sub1 (iplus (charcode a)
+                                                                                   (iremainder ltrnbr 
+                                                                                          26))))
+                                                          ltrlst))
+                                      (setq ltrnbr (iquotient ltrnbr 26)))
+         (cond
+            (ucflg (u-case ltrlst))
+            (t (l-case ltrlst))))))
+
+(REMOVE.ALL.COUNTERS
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "30-Sep-85 09:38")
+    (|for| COUNTER |in| (TMAXPROP TSTREAM 'COUNTERS) |do| (TMAXPROP TSTREAM COUNTER NIL)
+       |finally| (TMAXPROP TSTREAM 'COUNTERS NIL))))
+)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (1692 12881 (GRAPHMENU 1702 . 2983) (INITIAL.NGROUP.GRAPH 2985 . 3763) (
+NGROUP.MAKE.ROOTNODE 3765 . 3986) (TSPGRAPHREGION 3988 . 4639) (CLOSE.NGROUP.GRAPH 4641 . 5245) (
+NGROUP.GRAPH.CLOSEFN 5247 . 5904) (ADD.NGROUP.TO.MOTHER.NODE 5906 . 6411) (ADD.NODE.TO.GRAPH 6413 . 
+7624) (COLLECT.HASHARRAY 7626 . 7912) (CREATE.NGROUP.NODE 7914 . 8749) (GET.FROMNODES 8751 . 9057) (
+GET.TONODES 9059 . 9646) (FIND.NODE 9648 . 9927) (TSP.GET.NGROUP.ARRAY 9929 . 10199) (TSP.LEGALID 
+10201 . 11362) (LIST.ANCESTORS 11364 . 11893) (TOPLEVEL.SISTERS 11895 . 12333) (GET.NGROUP.MOTHER 
+12335 . 12879)) (12928 27456 (DOWNDATE.NUMBEROBJS 12938 . 14887) (UPDATE.NUMBEROBJS 14889 . 16686) (
+RESET.DEPENDENT.CLASSES 16688 . 17263) (RESET.NCOUNTER 17265 . 18156) (GET.NCOUNTER 18158 . 19417) (
+NCOUNTER? 19419 . 21229) (FLATTEN.TREE.TO.STRING 21231 . 23129) (NGROUP.CHARTYPE 23131 . 24689) (
+NGROUP.CHARTYPE.CONVERT 24691 . 26076) (NUMBER.TO.LETTER 26078 . 27068) (REMOVE.ALL.COUNTERS 27070 . 
+27454)))))
+STOP

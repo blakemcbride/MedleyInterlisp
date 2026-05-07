@@ -1,0 +1,532 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "15-Jan-2026 11:08:15" {WMEDLEY}<library>tedit>TEDIT-HCPY.;196 32421  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS TEDIT.IMAGEFILE.MESSAGE TEDIT.FORMAT.HARDCOPY)
+
+      :PREVIOUS-DATE "24-Dec-2025 11:16:22" {WMEDLEY}<library>tedit>TEDIT-HCPY.;194)
+
+
+(PRETTYCOMPRINT TEDIT-HCPYCOMS)
+
+(RPAQQ TEDIT-HCPYCOMS
+       ((COMS 
+              (* ;; "Generic interface functions and common code")
+
+              (FNS TEDIT.HARDCOPY TEDIT.FORMAT.HARDCOPY TEDIT.IMAGEFILE.MESSAGE \TEDIT.PRINT.MENU 
+                   \TEDIT.HARDCOPY.DISPLAYLINE \TEDIT.HARDCOPY.FORMATLINE.HEADINGS 
+                   \TEDIT.HARDCOPY.MODIFYLOOKS \TEDIT.HCPYFMTSPEC \TEDIT.INTEGER.IMAGEBOX 
+                   \TEDIT.DISPLAY.DIACRITIC))
+        (COMS 
+              (* ;; "Functions for scaling regions as needed during hardcopy.")
+
+              (FNS \TEDIT.SCALEREGION))
+        [COMS                                                (* ; 
+                                                             "0.75 inches from bottom, 1 from top")
+              (INITVARS (TEDIT.DEFAULTPAGEREGION (\TEDIT.SCALEREGION MICASPERINCH
+                                                        (CREATEREGION 1.1 0.75 6.4 9.25]
+        (COMS 
+              (* ;; "Support for the window-menu's HARDCOPY button, LISTFILES, etc.  Eliminated postscript, but this still may be screwy")
+
+              (FNS \TEDIT.HARDCOPYFILEFN))
+        [COMS 
+              (* ;; "vars for Japanese Line Break")
+
+              (INITVARS (TEDIT.DONT.BREAK.CHARS (CHARCODE ("41,42" "41,43" "41,53" "41,54" "41,74" 
+                                                                 "41,115" "41,133" "41,131" "41,127"
+                                                                 "Hira,41" "Hira,43" "Hira,45" 
+                                                                 "Hira,47" "Hira,51" "Hira,103" 
+                                                                 "Hira,143" "Hira,145" "Hira,147" 
+                                                                 "Hira,156" "Kata,41" "Kata,43" 
+                                                                 "Kata,45" "Kata,47" "Kata,51" 
+                                                                 "Kata,103" "Kata,143" "Kata,145" 
+                                                                 "Kata,147" "Kata,156")))
+                     (TEDIT.DONT.LAST.CHARS (CHARCODE ("41,114" "41,132" "41,130" "41,126"]
+        (COMS 
+              (* ;; "Support for hardcopying several files as one document")
+
+              (FNS TEDIT-BOOK))))
+
+
+
+(* ;; "Generic interface functions and common code")
+
+(DEFINEQ
+
+(TEDIT.HARDCOPY
+  [LAMBDA (STREAM FILE DONTSEND BREAKPAGETITLE SERVER PRINTOPTIONS)
+                                                             (* ; "Edited 17-Dec-2025 01:06 by rmk")
+                                                             (* ; "Edited  6-Mar-2024 23:33 by rmk")
+                                                             (* ; "Edited  5-Jan-88 16:09 by jds")
+
+    (* ;; "Send the text to a printer, unless DONTSEND.   If DONTSEND and we can't find a server, we'll get the DEFAULTPRINTERTYPE.")
+
+    (CL:UNLESS SERVER
+        (SETQ SERVER (CAR (DEFAULTPRINTERS))))
+    (COND
+       [(OR SERVER DONTSEND)
+        (for IMAGETYPE in (PRINTERPROP (PRINTERTYPE SERVER)
+                                 'CANPRINT)
+           do (RETURN (TEDIT.FORMAT.HARDCOPY STREAM FILE DONTSEND BREAKPAGETITLE SERVER PRINTOPTIONS
+                             IMAGETYPE)) finally (ERROR (CONCAT "Can't print TEDIT documents on a "
+                                                               (PRINTERTYPE SERVER)
+                                                               " printer."]
+       (T (TEDIT.PROMPTPRINT (TEXTOBJ STREAM)
+                 "Can't HARDCOPY:  No print server specified." T])
+
+(TEDIT.FORMAT.HARDCOPY
+  [LAMBDA (TSTREAM IMAGESTREAM DONTSEND BREAKPAGETITLE SERVER PRINTOPTIONS IMAGETYPE FIRSTPG# STARTPG
+                 ENDPG QUIET)                                (* ; "Edited 15-Jan-2026 08:52 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 17:40 by rmk")
+                                                             (* ; "Edited  8-Dec-2025 18:08 by rmk")
+                                                             (* ; "Edited  7-Dec-2025 15:06 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 22:04 by rmk")
+                                                             (* ; "Edited 18-Sep-2025 10:11 by rmk")
+                                                             (* ; "Edited 12-Sep-2025 23:54 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 08:24 by rmk")
+                                                             (* ; "Edited 22-Apr-2025 08:12 by rmk")
+                                                             (* ; "Edited 30-Aug-2024 15:45 by rmk")
+                                                             (* ; "Edited  5-Apr-2024 08:01 by rmk")
+                                                             (* ; "Edited 19-Jan-2024 23:39 by rmk")
+                                                             (* ; "Edited 15-Nov-2023 23:56 by rmk")
+                                                             (* ; "Edited  4-Jul-2023 11:16 by rmk")
+                                                             (* ; "Edited  2-Oct-2022 00:00 by rmk")
+                                                             (* ; 
+                                                        "Edited 25-May-93 13:06 by sybalsky:mv:envos")
+
+    (* ;; "Format a document for hardcopy.   Returns NIL if the before-print-fn said not to print.")
+
+    (* ;; "TEXTSTREAM is either already a textstream or somehow denotes a tedit-formatted file, otherwise an error. We don't here try to decide that a non-formatted file is a plain text file, as opposed binary or anything else.")
+
+    (RESETLST
+        (TEDIT.PROMPTCLEAR TSTREAM)
+        (LET [(IMAGEFILE (TEDIT.TO.IMAGEFILE TSTREAM IMAGESTREAM (OR IMAGETYPE DEFAULTPRINTERTYPE)
+                                `(,@PRINTOPTIONS FIRSTPG# ,FIRSTPG# STARTPG ,STARTPG ENDPG
+                                        ,ENDPG DOCUMENT.NAME ,BREAKPAGETITLE]
+             (CL:UNLESS (OR DONTSEND (EQ IMAGEFILE IMAGESTREAM))
+
+                 (* ;; "If the caller gave us an already open image  stream, not just a filename (or NIL), we assume that the caller will close it and send to the printer, if necessary.")
+
+                 (SEND.FILE.TO.PRINTER IMAGEFILE SERVER `(DOCUMENT.NAME ,BREAKPAGETITLE 
+                                                                ,@PRINTOPTIONS DOCUMENT.NAME 
+                                                                "TEdit Hardcopy Output")))
+             (CL:UNLESS QUIET (TEDIT.IMAGEFILE.MESSAGE TSTREAM SERVER))
+             IMAGEFILE))])
+
+(TEDIT.IMAGEFILE.MESSAGE
+  [LAMBDA (TSTREAM SERVER)                                   (* ; "Edited 15-Jan-2026 11:07 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 17:40 by rmk")
+
+    (* ;; "Description of last imagefile goes in promptwindow")
+
+    (LET* [(LASTIMAGEFILE (GETTEXTPROP TSTREAM 'LASTIMAGEFILE))
+           (NPAGES (pop LASTIMAGEFILE))
+           (IMAGEFILE (pop LASTIMAGEFILE))
+           (PRINTERNAME (OR (pop LASTIMAGEFILE)
+                            (CL:IF (LISTP SERVER)
+                                (CADR SERVER)
+                                SERVER)]
+          (TEDIT.PROMPTPRINT TSTREAM [CONCAT NPAGES " page" (CL:IF (EQ 1 NPAGES)
+                                                                ""
+                                                                "s")
+                                            (if PRINTERNAME
+                                                then (CONCAT " printed on " PRINTERNAME)
+                                              elseif (STREAMP IMAGEFILE)
+                                                then " printed"
+                                              else (CONCAT " on " (PSEUDOFILENAME IMAGEFILE]
+                 T])
+
+(\TEDIT.PRINT.MENU
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 17-Dec-2025 00:09 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 17:38 by rmk")
+                                                             (* ; "Edited 13-Dec-2025 08:35 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 07:43 by rmk")
+                                                             (* ; "Edited 28-Jun-2024 22:09 by rmk")
+                                                             (* ; "Edited 25-Jun-2023 13:16 by rmk")
+    (SETQ TSTREAM (TEXTSTREAM (GETTOBJ (TEXTOBJ TSTREAM)
+                                     PRIMARYPANE)))
+    (TEDIT.PROMPTCLEAR TSTREAM)                              (* ; "Edited  6-Jun-2023 17:48 by rmk")
+    (LET (FILE&TYPE)
+         (SELECTQ [MENU (create MENU
+                               ITEMS _ '(("Print to a file" 'FILE 
+                                              "Puts image on a file; prompts for filename and format"
+                                                )
+                                         ("Send to a printer" 'PRINTER 
+                                                "Sends image to a printer of your choosing"]
+             (FILE [LET [(FILENAME (GETTEXTPROP TSTREAM 'FILENAME]
+                        (CL:WHEN FILENAME
+                            (SETQ FILENAME (PACKFILENAME
+                                            'VERSION NIL 'EXTENSION
+                                            [L-CASE (CAR (EXTENSIONS.FOR.IMAGEFILETYPE
+                                                          (CAR (PRINTERPROP (PRINTERTYPE 
+                                                                                   :DEFAULTPRINTER)
+                                                                      'CANPRINT]
+                                            'BODY FILENAME)))
+                        (CL:WHEN (SETQ FILE&TYPE (GetImageFile FILENAME))
+                            (TEDIT.TO.IMAGEFILE TSTREAM (CAR FILE&TYPE)
+                                   (CDR FILE&TYPE)))])
+             (PRINTER [SEND.FILE.TO.PRINTER TSTREAM (GetPrinterName)
+                             `(HEADING ,(GETTEXTPROP TSTREAM 'FILENAME])
+             NIL)
+         (TEDIT.IMAGEFILE.MESSAGE TSTREAM])
+
+(\TEDIT.HARDCOPY.DISPLAYLINE
+  [LAMBDA (TSTREAM LINE REGION PRSTREAM FORMATTINGSTATE)     (* ; "Edited 21-Apr-2025 19:02 by rmk")
+                                                             (* ; "Edited 17-Apr-2025 13:35 by rmk")
+                                                             (* ; "Edited 15-Apr-2025 15:19 by rmk")
+                                                             (* ; "Edited 11-Apr-2025 17:30 by rmk")
+                                                             (* ; "Edited 19-Feb-2025 13:34 by rmk")
+                                                             (* ; "Edited  8-Feb-2025 23:39 by rmk")
+                                                             (* ; "Edited 13-Dec-2024 23:49 by rmk")
+                                                             (* ; "Edited 13-Jun-2024 17:13 by rmk")
+                                                             (* ; "Edited 19-Apr-2024 09:09 by rmk")
+                                                             (* ; "Edited 20-Mar-2024 11:04 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 19:23 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 22:07 by rmk")
+                                                             (* ; "Edited  2-Dec-2023 11:17 by rmk")
+                                                             (* ; "Edited 28-Oct-2023 23:52 by rmk")
+                                                             (* ; "Edited  6-May-2023 20:03 by rmk")
+                                                             (* ; "Edited  7-Mar-2023 23:10 by rmk")
+                                                             (* ; "Edited 29-Mar-94 13:44 by jds")
+
+    (* ;; "Display LINE on the HARDCOPY file under way. Original FORM-terminated lines end with EOL.")
+
+    (* ;; "If possible, use the information cached in THISLINE")
+
+    (LINEDESCRIPTOR! LINE)
+
+    (* ;; "Only display the line if it appears before the end of the text!")
+
+    (PROG* ((TEXTOBJ (FTEXTOBJ TSTREAM))
+            (THISLINE (FGETTOBJ TEXTOBJ THISLINE)))
+           (CL:WHEN (IGREATERP (FGETLD LINE LCHAR1 LINE)
+                           (FGETTOBJ TEXTOBJ TEXTLEN))
+                  (RETURN NIL))
+           (CL:UNLESS (EQ LINE (fetch DESC of THISLINE))
+               (\TEDIT.FORMATLINE TSTREAM (FGETLD LINE LCHAR1)
+                      LINE REGION PRSTREAM FORMATTINGSTATE))
+
+     (* ;; "Use the characters cached in THISLINE.")
+
+           (for CHARSLOT OLDCLOOKS CURY LOOKSTARTX SCALESPACES OLDCOLOR (SPACEFACTOR
+                                                                         _
+                                                                         (fetch (THISLINE 
+                                                                                       TLSPACEFACTOR)
+                                                                            of THISLINE))
+                (FIRST-SCALEDSPACE-SLOT _ (ffetch (THISLINE TLFIRSTSPACE) of THISLINE))
+                (SCALE _ (DSPSCALE NIL PRSTREAM))
+                (TX _ (FGETLD LINE LX1)) incharslots THISLINE first (DSPSPACEFACTOR 1 PRSTREAM)
+                                                                    (DSPXPOSITION TX PRSTREAM)
+              do 
+                 (* ;; 
+     "Display the line character by character.  CHAR, CHARW, and CHARCL are bound to CHARSLOT values")
+
+                 (* ;; "Underline/overline/strike the just-finished looks run")
+                                                             (* ; "DISPLAY ALSO PASES LINE DESCENT")
+                 (\TEDIT.HARDCOPY.MODIFYLOOKS LINE LOOKSTARTX TX OLDCLOOKS PRSTREAM)
+                 (DSPFONT (FGETCLOOKS CHARCL CLFONT)
+                        PRSTREAM)
+                 (CL:UNLESS (EQ OLDCOLOR (SETQ OLDCOLOR (FGETCLOOKS CHARCL CLCOLOR)))
+                        (DSPCOLOR OLDCOLOR PRSTREAM))
+                 [SETQ CURY (COND
+                               [(AND (FGETCLOOKS CHARCL CLOFFSET)
+                                     (NEQ 0 (FGETCLOOKS CHARCL CLOFFSET)))
+                                (IPLUS (FGETLD LINE YBASE)
+                                       (HCSCALE SCALE (FGETCLOOKS CHARCL CLOFFSET]
+                               (T (FGETLD LINE YBASE]
+                 (DSPYPOSITION CURY PRSTREAM) 
+
+                 (* ;; "LOOKSTARTX: Starting X position for this CLOOKS.")
+
+                 (SETQ LOOKSTARTX TX)
+                 (SELCHARQ CHAR
+                      (SPACE (CL:WHEN (EQ CHARSLOT FIRST-SCALEDSPACE-SLOT)
+                                                             (* ; "Time to turn on space scaling.")
+                                 (DSPSPACEFACTOR SPACEFACTOR PRSTREAM)
+                                 (SETQ SCALESPACES T))
+                             (\OUTCHAR PRSTREAM (CHARCODE SPACE))
+                             (add TX (CL:IF SCALESPACES
+                                         (HCSCALE SPACEFACTOR CHARW)
+                                         CHARW)))
+                      ((TAB Meta,TAB)                        (* ; 
+                                                  "Dotted leaders are meta-TAB, or are DOTTEDLEADER.")
+                           (CL:WHEN (OR (EQ CHAR (CHARCODE Meta,TAB))
+                                        (FGETCLOOKS CHARCL CLLEADER)
+                                        (EQ (FGETCLOOKS CHARCL CLUSERINFO)
+                                            'DOTTEDLEADER))
+                               (LET* [(DOTWIDTH (CHARWIDTH (CHARCODE %.)
+                                                       (FONTCOPY (FGETCLOOKS CHARCL CLFONT)
+                                                              'DEVICE PRSTREAM)))
+                                      (TTX (IPLUS TX DOTWIDTH (IDIFFERENCE DOTWIDTH (IREMAINDER
+                                                                                     TX DOTWIDTH]
+                                     (DSPXPOSITION (IDIFFERENCE TTX DOTWIDTH)
+                                            PRSTREAM)        (* ; 
+                                              "Move over to the next even multiple of a dot's width.")
+                                     (while (ILEQ TTX (IPLUS TX CHARW))
+                                        do (\OUTCHAR PRSTREAM (CHARCODE %.))
+                                           (add TTX DOTWIDTH))))
+                           (add TX CHARW)
+                           (DSPXPOSITION TX PRSTREAM))
+                      ((EOL LF CR) 
+                           NIL)
+                      (PROGN (if (IMAGEOBJP CHAR)
+                                 then 
+                                      (* ;; "Go to the base line, left edge of the image region.")
+
+                                      (SETQ CURY (DSPYPOSITION NIL PRSTREAM))
+                                      (APPLY* (IMAGEOBJPROP CHAR 'DISPLAYFN)
+                                             CHAR PRSTREAM (IMAGESTREAMTYPE PRSTREAM)
+                                             TSTREAM)
+                                      (DSPFONT (FGETCLOOKS CHARCL CLFONT)
+                                             PRSTREAM)       (* ; 
+                                                 "Restore the font, move to after the object's image")
+                                      (MOVETO (IPLUS TX CHARW)
+                                             CURY PRSTREAM)
+                               elseif (DIACRITICP CHAR)
+                                 then 
+                                      (* ;; "Special placement for diacritics")
+
+                                      (SETQ CHARW (\TEDIT.DISPLAY.DIACRITIC CHARSLOT THISLINE 
+                                                         PRSTREAM))
+                               elseif (EQ 'KERN CHAR)
+                                 then (RELMOVETO 0 CHARW PRSTREAM)
+                               else (\OUTCHAR PRSTREAM CHAR))
+                             (add TX CHARW))) finally 
+
+                                                (* ;; "Do any last-minute underlining or similar looks fix-ups, and print a revision mark, if one is needed:")
+
+                                                    (\TEDIT.HARDCOPY.MODIFYLOOKS LINE LOOKSTARTX TX 
+                                                           CHARCL PRSTREAM)
+                                                    (CL:WHEN (GETPLOOKS (FGETLD LINE LPARALOOKS)
+                                                                    FMTREVISED)
+                                                             (* ; 
+                                                       "This paragraph has been revised, so mark it.")
+                                                        (\TEDIT.MARK.REVISION TEXTOBJ
+                                                               (FGETLD LINE LPARALOOKS)
+                                                               PRSTREAM LINE))])
+
+(\TEDIT.HARDCOPY.FORMATLINE.HEADINGS
+  [LAMBDA (TEXTOBJ TSTREAM LINE PARALOOKS CHNO IMAGESTREAM FORMATTINGSTATE)
+                                                             (* ; "Edited 19-Feb-2025 13:34 by rmk")
+                                                             (* ; "Edited  8-Feb-2025 21:13 by rmk")
+                                                             (* ; "Edited 26-Oct-2024 11:04 by rmk")
+                                                             (* ; "Edited 17-Mar-2024 17:22 by rmk")
+                                                             (* ; "Edited 19-Jan-2024 23:19 by rmk")
+                                                             (* ; "Edited  3-Oct-2022 13:05 by rmk")
+
+    (* ;; "Return setup LINE to skip a sequence of heading pieces STATE")
+
+    (SELECTQ (GETPLOOKS PARALOOKS FMTPARATYPE)
+        (PAGEHEADING 
+                     (* ;; "This paragraph is the content for a page heading. The pieces are stashed away in the FORMATTING STATE.")
+
+                     (\TEDIT.HARDCOPY.PAGEHEADING TEXTOBJ TSTREAM LINE PARALOOKS CHNO IMAGESTREAM 
+                            FORMATTINGSTATE)
+                     T)
+        (EVEN                                                (* ; "Skip an odd page.")
+              (CL:WHEN (ODDP (GETPFS FORMATTINGSTATE PAGE#))
+                  (\TEDIT.SKIP.SPECIALCOND TSTREAM LINE PARALOOKS CHNO)
+                  T))
+        (ODD                                                 (* ; "Skip an even page")
+             (CL:WHEN (EVENP (GETPFS FORMATTINGSTATE PAGE#))
+                 (\TEDIT.SKIP.SPECIALCOND TSTREAM LINE PARALOOKS CHNO)
+                 T))
+        NIL])
+
+(\TEDIT.HARDCOPY.MODIFYLOOKS
+  [LAMBDA (LINE STARTX CURX CLOOKS PRSTREAM)                 (* ; "Edited 11-Apr-2025 17:37 by rmk")
+                                                             (* ; "Edited 27-May-2023 12:16 by rmk")
+                                                             (* ; "Edited 30-May-91 21:17 by jds")
+
+    (* ;; "Do underlining, overlining, etc.  for hardcopy files")
+
+    (LINEDESCRIPTOR! LINE)
+    (CL:WHEN CLOOKS
+        (LET ((STREAMSCALE (DSPSCALE NIL PRSTREAM))
+              [RULEWIDTH (FIXR (FTIMES 0.75 (DSPSCALE NIL PRSTREAM]
+              (ONEPOINT (FIXR (DSPSCALE NIL PRSTREAM)))
+              (YBASE (FGETLD LINE YBASE))
+              YOFFSET)
+             (CL:WHEN (FGETCLOOKS CLOOKS CLULINE)            (* ; "Underlined")
+                 (DRAWLINE STARTX (IDIFFERENCE YBASE (FGETLD LINE LTRUEDESCENT LINE))
+                        CURX
+                        (IDIFFERENCE YBASE (FGETLD LINE LTRUEDESCENT LINE))
+                        RULEWIDTH
+                        'PAINT PRSTREAM))
+             (CL:WHEN (FGETCLOOKS CLOOKS CLOLINE)            (* ; "Over-line")
+                 (DRAWLINE STARTX (IPLUS YBASE (GETLD LINE LTRUEASCENT LINE))
+                        CURX
+                        (IPLUS YBASE (GETLD LINE LTRUEASCENT LINE))
+                        RULEWIDTH
+                        'PAINT PRSTREAM))
+             (CL:WHEN (FGETCLOOKS CLOOKS CLSTRIKE)           (* ; "Struch-thru")
+                 (DRAWLINE STARTX (SETQ YOFFSET
+                                   (IPLUS YBASE (IQUOTIENT [FIXR (FTIMES STREAMSCALE
+                                                                        (FONTPROP (fetch (CHARLOOKS
+                                                                                          CLFONT)
+                                                                                     of CLOOKS)
+                                                                               'ASCENT]
+                                                       3)))
+                        CURX YOFFSET RULEWIDTH 'PAINT PRSTREAM))
+             (MOVETO CURX YBASE PRSTREAM)))])
+
+(\TEDIT.HCPYFMTSPEC
+  [LAMBDA (DISPLAYFMT IMAGESTREAM)                           (* ; "Edited 19-Feb-2025 13:34 by rmk")
+                                                             (* ; "Edited  8-Feb-2025 22:36 by rmk")
+                                                             (* ; "Edited 28-Jul-2024 22:25 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 19:34 by rmk")
+                                                             (* ; "Edited  7-Mar-2023 21:03 by rmk")
+                                                             (* ; "Edited  6-Mar-2023 15:14 by rmk")
+                                                             (* ; "Edited 20-Oct-2022 22:35 by rmk")
+                                                             (* ; "Edited 29-Sep-2022 23:32 by rmk")
+                                                             (* ; "Edited 30-May-91 21:18 by jds")
+
+    (* ;; "Given a display-type PARALOOKS, create a hardcopy equivalent.  (Special positions are made paper-relative first.).  ")
+
+    (LET* ((SCALE (DSPSCALE NIL IMAGESTREAM)))
+          (create PARALOOKS using DISPLAYFMT FMTHARDCOPYSCALE _ SCALE 1STLEFTMAR _
+                                  (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT 1STLEFTMAR))
+                                  LEFTMAR _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT LEFTMAR))
+                                  RIGHTMAR _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT RIGHTMAR))
+                                  QUAD _ (FGETPLOOKS DISPLAYFMT QUAD DISPLAYFMT)
+                                  FMTDEFAULTTAB _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT FMTDEFAULTTAB
+                                                                        ))
+                                  FMTTABS _ (\TEDIT.SCALE.TABS (FGETPLOOKS DISPLAYFMT FMTTABS)
+                                                   SCALE)
+                                  FMTSPECIALX _ (AND (FGETPLOOKS DISPLAYFMT FMTSPECIALX)
+                                                     (HCSCALE SCALE (SCALEPAGEUNITS (FGETPLOOKS
+                                                                                     DISPLAYFMT 
+                                                                                     FMTSPECIALX)
+                                                                           1.0 NIL)))
+                                  FMTSPECIALY _ (AND (FGETPLOOKS DISPLAYFMT FMTSPECIALY)
+                                                     (HCSCALE SCALE (SCALEPAGEUNITS (FGETPLOOKS
+                                                                                     DISPLAYFMT 
+                                                                                     FMTSPECIALY)
+                                                                           1.0 NIL)))
+                                  LEADBEFORE _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT LEADBEFORE))
+                                  LEADAFTER _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT LEADAFTER))
+                                  LINELEAD _ (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT LINELEAD))
+                                  FMTBASETOBASE _ (AND (FGETPLOOKS DISPLAYFMT FMTBASETOBASE)
+                                                       (HCSCALE SCALE (FGETPLOOKS DISPLAYFMT 
+                                                                             FMTBASETOBASE])
+
+(\TEDIT.INTEGER.IMAGEBOX
+  [LAMBDA (OLDBOX)                                           (* jds "23-Oct-84 13:52")
+                                                             (* Take an IMAGEBOX, and assure that 
+                                                             its contents are integers)
+    (replace XKERN of OLDBOX with (FIXR (fetch XKERN of OLDBOX)))
+    (replace YDESC of OLDBOX with (FIXR (fetch YDESC of OLDBOX)))
+    (replace YSIZE of OLDBOX with (FIXR (fetch YSIZE of OLDBOX)))
+    (replace XSIZE of OLDBOX with (FIXR (fetch XSIZE of OLDBOX)))
+    OLDBOX])
+
+(\TEDIT.DISPLAY.DIACRITIC
+  [LAMBDA (CHARSLOT THISLINE IMAGESTREAM)                    (* ; "Edited  2-Dec-2023 16:44 by rmk")
+                                                             (* ; "Edited 28-Oct-2023 23:51 by rmk")
+
+    (* ;; "Called when CHARSLOT contains a diacritic.  This moves to a position so that the diacritic will be centered over the next character, prints the diacritic, and then moves the stream back to its starting position. ")
+
+    (* ;; "Returns the %"width%" of what was displayed, so the affected character can be positioned wrt the diacritic.  0 unless the diacritic is wider than the character (shift lt 0).  TBD")
+
+    (DSPXPOSITION (PROG1 (DSPXPOSITION (IPLUS (DSPXPOSITION NIL IMAGESTREAM)
+                                              (\TEDIT.DIACRITIC.SHIFT CHARSLOT THISLINE IMAGESTREAM))
+                                IMAGESTREAM)
+                      (\OUTCHAR IMAGESTREAM (CHAR CHARSLOT)))
+           IMAGESTREAM)
+    0])
+)
+
+
+
+(* ;; "Functions for scaling regions as needed during hardcopy.")
+
+(DEFINEQ
+
+(\TEDIT.SCALEREGION
+  [LAMBDA (SCALEFACTOR REGION)                               (* ; "Edited  8-Mar-2023 18:20 by rmk")
+                                                             (* ; "Edited  2-Jan-87 12:13 by jds")
+
+    (* ;; "Scale the region REGION by SCALEFACTOR, rounding all the dimensions to integers.  Used to scale page-boundary regions during hardcopy.")
+
+    (* ;; "SCALEREGION in Interpress uses FIX instead of FIXR.  ")
+
+    (create REGION
+           LEFT _ (HCSCALE SCALEFACTOR (fetch (REGION LEFT) of REGION))
+           BOTTOM _ (HCSCALE SCALEFACTOR (fetch (REGION BOTTOM) of REGION))
+           WIDTH _ (HCSCALE SCALEFACTOR (fetch (REGION WIDTH) of REGION))
+           HEIGHT _ (HCSCALE SCALEFACTOR (fetch (REGION HEIGHT) of REGION])
+)
+
+
+
+(* ; "0.75 inches from bottom, 1 from top")
+
+
+(RPAQ? TEDIT.DEFAULTPAGEREGION (\TEDIT.SCALEREGION MICASPERINCH (CREATEREGION 1.1 0.75 6.4 9.25)))
+
+
+
+(* ;; 
+"Support for the window-menu's HARDCOPY button, LISTFILES, etc.  Eliminated postscript, but this still may be screwy"
+)
+
+(DEFINEQ
+
+(\TEDIT.HARDCOPYFILEFN
+  [LAMBDA (W EXT)                                            (* ; "Edited 25-Sep-2023 16:19 by rmk")
+    (LET [(STRM (OR (GETTOBJ (TEXTOBJ W)
+                           TXTFILE)
+                    (AND (GETTOBJ (TEXTOBJ W)
+                                MENUFLG)
+                         (GETTOBJ (TEXTOBJ (\TEDIT.MAINW W))
+                                TXTFILE]
+         (CL:WHEN STRM
+             (PACKFILENAME 'VERSION NIL 'EXTENSION (OR EXT 'IMAGEFILE)
+                    'BODY
+                    (FULLNAME STRM)))])
+)
+
+
+
+(* ;; "vars for Japanese Line Break")
+
+
+(RPAQ? TEDIT.DONT.BREAK.CHARS
+       (CHARCODE ("41,42" "41,43" "41,53" "41,54" "41,74" "41,115" "41,133" "41,131" "41,127" 
+                        "Hira,41" "Hira,43" "Hira,45" "Hira,47" "Hira,51" "Hira,103" "Hira,143" 
+                        "Hira,145" "Hira,147" "Hira,156" "Kata,41" "Kata,43" "Kata,45" "Kata,47" 
+                        "Kata,51" "Kata,103" "Kata,143" "Kata,145" "Kata,147" "Kata,156")))
+
+(RPAQ? TEDIT.DONT.LAST.CHARS (CHARCODE ("41,114" "41,132" "41,130" "41,126")))
+
+
+
+(* ;; "Support for hardcopying several files as one document")
+
+(DEFINEQ
+
+(TEDIT-BOOK
+  [LAMBDA (FILES DIRECTORY PRINT-FILE DONT-SEND)             (* ; "Edited 22-Mar-93 23:55 by jds")
+    (LET ((DOC (OPENTEXTSTREAM (MKATOM (CAR FILES))
+                      NIL)))
+
+         (* ;; "Gather all the files into one document:")
+
+         (for FILE in (CDR FILES) do (TEDIT.SETSEL DOC 1 (fetch (TEXTOBJ TEXTLEN) of (TEXTOBJ DOC))
+                                            'RIGHT NIL NIL)
+                                     (TEDIT.INCLUDE DOC (PACK* (OR DIRECTORY "")
+                                                               FILE)))
+                                                             (* ; "Set page layout")
+         (TEDIT.FORMAT.HARDCOPY DOC PRINT-FILE DONT-SEND NIL NIL NIL NIL NIL)
+         (CLOSEF DOC])
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2727 29208 (TEDIT.HARDCOPY 2737 . 3995) (TEDIT.FORMAT.HARDCOPY 3997 . 7234) (
+TEDIT.IMAGEFILE.MESSAGE 7236 . 8533) (\TEDIT.PRINT.MENU 8535 . 10938) (\TEDIT.HARDCOPY.DISPLAYLINE 
+10940 . 20163) (\TEDIT.HARDCOPY.FORMATLINE.HEADINGS 20165 . 21894) (\TEDIT.HARDCOPY.MODIFYLOOKS 21896
+ . 24077) (\TEDIT.HCPYFMTSPEC 24079 . 27537) (\TEDIT.INTEGER.IMAGEBOX 27539 . 28210) (
+\TEDIT.DISPLAY.DIACRITIC 28212 . 29206)) (29283 30113 (\TEDIT.SCALEREGION 29293 . 30111)) (30405 30978
+ (\TEDIT.HARDCOPYFILEFN 30415 . 30976)) (31597 32398 (TEDIT-BOOK 31607 . 32396)))))
+STOP

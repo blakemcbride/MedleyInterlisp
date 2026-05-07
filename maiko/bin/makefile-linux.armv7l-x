@@ -1,0 +1,6 @@
+# Options for Linux, ARMv7 and X-Window
+
+USE_DISPLAY=x
+USE_LIBBSD=T
+
+include linux-common.mk

@@ -1,0 +1,308 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 8-Nov-2025 10:03:19" {WMEDLEY}<library>TEDIT>TEDIT-COMMAND.;166 19030  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS \TEDIT.COMMAND.FUNCTION?)
+
+      :PREVIOUS-DATE "17-Jul-2025 00:24:49" {WMEDLEY}<library>TEDIT>TEDIT-COMMAND.;165)
+
+
+(PRETTYCOMPRINT TEDIT-COMMANDCOMS)
+
+(RPAQQ TEDIT-COMMANDCOMS
+       ((DECLARE%: EVAL@COMPILE DONTCOPY (EXPORT (MACROS \TEDIT.MOUSESTATE \TEDIT.CHECK)))
+        (FNS \TEDIT.COMMAND.LOOP \TEDIT.COMMAND.FUNCTION?)
+        (FNS \TEDIT.INTERRUPT.SETUP \TEDIT.MARKACTIVE \TEDIT.MARKINACTIVE \TEDIT.COMMAND.RESET.SETUP)
+        [INITVARS (TEDIT.INTERRUPTS '((2 BREAK)
+                                      (5 ERROR)
+                                      (7 HELP)
+                                      (20 CONTROL-T]
+        (VARS (|| NIL))
+                                                             (* ; "Why?")
+        (GLOBALVARS || TEDIT.INTERRUPTS)))
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+(* "FOLLOWING DEFINITIONS EXPORTED")(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS \TEDIT.MOUSESTATE MACRO (BUTTON 
+
+                                 (* ;; "Test to see if only the specified mouse button is down.  DOES NOT call GETMOUSESTATE, so the mouse-button info is the same as the last time it was called.")
+
+                                         (SELECTQ (CAR BUTTON)
+                                             (LEFT '(EQ LASTMOUSEBUTTONS 4))
+                                             (MIDDLE '(EQ LASTMOUSEBUTTONS 1))
+                                             (RIGHT '(EQ LASTMOUSEBUTTONS 2))
+                                             (SHOULDNT))))
+
+(PUTPROPS \TEDIT.CHECK MACRO [ARGS (COND
+                                      [(AND (BOUNDP 'CHECK)
+                                            CHECK)
+                                       (CONS 'PROGN
+                                             (for I in ARGS as J on ARGS
+                                                when (NOT (STRINGP I))
+                                                collect (LIST 'OR I (LIST 'HELP 
+                                            "TEdit consistency-check failure [RETURN to continue]:  "
+                                                                          (COND
+                                                                             ((STRINGP (CADR J)))
+                                                                             (T (KWOTE I]
+                                      (T (CONS COMMENTFLG ARGS])
+)
+
+(* "END EXPORTED DEFINITIONS")
+
+)
+(DEFINEQ
+
+(\TEDIT.COMMAND.LOOP
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 23-Mar-2025 09:56 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 14:19 by rmk")
+                                                             (* ; "Edited 17-Feb-2025 12:05 by rmk")
+                                                             (* ; "Edited 28-Nov-2024 10:01 by rmk")
+                                                             (* ; "Edited 21-Nov-2024 11:51 by rmk")
+                                                             (* ; "Edited 13-Sep-2024 22:34 by rmk")
+                                                             (* ; "Edited 26-Aug-2024 23:26 by rmk")
+                                                             (* ; "Edited 18-Aug-2024 23:05 by rmk")
+                                                             (* ; "Edited  2-Aug-2024 08:46 by rmk")
+                                                             (* ; "Edited 13-Jul-2024 23:13 by rmk")
+                                                             (* ; "Edited 12-Jul-2024 00:39 by rmk")
+                                                             (* ; "Edited  9-Jul-2024 18:02 by rmk")
+                                                             (* ; "Edited  7-Jul-2024 16:24 by rmk")
+                                                             (* ; "Edited  3-Jul-2024 12:31 by rmk")
+                                                             (* ; "Edited 29-Jun-2024 00:08 by rmk")
+                                                             (* ; "Edited 18-May-2024 16:21 by rmk")
+                                                             (* ; "Edited 29-Apr-2024 10:58 by rmk")
+                                                             (* ; "Edited  7-May-2024 10:42 by rmk")
+                                                             (* ; "Edited 20-Mar-2024 10:59 by rmk")
+                                                             (* ; "Edited 24-Feb-2024 15:33 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 09:50 by rmk")
+                                                             (* ; "Edited 22-Sep-2023 20:40 by rmk")
+                                                             (* ; "Edited 30-May-91 19:33 by jds")
+
+    (* ;; "Main command loop for the TEDIT editor.  Includes keyboard polling and command dispatch")
+
+    (DECLARE (SPECVARS TEXTSTREAM))
+    (LET
+     [(TEXTOBJ (TEXTOBJ! (GETTSTR TSTREAM TEXTOBJ]
+     (for P inpanes TEXTOBJ do (WINDOWPROP P 'PROCESS (THIS.PROCESS)))
+                                                             (* ; "Add the process to our panes")
+     (until (TTY.PROCESSP) do                                (* ; 
+                                               "Wait until we really have the TTY before proceeding.")
+                              (DISMISS 250))
+     (RESETLST
+         (RESETSAVE (\TEDIT.COMMAND.RESET.SETUP (LIST TEXTOBJ)
+                           T))
+         (until (FGETTOBJ TEXTOBJ EDITFINISHEDFLG)
+            do (ERSETQ (until (FGETTOBJ TEXTOBJ EDITFINISHEDFLG)
+                          do (\WAITFORSYSBUFP 25)            (* ; "Await type-in or mouse action")
+                             (while (FGETTOBJ TEXTOBJ EDITOPACTIVE) do (\TEDIT.FLASHCARET TEXTOBJ) 
+                                                             (* ; 
+                                                        "Flash caret while other operation completes")
+                                                                       (BLOCK))
+                             (CL:UNLESS (FGETTOBJ TEXTOBJ EDITFINISHEDFLG)
+                                 (\TEDIT.FLASHCARET TEXTOBJ) (* ; 
+                  "Flash the caret periodically (BUT not while we're here only to cleanup and quit.)")
+                                 (FSETTOBJ TEXTOBJ EDITOPACTIVE T)
+                                                             (* ; 
+                                          "Before starting to work, note that we're doing something.")
+
+                                 (* ;; "")
+
+                                 (* ;; 
+                                 "Handle user type-in. CHARCODE is special so functions can see it.")
+
+                                 [bind CHARCODE TCH FN first (CL:WHEN (SETQ FN (FGETTOBJ TEXTOBJ 
+                                                                                      LOOPFN))
+                                                                 (ERSETQ (APPLY* FN TSTREAM)))
+                                    while (\SYSBUFP) do (SETQ CHARCODE (\GETKEY))
+                                                        (CL:WHEN (SETQ FN (FGETTOBJ TEXTOBJ CHARFN))
+                                                             (* ; 
+                                                         "The user can control each character typed.")
+                                                            (SETQ TCH (APPLY* FN TSTREAM CHARCODE))
+
+                                                            (* ;; 
+                                      "Ignore input if TCH=NIL, continue if T, otherwise substitute.")
+
+                                                            (CL:UNLESS (EQ TCH T)
+                                                                   (SETQ CHARCODE TCH)))
+                                                        (CL:WHEN CHARCODE
+                                                            (OR (\TEDIT.COMMAND.FUNCTION? TSTREAM 
+                                                                       CHARCODE)
+                                                                (\TEDIT.INSERT CHARCODE (TEXTSEL
+                                                                                         TEXTOBJ)
+                                                                       TSTREAM NIL T)))])
+                             (FSETTOBJ TEXTOBJ EDITOPACTIVE NIL)))
+               (FSETTOBJ TEXTOBJ EDITOPACTIVE NIL)))])
+
+(\TEDIT.COMMAND.FUNCTION?
+  [LAMBDA (TSTREAM CHARCODE)                                 (* ; "Edited  8-Nov-2025 10:00 by rmk")
+                                                             (* ; "Edited 23-Mar-2025 15:27 by rmk")
+    (DECLARE (SPECVARS TSTREAM CHARCODE))
+
+    (* ;; "If CHARCODE is a function in TSTREAM's read table, execute the function.")
+
+    (LET ((TEXTOBJ (GETTSTR TSTREAM TEXTOBJ))
+          FN)
+         (DECLARE (SPECVARS TEXTOBJ))
+         (CL:WHEN [AND (EQ (\TEDIT.TTC FN)
+                           (\SYNCODE (fetch READSA of (FGETTOBJ TEXTOBJ TXTRTBL))
+                                  CHARCODE))
+                       (SETQ FN (CAR (fetch MACROFN of (GETHASH CHARCODE (fetch READMACRODEFS
+                                                                            of (FGETTOBJ TEXTOBJ 
+                                                                                      TXTRTBL]
+             (if (AND (LISTP FN)
+                      (NOT (FNTYP FN)))
+                 then 
+                      (* ;; "A form but not a LAMBDA. TSTREAM, TEXTOBJ, and CHARCODE are specvars")
+
+                      (EVAL FN)
+               else (APPLY* FN TSTREAM TEXTOBJ (TEXTSEL TEXTOBJ)))
+             T)])
+)
+(DEFINEQ
+
+(\TEDIT.INTERRUPT.SETUP
+  [LAMBDA (PROC FORCEOFF)                                    (* ; "Edited 27-Mar-2024 15:27 by rmk")
+                                                             (* ; "Edited 22-Sep-2023 20:45 by rmk")
+                                                             (* jds "12-Sep-84 15:36")
+
+    (* ;; "Disarm any inconvenient interrupts, and save re-arming info on the window.")
+
+    [LET ((TEXTOBJ (TEXTOBJ PROC T)))
+         (CL:WHEN TEXTOBJ
+             (UNINTERRUPTABLY
+                 [COND
+                    ((AND FORCEOFF (PROCESSPROP PROC 'TEDIT.INTERRUPTS))
+                                                             (* ; 
+                                                       "There are disarmed interrupts;  re-arm them.")
+                     (RESET.INTERRUPTS (PROCESSPROP PROC 'TEDIT.INTERRUPTS))
+                     (PROCESSPROP PROC 'TEDIT.INTERRUPTS NIL))
+                    ([AND (NOT FORCEOFF)
+                          (NOT (PROCESSPROP PROC 'TEDIT.INTERRUPTS]
+                                                             (* ; 
+                                                   "There aren't any interrupts disarmed;  go do it.")
+                     (PROCESSPROP PROC 'TEDIT.INTERRUPTS (RESET.INTERRUPTS
+                                                          (OR (AND TEXTOBJ (GETTEXTPROP TEXTOBJ
+                                                                                  'INTERRUPTS))
+                                                              TEDIT.INTERRUPTS)
+                                                          T]))]
+    PROC])
+
+(\TEDIT.MARKACTIVE
+  [LAMBDA (TEXTOBJ OPERATION)                                (* ; "Edited 29-Jun-2024 10:32 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:04 by mitani")
+    (replace (TEXTOBJ EDITOPACTIVE) of TEXTOBJ with OPERATION)
+    TEXTOBJ])
+
+(\TEDIT.MARKINACTIVE
+  [LAMBDA (TEXTOBJ)                                         (* ; "Edited 12-Jun-90 18:04 by mitani")
+    (replace (TEXTOBJ EDITOPACTIVE) of TEXTOBJ with NIL)
+    TEXTOBJ])
+
+(\TEDIT.COMMAND.RESET.SETUP
+  [LAMBDA (ARGS STARTING)                                    (* ; "Edited 17-Jul-2025 00:01 by rmk")
+                                                             (* ; "Edited 29-Jun-2024 00:10 by rmk")
+                                                             (* ; "Edited 17-Mar-2024 18:54 by rmk")
+                                                             (* ; "Edited 22-Feb-2024 23:14 by rmk")
+                                                             (* ; "Edited  5-Oct-2023 22:41 by rmk")
+                                                             (* ; "Edited 22-Sep-2023 20:41 by rmk")
+                                                             (* ; "Edited 16-Sep-2023 22:30 by rmk")
+                                                             (* ; "Edited  5-Nov-2022 10:41 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:04 by mitani")
+
+    (* ;; "If STARTING is T, set up the reset-driven connections and values for editing;  otherwise, break links and reset values for non-editing")
+
+    (LET ((TEXTOBJ (pop ARGS))
+          (OTTYWINDOW (pop ARGS))
+          (OTTYENTRYFN (pop ARGS))
+          (OTTYEXITFN (pop ARGS))
+          (OWINDOW (pop ARGS))
+          TTYWINDOW PRIMPANE)
+         (SETQ PRIMPANE (FGETTOBJ TEXTOBJ PRIMARYPANE))
+         (if STARTING
+             then                                            (* ; 
+                                           "We're going INTO the command loop.  Set up all the stuff")
+                  (FSETTOBJ TEXTOBJ EDITOPACTIVE T)          (* ; 
+                             "Mark us busy until we're set up, so that nobody tries any funny stuff.")
+                  (SETQ OWINDOW (PROCESSPROP (THIS.PROCESS)
+                                       'WINDOW PRIMPANE))    (* ; 
+                                                             "Attach the process to this window.")
+                  (\TEDIT.INTERRUPT.SETUP (THIS.PROCESS))    (* ; 
+                                     "Disarm all interrupt chars, re-arm them when we leave the edit")
+                  (SETQ OTTYEXITFN (PROCESSPROP (THIS.PROCESS)
+                                          'TTYEXITFN
+                                          '\TEDIT.PROCEXITFN)) 
+                                                             (* ; 
+                                        "Set up functions for getting in and out of the edit process")
+                  (SETQ OTTYENTRYFN (PROCESSPROP (THIS.PROCESS)
+                                           'TTYENTRYFN
+                                           '\TEDIT.PROCENTRYFN))
+                  (CL:UNLESS (EQ (GETTEXTPROP TEXTOBJ 'TTYWINDOW)
+                                 'DON'T)                     (* ; 
+                 "He can suppress the ability to copy-select things into this window if he wants....")
+                      (SETQ TTYWINDOW (OR (GETTEXTPROP TEXTOBJ 'TTYWINDOW)
+                                          (CREATEW DEFAULTTTYREGION "TTY Window for TEdit" NIL T)))
+                      (SETQ OTTYWINDOW (TTYDISPLAYSTREAM TTYWINDOW))
+                      (PROCESSPROP (THIS.PROCESS)
+                             'TEDITTTYWINDOW TTYWINDOW)
+                      (WINDOWPROP TTYWINDOW 'PROCESS NIL)
+                      [WINDOWPROP TTYWINDOW 'CLOSEFN (FUNCTION (LAMBDA (WW)
+                                                                 (WINDOWPROP WW 'PROCESS NIL]
+                                                             (* ; 
+                           "So that there isn't a circularity in the PROCESS -> TTYWINDOW -> PROCESS")
+                      (WINDOWPROP TTYWINDOW 'COPYINSERTFN (FUNCTION \TEDIT.COPYINSERTFN))
+                      (WINDOWPROP TTYWINDOW 'MAINWINDOW PRIMPANE))
+           else                                              (* ; 
+                                                 "Coming OUT OF the command loop -- reset everything")
+                (PROCESSPROP (THIS.PROCESS)
+                       'WINDOW PRIMPANE)                     (* ; 
+                              "Detach the window from the edit process, to prevent circularity there")
+                (WINDOWPROP PRIMPANE 'PROCESS NIL)
+                (\TEDIT.INTERRUPT.SETUP (THIS.PROCESS)
+                       T)                                    (* ; 
+                                                     "Re-arm the interrupts we turned off coming in.")
+                (CL:WHEN (AND (TXTFILE TEXTOBJ)
+                              (NOT (fetch (TEXTWINDOW CLOSINGFILE) of PRIMPANE)))
+                                                             (* ; 
+         "Remember to close the file we were editing (Only if the window function isn't closing it.)")
+                    (CLOSEF? (TXTFILE TEXTOBJ))              (* ; 
+                                                       "Let anyone else who wants to close the file.")
+                    (replace (TEXTWINDOW CLOSINGFILE) of PRIMPANE with NIL))
+                (PROCESSPROP (THIS.PROCESS)
+                       'TTYEXITFN OTTYEXITFN)
+                (PROCESSPROP (THIS.PROCESS)
+                       'TTYENTRYFN OTTYENTRYFN)
+                (FSETTOBJ TEXTOBJ TXTHISTORY NIL)            (* ; 
+           "To prevent circularities arising from the need to remember textobjs in the history list.")
+                (FSETTOBJ TEXTOBJ SELPANE NIL)
+                (CL:UNLESS (EQ (GETTEXTPROP TEXTOBJ 'TTYWINDOW)
+                               'DON'T)                       (* ; 
+                 "He can suppress the ability to copy-select things into this window if he wants....")
+                    (TTYDISPLAYSTREAM OTTYWINDOW)
+                    (PROCESSPROP (THIS.PROCESS)
+                           'TEDITTTYWINDOW NIL)))
+         (FSETTOBJ TEXTOBJ EDITOPACTIVE NIL)                 (* ; 
+                                                             "Mark us un-busy so life can go on.")
+         (LIST TEXTOBJ OTTYWINDOW OTTYENTRYFN OTTYEXITFN OWINDOW])
+)
+
+(RPAQ? TEDIT.INTERRUPTS '((2 BREAK)
+                          (5 ERROR)
+                          (7 HELP)
+                          (20 CONTROL-T)))
+
+(RPAQQ || NIL)
+
+
+
+(* ; "Why?")
+
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS || TEDIT.INTERRUPTS)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2625 10278 (\TEDIT.COMMAND.LOOP 2635 . 8976) (\TEDIT.COMMAND.FUNCTION? 8978 . 10276)) (
+10279 18740 (\TEDIT.INTERRUPT.SETUP 10289 . 11936) (\TEDIT.MARKACTIVE 11938 . 12267) (
+\TEDIT.MARKINACTIVE 12269 . 12485) (\TEDIT.COMMAND.RESET.SETUP 12487 . 18738)))))
+STOP

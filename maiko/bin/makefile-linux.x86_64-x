@@ -1,0 +1,9 @@
+# Options for Linux, Intel x86_64 and X-Window
+
+GCC_CFLAGS := -m64 $(GCC_CFLAGS)
+CLANG_CFLAGS := -m64 $(CLANG_CFLAGS)
+USE_DISPLAY=x
+USE_LIBBSD=T
+
+include linux-common.mk
+

@@ -1,0 +1,2018 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 8-Feb-2026 19:54:41" {WMEDLEY}<library>tedit>TEDIT-FNKEYS.;318 109228 
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (VARS TEDIT.BASIC.CHARBINDINGS ORIG.TEDIT.CHARACTIONS)
+
+      :PREVIOUS-DATE "24-Nov-2025 08:40:56" {WMEDLEY}<library>tedit>TEDIT-FNKEYS.;317)
+
+
+(PRETTYCOMPRINT TEDIT-FNKEYSCOMS)
+
+(RPAQQ TEDIT-FNKEYSCOMS
+       [(COMS                                                (* ; 
+                                                             "Public functions (binding data  below)")
+              (FNS TEDIT.INSTALL.CHARBINDINGS TEDIT.CLEAR.CHARBINDINGS TEDIT.GET.CHARACTION 
+                   TEDIT.GET.CHARBINDING TEDIT.GET.ALL.CHARBINDINGS TEDIT.CHARBINDINGS.INVERT 
+                   TEDIT.GET.ALL.CHARACTIONS TEDIT.CONFLICTING.CHARBINDINGS))
+        (COMS 
+              (* ;; "Functions that implement the key actions:")
+
+              (FNS \TEDIT.KEY.CHARLOOKS \TEDIT.KEY.QUAD \TEDIT.DEFAULTSSEL \TEDIT.SETDEFAULT.FROM.SEL
+                   \TEDIT.KEY.SIZE \TEDIT.SUBSCRIPTSEL \TEDIT.SUPERSCRIPTSEL \TEDIT.KEY.TRANSFORM 
+                   \TEDIT.KEY.OPENLINE \TEDIT.KEY.FAMILYN)
+              (FNS CAP-CASECODE)
+                                                             (* ; "For intiial caps")
+              (FNS \TEDIT.SHOWCARETLOOKS \TEDIT.DESCRIBEFONT))
+                                                             (* ; "Moving around")
+        (FNS \TEDIT.ONECHAR.BACKWARD \TEDIT.ONECHAR.FORWARD \TEDIT.ONELINE.UP \TEDIT.ONELINE.DOWN 
+             \TEDIT.ONELINE.MOVE \TEDIT.ONEWORD.BACKWARD \TEDIT.ONEWORD.FORWARD \TEDIT.LINE.BEGIN 
+             \TEDIT.LINE.END \TEDIT.DOCUMENT.BEGIN \TEDIT.DOCUMENT.END)
+        (FNS \TEDIT.LINEDELETE.FORWARD \TEDIT.LINEDELETE.BACKWARD \TEDIT.LINEDELETE)
+        (FNS \TEDIT.KEY.NEST)
+        (FNS \TEDIT.KEY.WRAP)
+                                                             (* ; "From TEDITDORADOKEYS")
+        (INITVARS (TEDIT.NESTWIDTH 36))
+                                                             (* ; "Find")
+        (FNS \TEDIT.KEY.FIND \TEDIT.KEY.FIND.SEARCHSTRING \TEDIT.GET.TARGET.STRING)
+                                                             (* ; "Miscellaneous")
+        (FNS \TEDIT.KEY.SUBSTITUTE \TEDIT.MANPAGE \TEDIT.CALL.ED \TEDIT.SELECT.ALL)
+                                                             (* ; "Clipboard")
+        (FNS \TEDIT.CLIPBOARD \TEDIT.COPYTOCLIPBOARD \TEDIT.EXTRACTTOCLIPBOARD \TEDIT.WRITE.SEL)
+        (VARS (TEDIT.FNKEY.VERBOSE T))
+        (COMS                                                (* ; "Read-table Utilities")
+              (GLOBALVARS TEDIT.READTABLE TEDIT.WORDBOUND.READTABLE)
+              (FNS \TEDIT.READTABLE \TEDIT.WORDBOUND.READTABLE TEDIT.GETSYNTAX TEDIT.SETSYNTAX 
+                   TEDIT.GETFUNCTION TEDIT.SETFUNCTION TEDIT.WORDGET TEDIT.WORDSET 
+                   TEDIT.ATOMBOUND.READTABLE))
+        
+        (* ;; "On-screen formatting buttons (TEDIT.BUTTONS.BUILD) creates the default button menu")
+
+        (FNS TEDIT.BUTTONS.BUILD TEDIT.BUTTONBITMAP.FILL)
+        (INITVARS TEDIT.BUTTONS.WINDOW)
+        (VARS TEDIT.BUTTONBITMAP)
+        [INITVARS (TEDIT.BUTTONS.SPEC '((Bold :BOLD.ON :BOLD.OFF)
+                                        (Italic :ITALIC.ON :ITALIC.OFF)
+                                        (Case :UCASE :LCASE)
+                                        ((Strike- out)
+                                         :STRIKEOUT.ON :STRIKEOUT.OFF)
+                                        ((Under- line)
+                                         :UNDERLINE.ON :UNDERLINE.OFF)
+                                        ((Super/ Sub)
+                                         :SUPERSCRIPT :SUBSCRIPT)
+                                        ((Larger Smaller)
+                                         :LARGER :SMALLER)
+                                        (Justify :QUAD)
+                                        (Defaults :DEFAULTS)
+                                        (Show :SHOW.CHARLOOKS)
+                                        (Redo :REDO]
+                                                             (* ; "Keybindings")
+        (DECLARE%: EVAL@COMPILE DONTCOPY (EXPORT (CONSTANTS \TEDIT.TTCCODES)
+                                                (MACROS \TEDIT.TTC)))
+        (FNS \TEDIT.TTCCLASS)
+        (VARS ORIG.TEDIT.CHARACTIONS)
+        (INITVARS (TEDIT.CHARACTIONS (APPEND ORIG.TEDIT.CHARACTIONS)))
+        (VARS TEDIT.BASIC.CHARBINDINGS TEDIT.DORADO.CHARBINDINGS)
+        (INITVARS (TEDIT.CHARBINDINGS (APPEND TEDIT.BASIC.CHARBINDINGS TEDIT.DORADO.CHARBINDINGS)))
+        (GLOBALVARS TEDIT.CHARBINDINGS TEDIT.CHARACTIONS)
+                                                             (* ; "Installation")
+        (DECLARE%: DONTEVAL@LOAD DOCOPY (VARS (TEDIT.READTABLE (\TEDIT.READTABLE))
+                                              (TEDIT.WORDBOUND.READTABLE (\TEDIT.WORDBOUND.READTABLE])
+
+
+
+(* ; "Public functions (binding data  below)")
+
+(DEFINEQ
+
+(TEDIT.INSTALL.CHARBINDINGS
+  [LAMBDA (CHARBINDINGS RDTBL CHARACTIONS)                   (* ; "Edited 24-Nov-2025 00:10 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 16:47 by rmk")
+                                                             (* ; "Edited  7-Apr-2025 20:01 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:36 by rmk")
+                                                             (* ; "Edited  1-Apr-2025 00:19 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 11:15 by rmk")
+                                                             (* ; "Edited 17-Mar-2025 09:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 15:20 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 23:25 by rmk")
+                                                             (* ; "Edited 11-Mar-2025 22:03 by rmk")
+
+    (* ;; "Installs CHARBINDINGS in the Tedit RDTBL.  A binding is an action-name followed by a list of  character-name strings or Tedit built-in action items (like NEXT, UNDO).  The implementation of the action is taken from entries in CHARACTIONS or the TEDIT.CHARACTIONS list.")
+
+    (* ;; "This will overwrite previous assignments in RDTBL, possibly add new ones.   ")
+
+    (CL:UNLESS CHARBINDINGS (SETQ CHARBINDINGS TEDIT.CHARBINDINGS))
+    (CL:UNLESS (LISTP CHARBINDINGS)
+           (\ILLEGAL.ARG CHARBINDINGS))
+    (CL:UNLESS CHARACTIONS (SETQ CHARACTIONS TEDIT.CHARACTIONS))
+    (CL:UNLESS (READTABLEP RDTBL)
+        (SETQ RDTBL (if (NULL RDTBL)
+                        then TEDIT.READTABLE
+                      elseif (TEXTSTREAM RDTBL T)
+                        then (OR (GETTOBJ (GETTSTR RDTBL TEXTOBJ)
+                                        TXTRTBL)
+                                 TEDIT.READTABLE)
+                      else (\ILLEGAL.ARG RDTBL))))
+    (TEDIT.CONFLICTING.CHARBINDINGS (APPEND CHARBINDINGS (TEDIT.GET.ALL.CHARBINDINGS RDTBL)))
+    (for CB ACTION in CHARBINDINGS when (LISTP CB) unless (EQ '* (CAR CB))
+       when (SETQ ACTION (CADR (ASSOC (CAR CB)
+                                      CHARACTIONS))) do (for CHAR in (CDR CB)
+                                                           do (CL:UNLESS (CHARCODEP CHAR)
+                                                                  (SETQ CHAR (CHARCODE.DECODE CHAR)))
+                                                              (TEDIT.SETFUNCTION CHAR ACTION RDTBL)))
+                                                             (* ; "Set the method")
+    RDTBL])
+
+(TEDIT.CLEAR.CHARBINDINGS
+  [LAMBDA (RDTBL BINDINGS)                                   (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 14:22 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 10:00 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:36 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 11:10 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 12:02 by rmk")
+
+    (* ;; "Removes the Tedit function bindings to the characters in BINDINGS, or all current bindings if BINDINGS is NIL")
+
+    (CL:UNLESS (READTABLEP RDTBL)
+        (SETQ RDTBL (if (NULL RDTBL)
+                        then TEDIT.READTABLE
+                      elseif (TEXTSTREAM RDTBL T)
+                        then (OR (GETTOBJ (GETTSTR RDTBL TEXTOBJ)
+                                        TXTRTBL)
+                                 TEDIT.READTABLE)
+                      else (\ILLEGAL.ARG RDTBL))))
+    (CL:WHEN (fetch READMACRODEFS of RDTBL)
+        [if (EQ BINDINGS T)
+            then [MAPHASH (fetch READMACRODEFS of RDTBL)
+                        (FUNCTION (LAMBDA (VAL CHARCODE)
+                                    (CL:WHEN (EQ (\TEDIT.TTC FN)
+                                                 (\SYNCODE (fetch READSA of RDTBL)
+                                                        CHARCODE))
+                                        (TEDIT.SETFUNCTION CHARCODE NIL RDTBL)
+                                        (CL:WHEN (\TEDIT.TTCCLASS CHARCODE)
+                                                             (* ; 
+                                     "A tag like NEXT, UNDO. Normalize and setup the termtable FWIW ")
+                                            (TEDIT.SETSYNTAX (\TEDIT.TTCCLASS CHARCODE)
+                                                   CHARCODE RDTBL)))]
+                 BINDINGS
+          else (for CB in BINDINGS when (LISTP CB) unless (EQ '* (CAR CB))
+                  do (for CHARCODE in (CDR CB) do (CL:UNLESS (CHARCODEP CHARCODE)
+                                                      (SETQ CHARCODE (CHARCODE.DECODE CHARCODE)))
+                                                  (TEDIT.SETFUNCTION CHARCODE NIL RDTBL)
+                                                  (CL:WHEN (\TEDIT.TTCCLASS (CAR CB))
+                                                             (* ; 
+                                     "A tag like NEXT, UNDO. Normalize and setup the termtable FWIW ")
+                                                      (TEDIT.SETSYNTAX (\TEDIT.TTCCLASS (CAR CB))
+                                                             CHARCODE RDTBL))])])
+
+(TEDIT.GET.CHARACTION
+  [LAMBDA (CHARCODE BINDINGS)                                (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 15:55 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 10:00 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:36 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 14:51 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 11:07 by rmk")
+                                                             (* ; "Edited 17-Mar-2025 09:43 by rmk")
+
+    (* ;; "Returns the keyaction that CHARCODE binds to in BINDINGS.  If BINDINGS is a readtable, looks at all currently installed bindings in that readtable.  If NIL, uses TEDIT.READTABLE.")
+
+    (CL:UNLESS (CHARCODEP CHARCODE)
+        (SETQ CHARCODE (CHARCODE.DECODE CHARCODE)))
+    (if (LISTP BINDINGS)
+        then [for CB in BINDINGS when (LISTP CB) unless (EQ '* (CAR CB))
+                when [thereis C in (CDR CB) suchthat (EQ CHARCODE (CL:IF (CHARCODEP C)
+                                                                      C
+                                                                      (CHARCODE.DECODE C))]
+                collect (CAR CB) finally 
+
+                                       (* ;; "Maybe cause an error if a character is assigned twice?")
+
+                                       (RETURN (CL:IF (CDR $$VAL)
+                                                   $$VAL
+                                                   (CAR $$VAL))]
+      else (LET ((RDTBL (if (NULL BINDINGS)
+                            then TEDIT.READTABLE
+                          elseif (TEXTSTREAM BINDINGS T)
+                            then (OR (GETTOBJ (TEXTOBJ BINDINGS)
+                                            TXTRTBL)
+                                     TEDIT.READTABLE)
+                          elseif (READTABLEP BINDINGS)
+                          else (\ILLEGAL.ARG BINDINGS)))
+                 VAL)
+                (CL:WHEN [AND (EQ (\TEDIT.TTC FN)
+                                  (\SYNCODE (fetch READSA of RDTBL)
+                                         CHARCODE))
+                              (SETQ VAL (fetch MACROFN of (GETHASH CHARCODE (fetch READMACRODEFS
+                                                                               of RDTBL]
+                    [CAR (find ACTION in TEDIT.CHARACTIONS suchthat (EQUAL VAL (CDR ACTION])])
+
+(TEDIT.GET.CHARBINDING
+  [LAMBDA (ACTION BINDINGS RETURNCODES)                      (* ; "Edited 10-Nov-2025 12:49 by rmk")
+                                                             (* ; "Edited  9-Nov-2025 10:10 by rmk")
+                                                             (* ; "Edited 23-Apr-2025 10:11 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:37 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 20:40 by rmk")
+
+    (* ;; "Returns the character bindings for ACTION in BINDINGS, a binding list or a read-table specification. If BINDINGS is a readtable, looks at all currently installed bindings in that readtable.  If NIL, uses TEDIT.READTABLE.")
+
+    (if (LISTP BINDINGS)
+        then (APPEND (CADR (ASSOC ACTION BINDINGS)))
+      else (LET ((RDTBL (if (NULL BINDINGS)
+                            then TEDIT.READTABLE
+                          elseif (TEXTSTREAM BINDINGS T)
+                            then (OR (GETTOBJ (TEXTOBJ BINDINGS)
+                                            TXTRTBL)
+                                     TEDIT.READTABLE)
+                          elseif (READTABLEP BINDINGS)
+                          else (\ILLEGAL.ARG BINDINGS)))
+                 (IMPL (CADR (ASSOC ACTION TEDIT.CHARACTIONS)))
+                 CHARS)
+                (CL:WHEN IMPL                                (* ; 
+                               "The hashtable doesn't have the action names, just the implementation")
+                    [MAPHASH (fetch READMACRODEFS of RDTBL)
+                           (FUNCTION (LAMBDA (VAL CCODE)
+                                       (CL:WHEN (EQUAL IMPL (CADR VAL))
+                                                             (* ; "charcode, not charname")
+                                           (push CHARS (CL:IF RETURNCODES
+                                                           CCODE
+                                                           (CHARCODE.ENCODE CCODE))))]
+                    CHARS)])
+
+(TEDIT.GET.ALL.CHARBINDINGS
+  [LAMBDA (RDTBL RETURNCODES)                                (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 13:07 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 10:00 by rmk")
+                                                             (* ; "Edited 23-Apr-2025 10:11 by rmk")
+                                                             (* ; "Edited  7-Apr-2025 22:11 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:37 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 20:51 by rmk")
+
+    (* ;; "Returns the character bindings instantiated in RDTBL, in the form of TEDIT.CHARBINDINGS:  (action . chars/codes)")
+
+    (CL:UNLESS (READTABLEP RDTBL)
+        (SETQ RDTBL (if (NULL RDTBL)
+                        then TEDIT.READTABLE
+                      elseif (TEXTSTREAM RDTBL T)
+                        then (OR (GETTOBJ (GETTSTR RDTBL TEXTOBJ)
+                                        TXTRTBL)
+                                 TEDIT.READTABLE)
+                      else (\ILLEGAL.ARG RDTBL))))
+    (LET (ACTIONS)
+         [MAPHASH (fetch READMACRODEFS of RDTBL)
+                (FUNCTION (LAMBDA (VAL CCODE)
+                            (CL:WHEN (EQ (\TEDIT.TTC FN)
+                                         (\SYNCODE (fetch READSA of RDTBL)
+                                                CCODE))
+                                (for CA ANAME in TEDIT.CHARACTIONS when (LISTP CA)
+                                   unless (EQ '* (CAR CA)) when (EQUAL (CADR CA)
+                                                                       (CADR VAL))
+                                   do 
+                                      (* ;; "Same implementation")
+
+                                      (SETQ ANAME (CAR CA))
+                                      (PUSHMULTI ACTIONS (CAR CA)
+                                             CCODE)))]
+         (SORT ACTIONS T)
+         [for A S in ACTIONS do (SETQ S (SORT (CDR A)))
+                                (RPLACD A (CL:IF RETURNCODES
+                                              S
+                                              (CHARCODE.ENCODE S))]
+         ACTIONS])
+
+(TEDIT.CHARBINDINGS.INVERT
+  [LAMBDA (CHARBINDINGS RETURNCODES)                         (* ; "Edited 10-Nov-2025 16:21 by rmk")
+                                                             (* ; "Edited 23-Apr-2025 10:11 by rmk")
+                                                             (* ; "Edited  7-Apr-2025 22:39 by rmk")
+                                                             (* ; "Edited  4-Apr-2025 09:58 by rmk")
+                                                             (* ; "Edited  1-Apr-2025 15:09 by rmk")
+
+    (* ;; "Inverts CHARBINDINGS to return a list of (char/code . actions), usually a single action unless there is a conflict.. ")
+
+    (for CB ACTIONSPERCHAR CA in CHARBINDINGS when (CDR (LISTP CB)) unless (EQ '* (CAR CB))
+       do (for CHAR CODE CACTIONS in (CDR CB) eachtime (SETQ CODE (CHARCODE.DECODE CHAR))
+             do (PUSHMULTI-NEW ACTIONSPERCHAR CODE (CAR CB)))
+       finally (SORT ACTIONSPERCHAR T)
+             (CL:UNLESS RETURNCODES
+                 (for APC in ACTIONSPERCHAR do (change (CAR APC)
+                                                      (CHARCODE.ENCODE DATUM))))
+             (RETURN (SORT ACTIONSPERCHAR T])
+
+(TEDIT.GET.ALL.CHARACTIONS
+  [LAMBDA (RDTBL RETURNCODES)                                (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 13:37 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 10:00 by rmk")
+                                                             (* ; "Edited 23-Apr-2025 10:11 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:37 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 20:51 by rmk")
+
+    (* ;; "Returns an alist containing all of the (character action) bindings in RDTBL.")
+
+    (CL:UNLESS (READTABLEP RDTBL)
+        (SETQ RDTBL (if (NULL RDTBL)
+                        then TEDIT.READTABLE
+                      elseif (TEXTSTREAM RDTBL T)
+                        then (OR (GETTOBJ (GETTSTR RDTBL TEXTOBJ)
+                                        TXTRTBL)
+                                 TEDIT.READTABLE)
+                      else (\ILLEGAL.ARG RDTBL))))
+    (LET (BINDINGS)
+         [MAPHASH (fetch READMACRODEFS of RDTBL)
+                (FUNCTION (LAMBDA (VAL CCODE)
+                            (CL:WHEN (EQ (\TEDIT.TTC FN)
+                                         (\SYNCODE (fetch READSA of RDTBL)
+                                                CCODE))
+                                (for CA ANAME in TEDIT.CHARACTIONS when (LISTP CA)
+                                   unless (EQ '* (CAR CA)) when (EQUAL (CADR CA)
+                                                                       (CADR VAL))
+                                   do                        (* ; "Match on implementation")
+                                      (PUSHMULTI BINDINGS (CL:IF RETURNCODES
+                                                              CCODE
+                                                              (CHARCODE.ENCODE CCODE))
+                                             (CAR CA))))]
+         (SORT BINDINGS T)
+         (for B in BINDINGS do (change (CDR B)
+                                      (SORT DATUM)))
+         BINDINGS])
+
+(TEDIT.CONFLICTING.CHARBINDINGS
+  [LAMBDA (CHARBINDINGS NOERROR)                             (* ; "Edited  7-Apr-2025 22:40 by rmk")
+                                                             (* ; "Edited  4-Apr-2025 09:58 by rmk")
+                                                             (* ; "Edited  1-Apr-2025 15:09 by rmk")
+
+    (* ;; "Returns a list of the character names that bind to conflicting actions.  Each element in the return is of the form")
+
+    (* ;; "  (CHARNAMES . ACTIONAMES) where CHARNAMES is a list of different synonyms for a given charcode, or a single code if they are all the same, and ACTIONNAMES are the names of the different actions assigned to those characters. ")
+
+    (* ;; "where CHARNAME is the result of APPP")
+
+    (for CA in (TEDIT.CHARBINDINGS.INVERT CHARBINDINGS) when (CDDR CA) collect 
+                                                             (* ; "Multiple actions")
+                                                                             CA
+       finally (CL:WHEN (AND $$VAL (NOT NOERROR))            (* ; 
+                                                          "RETURN from error break returns conflicts")
+                   (ERROR "Conflicting key bindings" $$VAL))])
+)
+
+
+
+(* ;; "Functions that implement the key actions:")
+
+(DEFINEQ
+
+(\TEDIT.KEY.CHARLOOKS
+  [LAMBDA (TSTREAM PROP NEWVALUE)                            (* ; "Edited  5-Apr-2025 17:26 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 15:40 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 23:58 by rmk")
+
+    (* ;; "Generic key action function for changing individual character looks. ")
+
+    (* ;; "     (BOLD-ON  (\TEDIT.CHANGE.CHARLOOKS 'BOLD 'ON) ")
+
+    (* ;; "     (BOLD-OFF (\TEDIT.CHANGE.CHARLOOKS 'BOLD 'OFF")
+
+    (LET ((CURLOOKS (TEDIT.GET.LOOKS TSTREAM)))
+         (CL:WHEN (EQ NEWVALUE 'TOGGLE)
+             (SETQ NEWVALUE (CL:IF (EQ 'ON (LISTGET CURLOOKS PROP))
+                                'OFF
+                                'ON)))
+         (if (EQ 0 (GETSEL (TEXTSEL (GETTSTR TSTREAM TEXTOBJ))
+                          DCH))
+             then                                            (* ; "Point selection")
+                  (TEDIT.CARETLOOKS TSTREAM (LIST PROP NEWVALUE))
+           else (\TEDIT.CHANGE.CHARLOOKS TSTREAM (LIST PROP NEWVALUE)))
+         (\TEDIT.SHOWCARETLOOKS TSTREAM])
+
+(\TEDIT.KEY.QUAD
+  [LAMBDA (TSTREAM REVERSE)                                  (* ; "Edited 16-Mar-2025 00:03 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 16:37 by rmk")
+                                                             (* ; "Edited 11-Dec-2023 11:02 by rmk")
+                                                             (* ; "Edited 28-Jul-2023 16:14 by rmk")
+                                                             (* ; "Edited 11-Apr-2023 13:22 by rmk")
+                                                             (* ; "Edited 10-Apr-2023 10:08 by rmk")
+                                                             (* ; "Edited 30-May-91 21:05 by jds")
+
+    (* ;; "Changes the QUAD of the selected paragraphs in TSTREAM, when the CENTER key is typed.  Rotates through the sequences (LEFT JUSTIFIED CENTERED RIGHT)  from the QUAD of the first paragraph to find the NEWQUAD that it will apply to all the paragraphs in SEL.  If REVERSE, cycles the quads in the opposite direction.")
+
+    (CL:UNLESS (GETTOBJ (GETTSTR TSTREAM TEXTOBJ)
+                      MENUFLG)
+        (LET [(NEWQUAD (LIST 'QUAD (OR [CADR (MEMB (LISTGET (TEDIT.GET.PARALOOKS TSTREAM)
+                                                          'QUAD)
+                                                   (CL:IF REVERSE
+                                                       '(RIGHT CENTERED JUSTIFIED LEFT)
+                                                       '(LEFT JUSTIFIED CENTERED RIGHT))]
+                                       'LEFT]
+             (TEDIT.PARALOOKS TSTREAM NEWQUAD)
+             (TEDIT.PROMPTPRINT TSTREAM (SELECTQ (CADR NEWQUAD)
+                                            (LEFT "Aligned left")
+                                            (RIGHT "Aligned right")
+                                            (CENTERED "Centered")
+                                            (JUSTIFIED "Justified")
+                                            "")
+                    T)))])
+
+(\TEDIT.DEFAULTSSEL
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited 15-Mar-2025 16:18 by rmk")
+                                                             (* ; "Edited 11-Nov-2023 15:55 by rmk")
+                                                             (* ; "Edited 20-Oct-87 11:12 by jds")
+                                                             (* ; "acts on the selection")
+    (TEDIT.LOOKS TEXTSTREAM (create CHARLOOKS using (GETTOBJ TEXTOBJ DEFAULTCHARLOOKS))
+           SEL)
+    (\TEDIT.SHOWCARETLOOKS TEXTSTREAM TEXTOBJ SEL])
+
+(\TEDIT.SETDEFAULT.FROM.SEL
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited 12-Nov-2023 16:40 by rmk")
+                                                             (* ; "Edited 11-Nov-2023 16:03 by rmk")
+                                                             (* jds " 8-Nov-85 15:22")
+                                                             (* ; 
+                                                       "Set the defaults from the current selection.")
+    (SETTOBJ TEXTOBJ DEFAULTCHARLOOKS (\TEDIT.PARSE.CHARLOOKS.LIST (TEDIT.GET.LOOKS TEXTSTREAM SEL)
+                                             NIL TEXTOBJ])
+
+(\TEDIT.KEY.SIZE
+  [LAMBDA (TSTREAM INCREMENT)                                (* ; "Edited 21-Mar-2025 23:12 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 13:07 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 13:19 by rmk")
+                                                             (* jds "21-Sep-85 08:58")
+
+    (* ;; "Changes the font size, 2 points smaller if SMALLER, otherwise larger.")
+
+    (CL:UNLESS (\TEDIT.READONLY TSTREAM)
+        (if (\TEDIT.CHANGE.CHARLOOKS TSTREAM (LIST 'SIZEINCREMENT INCREMENT))
+            then (\TEDIT.SHOWCARETLOOKS TSTREAM)
+          else (TEDIT.PROMPTPRINT TSTREAM (CONCAT (CL:IF (OR (AND (FIXP INCREMENT)
+                                                                  (ILESSP INCREMENT 0))
+                                                             (EQ INCREMENT '-))
+                                                      "Smaller"
+                                                      "Larger")
+                                                 " font is not available")
+                      T T)))])
+
+(\TEDIT.SUBSCRIPTSEL
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited 20-Oct-87 11:12 by jds")
+    (TEDIT.LOOKS TEXTSTREAM (LIST 'OFFSETINCREMENT -2)
+           SEL])
+
+(\TEDIT.SUPERSCRIPTSEL
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited 20-Oct-87 11:13 by jds")
+    (TEDIT.LOOKS TEXTSTREAM (LIST 'OFFSETINCREMENT 2)
+           SEL])
+
+(\TEDIT.KEY.TRANSFORM
+  [LAMBDA (TSTREAM CHARFN)                                   (* ; "Edited 22-Apr-2025 00:07 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 14:57 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 18:49 by rmk")
+                                                             (* ; "Edited  7-Jul-2024 09:04 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 13:57 by rmk")
+                                                             (* ; "Edited  3-Mar-2024 12:56 by rmk")
+                                                             (* ; "Edited 28-May-2023 00:33 by rmk")
+
+    (* ;; "Applies CHARFN to transform each character in the selection.")
+
+    (* ;; "This changes the :Replace THACTION to :Transform and adds CHARFN to the event, so that REDO can perform the action again. ")
+
+    (LET* ((TEXTOBJ (FTEXTOBJ TSTREAM))
+           (SEL (TEXTSEL TEXTOBJ)))
+          (CL:WHEN (IGREATERP (TEXTLEN TEXTOBJ)
+                          0)
+              (\TEDIT.REPLACE.SELPIECES (\TEDIT.SELPIECES.CHARTRANSFORM (\TEDIT.SELPIECES.COPY
+                                                                         (\TEDIT.SELPIECES SEL NIL 
+                                                                                TEXTOBJ)
+                                                                         NIL TSTREAM)
+                                               CHARFN NIL TSTREAM)
+                     TSTREAM SEL)
+              (\TEDIT.RESET.EXTEND.PENDING.DELETE TSTREAM)
+              (\TEDIT.SHOWSEL SEL T TSTREAM)
+              (CL:UNLESS (FGETTOBJ TEXTOBJ TXTHISTORYINACTIVE)
+                  (SETTH (\TEDIT.LASTEVENT TEXTOBJ)
+                         THACTION :Transform)
+                  (SETTH (\TEDIT.LASTEVENT TEXTOBJ)
+                         THOLDINFO CHARFN)))])
+
+(\TEDIT.KEY.OPENLINE
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  9-Mar-2025 14:39 by rmk")
+                                                             (* gbn "30-Jan-85 18:36")
+
+    (* ;; "This is like typing a return, except that it positions the caret one character back")
+
+    [TEDIT.INSERT TSTREAM (CONSTANT (CONSTANT (CHARACTER (CHARCODE EOL]
+    (\TEDIT.ONECHAR.BACKWARD TSTREAM TEXTOBJ SEL])
+
+(\TEDIT.KEY.FAMILYN
+  [LAMBDA (TSTREAM CHARCODE)                                 (* ; "Edited 19-Mar-2025 13:08 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 13:13 by rmk")
+
+    (* ;; "CHARCODE is Meta,nn for nn from One..., changes the family to the nn-th entry on TEDIT.FONTFAMILIES.")
+
+    (CL:WHEN (CHARCODEP CHARCODE)
+        [LET [(NEWFAMILY (CAR (NTH TEDIT.FONTFAMILIES (IDIFFERENCE CHARCODE (CHARCODE "Meta,Zero"]
+             (CL:UNLESS (\TEDIT.READONLY TSTREAM)
+                 (if (NOT NEWFAMILY)
+                     then (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Font family " (IDIFFERENCE CHARCODE
+                                                                                   (CHARCODE 
+                                                                                          "Meta,Zero"
+                                                                                          ))
+                                                            " is not specified")
+                                 T T)
+                   elseif (\TEDIT.CHANGE.CHARLOOKS TSTREAM (LIST 'FAMILY NEWFAMILY))
+                     then (\TEDIT.SHOWCARETLOOKS TSTREAM)
+                   else (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Cannot switch to font family " NEWFAMILY)
+                               T T)))])])
+)
+(DEFINEQ
+
+(CAP-CASECODE
+  [LAMBDA (CHAR INDEX)                                       (* ; "Edited 16-Mar-2025 13:23 by rmk")
+
+    (* ;; "Uppercases CHAR if INDEX is 1, otherwise lowercases.")
+
+    (CL:IF (EQ INDEX 1)
+        (U-CASECODE CHAR)
+        (L-CASECODE CHAR))])
+)
+
+
+
+(* ; "For intiial caps")
+
+(DEFINEQ
+
+(\TEDIT.SHOWCARETLOOKS
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 23-Apr-2025 10:20 by rmk")
+                                                             (* ; "Edited 15-Apr-2025 16:44 by rmk")
+                                                             (* ; "Edited 27-Mar-2025 08:04 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 20:40 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 23:52 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 14:55 by rmk")
+                                                             (* ; "Edited 14-Dec-2023 21:07 by rmk")
+                                                             (* ; "Edited 30-May-91 21:09 by jds")
+    (LET ((LOOKS (FGETTOBJ (TEXTOBJ TSTREAM)
+                        CARETLOOKS)))
+         (TEDIT.PROMPTPRINT TSTREAM [CONCAT (\TEDIT.DESCRIBEFONT (GETCLOOKS LOOKS CLFONT))
+                                           (CL:IF (AND (GETCLOOKS LOOKS CLOFFSET)
+                                                       (NEQ (GETCLOOKS LOOKS CLOFFSET)
+                                                            0))
+                                               (CONCAT " offset " (GETCLOOKS LOOKS CLOFFSET))
+                                               "")
+                                           (CL:IF (GETCLOOKS LOOKS CLSTRIKE)
+                                               " strikeout"
+                                               "")
+                                           (CL:IF (GETCLOOKS LOOKS CLOLINE)
+                                               " overlined"
+                                               "")
+                                           (CL:IF (GETCLOOKS LOOKS CLULINE)
+                                               " underlined"
+                                               "")
+                                           (CL:IF (GETCLOOKS LOOKS CLUNBREAKABLE)
+                                               " unbreakable"
+                                               "")
+                                           (CL:IF (EQ 'BLACK (GETCLOOKS LOOKS CLCOLOR))
+                                               ""
+                                               (CONCAT " color " (L-CASE (GETCLOOKS LOOKS CLCOLOR))))
+                                           ]
+                T])
+
+(\TEDIT.DESCRIBEFONT
+  [LAMBDA (FONT)                                             (* ; "Edited 15-Mar-2025 16:19 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 14:53 by rmk")
+                                                             (* gbn "15-Dec-84 17:54")
+
+(* ;;; "returns a string which describes a font (in short.  If it's not italic then no mention is made of slope, etc.)")
+
+    (CONCAT (L-CASE (FONTPROP FONT 'FAMILY)
+                   T)
+           " "
+           (FONTPROP FONT 'SIZE)
+           (CL:IF (EQ (FONTPROP FONT 'WEIGHT)
+                      'MEDIUM)
+               ""
+               [CONCAT " " (L-CASE (FONTPROP FONT 'WEIGHT]
+               "")
+           (CL:IF (EQ (FONTPROP FONT 'SLOPE)
+                      'REGULAR)
+               ""
+               [CONCAT " " (L-CASE (FONTPROP FONT 'SLOPE])])
+)
+
+
+
+(* ; "Moving around")
+
+(DEFINEQ
+
+(\TEDIT.ONECHAR.BACKWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 14:46 by rmk")
+                                                             (* ; "Edited 17-Feb-2025 09:12 by rmk")
+                                                             (* ; "Edited 24-Jan-2025 15:25 by rmk")
+                                                             (* ; "Edited 21-Nov-2024 20:31 by rmk")
+                                                             (* ; "Edited  1-Sep-2024 10:39 by rmk")
+    (TEXTOBJ! TEXTOBJ)
+    (SELECTION! SEL)
+    (LET ((PT (TEDIT.GETPOINT TSTREAM SEL))
+          OBJ)
+         (CL:UNLESS [OR (ILEQ PT 1)
+                        (AND (FGETTOBJ TEXTOBJ MENUFLG)
+                             (SETQ OBJ (POBJ (\TEDIT.CHTOPC (SUB1 PT)
+                                                    TEXTOBJ)))
+                             (IMAGEOBJPROP OBJ 'FIELDPREFIX]
+             (FSETTOBJ TEXTOBJ LASTARROWX NIL)
+             (\TEDIT.NOSEL TSTREAM)
+             (\TEDIT.UPDATE.SEL TSTREAM (SUB1 PT)
+                    0
+                    'LEFT))])
+
+(\TEDIT.ONECHAR.FORWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 14:40 by rmk")
+                                                             (* ; "Edited 17-Feb-2025 09:11 by rmk")
+                                                             (* ; "Edited 15-Feb-2025 08:50 by rmk")
+                                                             (* ; "Edited 24-Jan-2025 15:27 by rmk")
+                                                             (* ; "Edited 21-Nov-2024 20:31 by rmk")
+                                                             (* ; "Edited  1-Sep-2024 10:39 by rmk")
+
+    (* ;; "Moves caret to a point one character forward.")
+
+    (SELECTION! SEL)
+    (TEXTOBJ! TEXTOBJ)
+    (LET ((PT (TEDIT.GETPOINT TSTREAM SEL))
+          OBJ)
+         (CL:UNLESS [OR (IGREATERP PT (TEXTLEN TEXTOBJ))
+                        (AND (FGETTOBJ TEXTOBJ MENUFLG)
+                             (SETQ OBJ (POBJ (\TEDIT.CHTOPC PT TEXTOBJ)))
+                             (IMAGEOBJPROP OBJ 'FIELDSUFFIX]
+             (FSETTOBJ TEXTOBJ LASTARROWX NIL)
+             (\TEDIT.NOSEL TSTREAM)
+             (\TEDIT.UPDATE.SEL TSTREAM PT 0 'RIGHT))])
+
+(\TEDIT.ONELINE.UP
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 13-Feb-2025 22:04 by rmk")
+                                                             (* ; "Edited 12-Feb-2025 19:46 by rmk")
+                                                             (* ; "Edited 24-Jan-2025 15:27 by rmk")
+                                                             (* ; "Edited 21-Nov-2024 20:31 by rmk")
+                                                             (* ; "Edited  1-Sep-2024 10:39 by rmk")
+
+    (* ;; "Moves caret to the same x position one line up.  It gets the current  X (X0 or XLIM) of the caret in the current selection, which is common to all panes in which the caret is visible. It then finds the line in the first pane where the caret is visible, formats the previous line, and then figures out the character in previousline that would come closest to X.")
+
+    (* ;; "We look for a pane that not only has a line with the caret, but also has the previous line.  Otherwise, we have to search backwards to find the start of that line.")
+
+    (TEXTOBJ! TEXTOBJ)
+    (SELECTION! SEL)
+    (LET (LINE LINEPANE (CHNO (TEDIT.GETPOINT TSTREAM SEL)))
+         (for PANE FIRSTONE inpanes (PROGN TEXTOBJ) as L1 in (FGETSEL SEL L1) as LN
+            in (FGETSEL SEL LN) when [SETQ LINE (OR (AND L1 (WITHINLINEP CHNO L1))
+                                                    (AND LN (WITHINLINEP CHNO LN]
+            do (CL:UNLESS (FGETLD (FGETLD LINE PREVLINE)
+                                 LDUMMY)
+                      (RETURN))
+               (CL:UNLESS FIRSTONE (SETQ FIRSTONE LINE)) finally 
+
+                                                 (* ;; "The caret is blinking nowhere, or in the top line of every pane, we have to create a prevline above.")
+
+                                                               (SETQ LINE FIRSTONE)
+                                                               (SETQ LINEPANE PANE))
+
+         (* ;; "Caret is blinking in LINE, move selection to the charno at the same X in the previous line, in all panes. ")
+
+         (CL:WHEN [AND LINE (ILEQ 1 (SUB1 (FGETLD LINE LCHAR1]
+             (\TEDIT.ONELINE.MOVE SEL (FGETLD (if (FGETLD (FGETLD LINE PREVLINE)
+                                                         LDUMMY)
+                                                  then 
+                                                       (* ;; 
+                                                       "Top of window, create the preceding line")
+
+                                                       (\TEDIT.LASTVALIDLINE LINE CHNO LINEPANE 
+                                                              TSTREAM)
+                                                else (FGETLD LINE PREVLINE))
+                                             LCHAR1)
+                    TSTREAM))])
+
+(\TEDIT.ONELINE.DOWN
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 13-Feb-2025 22:05 by rmk")
+                                                             (* ; "Edited 12-Feb-2025 19:46 by rmk")
+                                                             (* ; "Edited 24-Jan-2025 15:27 by rmk")
+                                                             (* ; "Edited 21-Nov-2024 20:31 by rmk")
+                                                             (* ; "Edited  1-Sep-2024 10:39 by rmk")
+
+    (* ;; "Moves caret to the same x position one line down.  It gets the current  X (X0 or XLIM) of the caret in the current selection, which is common to all panes in which the caret is visible. It then finds the line in the first pane where the caret is visible, formats the nextline, and then figures out the character in nextline that would come closest to X.")
+
+    (TEXTOBJ! TEXTOBJ)
+    (SELECTION! SEL)
+    (LET (LINE NEXTLINE NEXTCHNO)
+         (for L1 (CHNO _ (TEDIT.GETPOINT TSTREAM SEL)) in (FGETSEL SEL L1) as LN
+            in (FGETSEL SEL LN) when [SETQ LINE (OR (AND L1 (WITHINLINEP CHNO L1))
+                                                    (AND LN (WITHINLINEP CHNO LN] do (RETURN))
+
+         (* ;; "Caret is blinking in LINE, move selection to the charno at the same X in the next line, in all panes. ")
+
+         (CL:WHEN (AND LINE (ILESSP (ADD1 (FGETLD LINE LCHARLAST))
+                                   (TEXTLEN TEXTOBJ)))
+             (\TEDIT.ONELINE.MOVE SEL (ADD1 (FGETLD LINE LCHARLAST))
+                    TSTREAM))])
+
+(\TEDIT.ONELINE.MOVE
+  [LAMBDA (SEL CHNO TSTREAM)                                 (* ; "Edited 25-May-2025 23:25 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 11:04 by rmk")
+                                                             (* ; "Edited 16-Feb-2025 16:20 by rmk")
+                                                             (* ; "Edited 14-Feb-2025 09:49 by rmk")
+
+    (* ;; 
+    "Move caret from its previous X position to the same position in the line beginning at CHNO.")
+
+    (* ;; "The scan part is basically a specialized variant of \TEDIT.SCAN.LINE.  ")
+
+    (LET ((TARGETLINE (\TEDIT.FORMATLINE TSTREAM CHNO))
+          (TEXTOBJ (FGETTSTR TSTREAM TEXTOBJ)))
+         (CL:UNLESS (FGETTOBJ TEXTOBJ MENUFLG)
+             (for CHARSLOT (THISLINE _ (FGETTOBJ TEXTOBJ THISLINE))
+                  (TARGX _ (FGETLD TARGETLINE LX1))
+                  [X _ (OR (FGETTOBJ TEXTOBJ LASTARROWX)
+                           (FSETTOBJ TEXTOBJ LASTARROWX (SELECTQ (FGETSEL SEL POINT)
+                                                            (LEFT (FGETSEL SEL X0))
+                                                            (RIGHT (FGETSEL SEL XLIM))
+                                                            NIL] incharslots (FGETTOBJ TEXTOBJ 
+                                                                                    THISLINE)
+                do (add TARGX CHARW)
+                   (CL:WHEN (IGEQ TARGX X)
+                       (CL:WHEN (IGEQ X (IDIFFERENCE TARGX (FOLDLO CHARW 2)))
+                                                             (* ; 
+                                                      "To RIGHT of target char if more than half way")
+                           (add CHNO 1))
+                       (RETURN))
+                   (add CHNO 1) finally                      (* ; 
+                                                           "TARGETLINE must have been shorter than X")
+                                      (SETQ CHNO (FGETLD TARGETLINE LCHARLAST)))
+             (\TEDIT.SHOWSEL SEL NIL TSTREAM)
+             (\TEDIT.UPDATE.SEL TSTREAM CHNO 0 'LEFT)
+             (\TEDIT.SCROLL.CARET TSTREAM))])
+
+(\TEDIT.ONEWORD.BACKWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 11:03 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 13:47 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 17:37 by rmk")
+                                                             (* gbn "20-Mar-85 00:49")
+
+(* ;;; "moves the caret one word back Refers to the syntax classes of the characters according to the TEDIT.WORDBOUND.READTABLE")
+
+    (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+    (LET ((HERE (SUB1 (TEDIT.GETPOINT TSTREAM)))
+          LAST FIRST)
+         (SETQ FIRST (\TEDIT.WORD.FIRST TSTREAM HERE))       (* ; 
+                                                             "End of word, maybe after whitespace")
+         (SETQ LAST (IMIN HERE (\TEDIT.WORD.LAST TSTREAM FIRST)))
+                                                             (* ; "In case we started in white space")
+         (\TEDIT.UPDATE.SEL TSTREAM FIRST (ADD1 (IDIFFERENCE LAST FIRST))
+                'LEFT)
+         (TEDIT.NORMALIZECARET TEXTOBJ])
+
+(\TEDIT.ONEWORD.FORWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 10:59 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 13:47 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 17:33 by rmk")
+                                                             (* gbn "20-Mar-85 00:48")
+
+(* ;;; "moves the caret one word forward.  Refers to the syntax classes of the characters according to the TEDIT.WORDBOUND.READTABLE")
+
+    (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+    (LET ((HERE (TEDIT.GETPOINT TSTREAM))
+          LAST FIRST)
+         (SETQ LAST (\TEDIT.WORD.LAST TSTREAM HERE))         (* ; 
+                                                             "End of word, maybe after whitespace")
+         (SETQ FIRST (IMAX HERE (\TEDIT.WORD.FIRST TSTREAM LAST)))
+                                                             (* ; "In case we started in white space")
+         (\TEDIT.UPDATE.SEL TSTREAM FIRST (ADD1 (IDIFFERENCE LAST FIRST))
+                'RIGHT)
+         (TEDIT.NORMALIZECARET TEXTOBJ])
+
+(\TEDIT.LINE.BEGIN
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 10:58 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 13:16 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 22:55 by rmk")
+                                                             (* ; "Edited  9-Mar-2025 19:50 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 00:05 by rmk")
+                                                             (* gbn "11-Mar-85 15:04")
+
+    (* ;; "Positions the cursor at the beginning of line.  If L1 is NIL it is not visibnle in SELPANE.  Should we normalize to top?")
+
+    (LET ((L1 (\TEDIT.SEL.L1 SEL (GETTOBJ TEXTOBJ SELPANE)
+                     TEXTOBJ)))
+         (CL:WHEN L1
+             (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+             (\TEDIT.UPDATE.SEL TSTREAM (FGETLD L1 LCHAR1)
+                    0
+                    'LEFT))])
+
+(\TEDIT.LINE.END
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited  6-Apr-2025 10:59 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 13:16 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 22:54 by rmk")
+                                                             (* ; "Edited  9-Mar-2025 19:49 by rmk")
+                                                             (* ; "Edited  5-Mar-2025 14:07 by rmk")
+                                                             (* gbn " 7-Jun-85 15:47")
+
+    (* ;; "Positions the cursor at the end of its current line. If LN is NIL it is not visible in SELPANE.  Not sure about normalizing, maybe to bottom?")
+
+    (LET ((LN (\TEDIT.SEL.LN SEL NIL TEXTOBJ)))
+         (CL:WHEN LN
+             (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+
+             (* ;; "Put the caret in front of the terminating EOL so it stays on LN.")
+
+             (\TEDIT.UPDATE.SEL TSTREAM (FGETLD LN LCHARLAST)
+                    0
+                    (CL:IF (FGETLD LN FORCED-END)
+                        'LEFT
+                        'RIGHT)))])
+
+(\TEDIT.DOCUMENT.BEGIN
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 15-Mar-2025 23:08 by rmk")
+                                                             (* gbn "13-Dec-84 11:24")
+
+    (* ;; "Positions at the beginning of a document")
+
+    (TEDIT.SETSEL TSTREAM 1 0 'LEFT)
+    (TEDIT.NORMALIZECARET TEXTOBJ])
+
+(\TEDIT.DOCUMENT.END
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 19-Mar-2025 13:19 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 23:09 by rmk")
+                                                             (* gbn " 7-Jun-85 16:32")
+
+    (* ;; "Positions at the end of a document")
+
+    (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+    (\TEDIT.RESET.EXTEND.PENDING.DELETE TEXTOBJ)
+    (TEDIT.SETSEL TSTREAM (ADD1 (TEXTLEN TEXTOBJ))
+           0
+           'LEFT)
+    (TEDIT.NORMALIZECARET TSTREAM])
+)
+(DEFINEQ
+
+(\TEDIT.LINEDELETE.FORWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 12-Nov-2025 16:14 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:41 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 23:02 by rmk")
+                                                             (* ; "Edited  9-Mar-2025 22:11 by rmk")
+                                                             (* ; "Edited  4-Mar-2025 17:22 by rmk")
+                                                             (* gbn "13-Dec-84 11:56")
+
+    (* ;; "Deletes from the caret to the end of this line (including an ending EOL?)")
+
+    (LET ((LINE (\TEDIT.SEL.LN SEL NIL TEXTOBJ))
+          HERE)
+         (CL:WHEN LINE
+             (SETQ HERE (TEDIT.GETPOINT TSTREAM))
+             (\TEDIT.NOSEL TSTREAM)
+             (\TEDIT.UPDATE.SEL SEL HERE (IDIFFERENCE (FGETLD LINE LCHARLIM)
+                                                HERE))
+             (\TEDIT.DELETE TSTREAM SEL))])
+
+(\TEDIT.LINEDELETE.BACKWARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 12-Nov-2025 16:13 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:41 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 23:02 by rmk")
+                                                             (* ; "Edited  9-Mar-2025 22:11 by rmk")
+                                                             (* ; "Edited  4-Mar-2025 17:22 by rmk")
+                                                             (* gbn "13-Dec-84 11:56")
+
+    (* ;; 
+ "Deletes from the beginning of the caret's line to the caret.  Line must be visible in the selpane.")
+
+    (LET ((LINE (\TEDIT.SEL.L1 SEL NIL TEXTOBJ))
+          HERE)
+         (CL:WHEN LINE
+             (SETQ HERE (TEDIT.GETPOINT TSTREAM))
+             (\TEDIT.NOSEL TSTREAM)
+             (\TEDIT.UPDATE.SEL SEL HERE (IDIFFERENCE (FGETLD LINE LCHAR1)
+                                                HERE))
+             (\TEDIT.DELETE TSTREAM SEL))])
+
+(\TEDIT.LINEDELETE
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 12-Nov-2025 16:14 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:41 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 23:02 by rmk")
+                                                             (* ; "Edited  9-Mar-2025 22:11 by rmk")
+                                                             (* ; "Edited  4-Mar-2025 17:22 by rmk")
+                                                             (* gbn "13-Dec-84 11:56")
+
+    (* ;; "Deletes from the beginning of the caret's line to the end of the caret's line.  Line must be visible in the selpane.")
+
+    (LET ((LINE (\TEDIT.SEL.L1 SEL NIL TEXTOBJ)))
+         (CL:WHEN LINE
+             (\TEDIT.NOSEL TSTREAM)
+             (\TEDIT.UPDATE.SEL SEL (FGETLD LINE LCHAR1)
+                    (FGETLD LINE LNCH))
+             (\TEDIT.DELETE TSTREAM SEL))])
+)
+(DEFINEQ
+
+(\TEDIT.KEY.NEST
+  [LAMBDA (TSTREAM OUTFLAG)                                  (* ; "Edited 21-Apr-2025 20:18 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:42 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 13:16 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 13:06 by rmk")
+                                                             (* ; "Edited  7-Mar-2025 22:18 by rmk")
+
+    (* ;; "This moves the left margin of each selected paragraph in TEDITKEY.NESTWIDTH points.  It has to go paragraph by paragraph because the paragraphs may have different margins to begin with.")
+
+    (LET* ((TEXTOBJ (GETTSTR TSTREAM TEXTOBJ))
+           (SEL (TEXTSEL TEXTOBJ)))
+          (for CHNO LOOKS (DELTA _ (OR (GETTEXTPROP TSTREAM 'NESTWIDTH)
+                                       TEDIT.NESTWIDTH))
+               (TARGETSEL _ (\TEDIT.COPYSEL SEL)) in (\TEDIT.PARACHNOS SEL NIL TEXTOBJ)
+             first (CL:WHEN OUTFLAG
+                       (SETQ DELTA (IMINUS DELTA)))
+                   (\TEDIT.NOSEL TSTREAM)
+                   (FSETSEL SEL SET NIL) do (SETQ LOOKS (TEDIT.GET.PARALOOKS TSTREAM CHNO))
+                                            (LISTPUT LOOKS 'LEFTMARGIN (IPLUS (LISTGET LOOKS
+                                                                                     'LEFTMARGIN)
+                                                                              DELTA))
+                                            (LISTPUT LOOKS '1STLEFTMARGIN (IPLUS (LISTGET
+                                                                                  LOOKS
+                                                                                  '1STLEFTMARGIN)
+                                                                                 DELTA))
+                                            (LISTPUT LOOKS 'RIGHTMARGIN
+                                                   (IMAX 0 (IDIFFERENCE (LISTGET LOOKS 'RIGHTMARGIN)
+                                                                  DELTA)))
+                                            (\TEDIT.UPDATE.SEL TARGETSEL CHNO 1)
+                                            (\TEDIT.CHANGE.PARALOOKS TSTREAM LOOKS TARGETSEL)
+             finally (FSETSEL SEL SET T)
+                   (\TEDIT.SHOWSEL SEL T TSTREAM)
+                   (TEDIT.PROMPTCLEAR TSTREAM])
+)
+(DEFINEQ
+
+(\TEDIT.KEY.WRAP
+  [LAMBDA (TSTREAM LEFT RIGHT)                               (* ; "Edited  4-Apr-2025 11:12 by rmk")
+    (LET* ((TEXTOBJ (GETTSTR TSTREAM TEXTOBJ))
+           (SEL (TEXTSEL TEXTOBJ))
+           (CH# (FGETSEL SEL CH#))
+           (DCH (FGETSEL SEL DCH))
+           (POINT (FGETSEL SEL POINT))
+           UNDOEVENT)
+
+          (* ;; "The wrap event includes the 2 insert-events and the original selection, undo just undoes them all.  But it als has the LEFT and RIGHT so that Redo knows what to do.")
+
+          (TEDIT.INSERT TSTREAM RIGHT (FGETSEL SEL CHLIM)
+                 (\TEDIT.NTHCHARLOOKS TSTREAM (FGETSEL SEL CHLAST)))
+          (TEDIT.INSERT TSTREAM LEFT CH#)
+          (TEDIT.SETSEL TSTREAM CH# (IPLUS (NCHARS LEFT)
+                                           DCH
+                                           (NCHARS RIGHT))
+                 POINT)
+          (\TEDIT.HISTORYADD.COMPOSITE TEXTOBJ (LIST (\TEDIT.POPEVENT TEXTOBJ)
+                                                     (\TEDIT.POPEVENT TEXTOBJ)
+                                                     (\TEDIT.HISTORY.EVENT TEXTOBJ :Sel CH# DCH POINT
+                                                            ))
+                 :Wrap
+                 (LIST LEFT RIGHT])
+)
+
+
+
+(* ; "From TEDITDORADOKEYS")
+
+
+(RPAQ? TEDIT.NESTWIDTH 36)
+
+
+
+(* ; "Find")
+
+(DEFINEQ
+
+(\TEDIT.KEY.FIND
+  [LAMBDA (TSTREAM AGAIN BACKWARD SEARCHSTRING)              (* ; "Edited 21-Apr-2025 13:58 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:42 by rmk")
+                                                             (* ; "Edited 19-Mar-2025 11:20 by rmk")
+                                                             (* ; "Edited 16-Mar-2025 21:42 by rmk")
+                                                             (* ; "Edited 11-Mar-2025 15:09 by rmk")
+                                                             (* ; "Edited 26-Nov-2024 23:47 by rmk")
+                                                             (* ; "Edited 23-Nov-2024 16:25 by rmk")
+                                                             (* ; "Edited  7-Jul-2024 11:47 by rmk")
+                                                             (* ; "Edited 29-Jun-2024 16:20 by rmk")
+                                                             (* ; "Edited 22-Jun-2024 10:00 by rmk")
+                                                             (* ; "Edited 18-May-2024 16:29 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 13:36 by rmk")
+                                                             (* ; "Edited 24-Apr-2024 23:39 by rmk")
+                                                             (* ; "Edited  9-Mar-2024 11:36 by rmk")
+                                                             (* ; "Edited 14-Dec-2023 21:14 by rmk")
+                                                             (* ; "Edited 12-Jul-2023 08:26 by rmk")
+                                                             (* ; "Edited 20-Jun-2023 13:06 by rmk")
+                                                            (* ; "Edited  6-May-2018 17:14 by rmk:")
+                                                             (* ; "Edited 30-May-91 21:05 by jds")
+
+    (* ;; "Case sensitive search, with * and # wildcards. Just calls the normal tedit.find starting at the right of the current selection.  SEL is passed from the FN key in the readtable, presumably always (fetch SEL of TEXTOBJ).")
+
+    (* ;; "AGAIN suppresses confirmation of a previous target.")
+
+    (SETQ TSTREAM (TEXTSTREAM TSTREAM))
+    (RESETLST
+        [LET* ((TEXTOBJ (FTEXTOBJ TSTREAM))
+               (SEL (TEXTSEL TEXTOBJ))
+               CH)
+              [RESETSAVE (\TEDIT.MARKACTIVE TEXTOBJ "Find")
+                     '(PROGN (\TEDIT.MARKINACTIVE OLDVALUE]
+              (CL:UNLESS SEARCHSTRING
+                  (SETQ SEARCHSTRING (\TEDIT.KEY.FIND.SEARCHSTRING TEXTOBJ AGAIN BACKWARD)))
+              (CL:WHEN (AND SEARCHSTRING (IGEQ (NCHARS SEARCHSTRING)
+                                               1))
+                  (\TEDIT.NOSEL TSTREAM)
+                  (SETQ CH (if BACKWARD
+                               then (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Searching backward for %"" 
+                                                                      SEARCHSTRING "%"")
+                                           T)
+                                    (\TEDIT.FIND.BACKWARD TSTREAM (MKSTRING SEARCHSTRING)
+                                           T)
+                             else (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Searching for %"" SEARCHSTRING
+                                                                    "%"")
+                                         T)
+                                  (\TEDIT.FIND TSTREAM (MKSTRING SEARCHSTRING)
+                                         T)))
+                  (if CH
+                      then (TEDIT.PROMPTPRINT TEXTOBJ (CONCAT "%"" SEARCHSTRING "%" found")
+                                  T)                         (* ; "We found the target text.")
+                           (\TEDIT.RESET.EXTEND.PENDING.DELETE TSTREAM) 
+                                                             (* ; 
+                                                             "Set up SELECTION to be the found text")
+                           (SETSEL SEL SELKIND (CL:IF (IGREATERP (CADR CH)
+                                                             1)
+                                                   'WORD
+                                                   'CHAR))
+                           (\TEDIT.UPDATE.SEL TSTREAM (CAR CH)
+                                  (CADR CH)
+                                  (CL:IF BACKWARD
+                                      'LEFT
+                                      'RIGHT)
+                                  (CL:IF (FGETTOBJ TEXTOBJ TXTREADONLY)
+                                      'PENDINGDEL
+                                      'NORMAL))
+                           (FSETTOBJ TEXTOBJ CARETLOOKS (\TEDIT.GET.INSERT.CHARLOOKS TEXTOBJ SEL))
+                           (TEDIT.NORMALIZECARET TSTREAM)
+                    else (TEDIT.PROMPTPRINT TSTREAM (CONCAT "%"" SEARCHSTRING "%" not found")
+                                T)))])])
+
+(\TEDIT.KEY.FIND.SEARCHSTRING
+  [LAMBDA (TEXTOBJ AGAIN BACKWARD)                           (* ; "Edited 22-Jun-2024 10:17 by rmk")
+
+    (* ;; "TEDIT.LAST.FIND.STRING used to be stored as a window property.  But then it would only pertain to a particular pane.  Better store it on the textobj.")
+
+    (LET (SEARCHSTRING)
+         (CL:WHEN AGAIN
+             (SETQ SEARCHSTRING (GETTEXTPROP TEXTOBJ 'TEDIT.LAST.FIND.STRING)))
+         (CL:UNLESS SEARCHSTRING
+             (SETQ SEARCHSTRING (\TEDIT.GET.TARGET.STRING TEXTOBJ 'TEDIT.LAST.FIND.STRING))
+             (SETQ SEARCHSTRING (TEDIT.GETINPUT TEXTOBJ (CL:IF BACKWARD
+                                                            "Backward search string: "
+                                                            "Search string: ")
+                                       SEARCHSTRING))
+             (CL:WHEN SEARCHSTRING                           (* ; 
+                                                            "Save for next search, even if not found")
+                 (PUTTEXTPROP TEXTOBJ 'TEDIT.LAST.FIND.STRING SEARCHSTRING)))
+         SEARCHSTRING])
+
+(\TEDIT.GET.TARGET.STRING
+  [LAMBDA (TEXTOBJ PROP)                                     (* ; "Edited 14-Jul-2024 00:09 by rmk")
+                                                             (* ; "Edited 23-Jun-2024 23:06 by rmk")
+                                                             (* ; "Edited 22-Jun-2024 12:03 by rmk")
+                                                             (* ; "Edited 29-Feb-2024 17:08 by rmk")
+
+    (* ;; "This is called from \TEDIT.KEY.FIND, TEDIT.DEFAULT.MENUFN.  It tries to determine the best tentative target string for a search.  PROP is presumably TEDIT.LAST.FIND.STRING.")
+
+    (* ;; "Current heuristic:  If a previous string, use it if it contains wild cards, otherwise the current non-point selection.  Note that meta-G goes directly to the last search.")
+
+    (* ;; "TEDIT.SUBSTITUTE doesn't call this because the current selection is the search domain")
+
+    (LET [(PREV (STRINGP (GETTEXTPROP TEXTOBJ PROP]
+         (if [AND PREV (find I from 1 to (NCHARS PREV)
+                          suchthat (AND (MEMB (NTHCHARCODE PREV I)
+                                              (CHARCODE (%# ESCAPE *)))
+                                        (NEQ (CHARCODE %')
+                                             (NTHCHARCODE PREV (SUB1 I]
+             then PREV
+           elseif (IGEQ (FGETSEL (FGETTOBJ TEXTOBJ SEL)
+                               DCH)
+                        1)
+             then 
+                  (* ;; "TEDIT.SEL.AS.STRING breaks on image objects, should be fixed there.")
+
+                  (CAR (NLSETQ (TEDIT.SEL.AS.STRING TEXTOBJ)))
+           else PREV])
+)
+
+
+
+(* ; "Miscellaneous")
+
+(DEFINEQ
+
+(\TEDIT.KEY.SUBSTITUTE
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited  8-May-2023 09:35 by rmk")
+
+    (* ;; "Stub for function-key")
+
+    (TEDIT.SUBSTITUTE TEXTSTREAM NIL NIL T])
+
+(\TEDIT.MANPAGE
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 18-Jan-2025 21:48 by rmk")
+                                                             (* ; "Edited 29-Dec-2024 08:40 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 26-May-2024 21:53 by rmk")
+                                                             (* ; "Edited 25-May-2024 14:50 by rmk")
+
+    (* ;; "If meta-D is typed in an existing DINFO window, the new stuff comes up but then the window closes.  That could be debugged, but probably not worth it.  The DINFO window has its own links to things that it thought were worth indexing.")
+
+    (CL:UNLESS (WINDOWPROP (\TEDIT.PRIMARYPANE TSTREAM)
+                      'DINFOGRAPH)
+        (TEDIT.PROMPTCLEAR TSTREAM)
+        [LET ((KEY (TEDIT.SEL.AS.STRING TSTREAM SEL)))
+             (if (OR (NULL KEY)
+                     (EQ 0 (NCHARS KEY)))
+                 then (TEDIT.PROMPTPRINT TSTREAM "Please select a man-page key" T T)
+               else (GENERIC.MAN.LOOKUP (TEDIT.SEL.AS.STRING TSTREAM SEL])])
+
+(\TEDIT.CALL.ED
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 18-Jan-2025 23:38 by rmk")
+                                                             (* ; "Edited 29-Dec-2024 08:46 by rmk")
+                                                             (* ; "Edited 25-May-2024 15:03 by rmk")
+    (TEDIT.PROMPTCLEAR TSTREAM)
+    (LET [(SYMBOL (MKATOM (CAR (MKLIST (TEDIT.SEL.AS.SEXPR TSTREAM SEL]
+         (if (OR (NULL SYMBOL)
+                 (EQ 0 (NCHARS SYMBOL)))
+             then (TEDIT.PROMPTPRINT TSTREAM "Please select a symbol to edit" T T)
+           elseif (TYPESOF SYMBOL)
+             then (ED SYMBOL `(:DONTWAIT :DISPLAY))
+           else (TEDIT.PROMPTPRINT TSTREAM (CONCAT SYMBOL " has no definitions to edit")
+                       T T])
+
+(\TEDIT.SELECT.ALL
+  [LAMBDA (TEXTSTREAM TEXTOBJ SEL)                           (* ; "Edited 29-Jun-2024 15:05 by rmk")
+                                                            (* ; "Edited  6-May-2018 12:41 by rmk:")
+    (TEDIT.SETSEL TEXTSTREAM 1 (GETTOBJ TEXTOBJ TEXTLEN)
+           'LEFT])
+)
+
+
+
+(* ; "Clipboard")
+
+(DEFINEQ
+
+(\TEDIT.CLIPBOARD
+  [LAMBDA NIL                                                (* ; "Edited 21-Apr-2024 09:57 by rmk")
+                                                             (* ; "Edited  2-Oct-2023 23:23 by rmk")
+
+    (* ;; "TEDIT disables interrupts, so it has to deal with special interrupt behaviors when the caret is in the Tedit window. This localizes the behavior of WHEELSCROLL and CLIPBOARD inside Tedit.")
+
+    (* ;; "Clipboard paste")
+
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,v")
+           (FUNCTION PASTEFROMCLIPBOARD)
+           TEDIT.READTABLE)
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,V")
+           (FUNCTION PASTEFROMCLIPBOARD)
+           TEDIT.READTABLE)
+
+    (* ;; "Clipboard copy")
+
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,c")
+           (FUNCTION \TEDIT.COPYTOCLIPBOARD)
+           TEDIT.READTABLE)
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,C")
+           (FUNCTION \TEDIT.COPYTOCLIPBOARD)
+           TEDIT.READTABLE)
+
+    (* ;; "Clipboard extract")
+
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,X")
+           (FUNCTION \TEDIT.EXTRACTTOCLIPBOARD)
+           TEDIT.READTABLE)
+    (TEDIT.SETFUNCTION (CHARCODE "Meta,x")
+           (FUNCTION \TEDIT.EXTRACTTOCLIPBOARD)
+           TEDIT.READTABLE)
+
+    (* ;; "Each of the individual actions is conditioned on WHEELSCROLLENABLED (which may or may not have been loaded).")
+
+    (for I in WHEELSCROLLINTERRUPTS collect (TEDIT.SETFUNCTION (CAR I)
+                                                   `[LAMBDA NIL
+                                                      (AND WHEELSCROLLENABLED ,(CADR I]
+                                                   TEDIT.READTABLE)
+                                          (CAR I])
+
+(\TEDIT.COPYTOCLIPBOARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL EXTRACT)                      (* ; "Edited 21-Apr-2024 11:51 by rmk")
+                                                             (* ; "Edited  2-Apr-2024 17:01 by rmk")
+                                                            (* ; "Edited 18-Apr-2018 00:02 by rmk:")
+
+    (* ;; "If CLIPBOARD is loaded, this copies the characters in the current selection to the clipboard (SEL argument is ignored).  .")
+
+    (CL:WHEN (FGETD (FUNCTION PUTCLIPBOARD))
+        (SETQ TSTREAM (TEXTSTREAM (OR TSTREAM (TTY.PROCESS))
+                             T))
+        (CL:WHEN TSTREAM
+            (PUTCLIPBOARD TSTREAM (FUNCTION \TEDIT.WRITE.SEL))
+            (CL:WHEN EXTRACT (TEDIT.DELETE TSTREAM))))])
+
+(\TEDIT.EXTRACTTOCLIPBOARD
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 21-Apr-2024 09:20 by rmk")
+    (\TEDIT.COPYTOCLIPBOARD TSTREAM TEXTOBJ SEL T])
+
+(\TEDIT.WRITE.SEL
+  [LAMBDA (TSTREAM STREAM)                                   (* ; "Edited 28-Mar-2025 10:09 by rmk")
+                                                             (* ; "Edited 21-Apr-2024 11:55 by rmk")
+
+    (* ;; "Writes the selected characters in TSTREAM to STREAM.  ")
+
+    (* ;; "If there are no image objects, this is equivalent to (PRIN3 (TEDIT.SEL.AS.STRING ...)), but that would trip over image objects.  Image objects could be skipped, or as here, represented as the OBJECTBYTE or described in some way.")
+
+    (* ;; "For Medley-to-Medley copy/paste we could also create a local tmp stream that shadows the system clipboard, and apply the PUTFN to that stream.  Then copy/paste could be used to move image objects around with a single Medley or perhaps across Medley's (if the GETFN is available).")
+
+    (LET* ((TEXTOBJ (TEXTOBJ TSTREAM))
+           (SEL (FGETTOBJ TEXTOBJ SEL)))
+          (CL:WHEN (IGREATERP (GETSEL SEL DCH)
+                          0)
+
+              (* ;; "This could be run by setting the fileptr and doing BIN's. This way we don't manipulate TSTREAM's file position FWIW.")
+
+              (for I CODE PRE (OBJECTBYTE _ (GETTEXTPROP TEXTOBJ 'OBJECTBYTE))
+                   (NOBJECTS _ 0) from (GETSEL SEL CH#) to (SUB1 (GETSEL SEL CHLIM))
+                 while (SETQ CODE (\TEDIT.NTHCHARCODE TSTREAM I))
+                 do (if (CHARCODEP CODE)
+                        then (PRINTCCODE CODE STREAM)
+                      elseif (IMAGEOBJP CODE)
+                        then (add NOBJECTS 1)
+                             (if OBJECTBYTE
+                                 then (PRINTCCODE OBJECTBYTE STREAM)
+                               else (PRIN3 "{" STREAM)
+                                    (PRIN4 (IMAGEOBJPROP CODE 'GETFN)
+                                           STREAM)
+                                    (CL:WHEN (SETQ PRE (APPLY* (OR (IMAGEOBJPROP CODE 'PREPRINTFN)
+                                                                   (FUNCTION NILL))
+                                                              PRE CODE))
+                                        (PRIN3 " : " STREAM)
+                                        (PRIN4 PRE STREAM))
+                                    (PRIN3 "}" STREAM))
+                      else (ERROR "UNRECOGNIZED TEDIT CHARACTER" CODE))
+                 finally (CL:WHEN (IGREATERP NOBJECTS 0)
+                             (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Note:  Selection contains " NOBJECTS
+                                                               " image object"
+                                                               (CL:IF (EQ NOBJECTS 1)
+                                                                   ""
+                                                                   "s"))
+                                    T))))])
+)
+
+(RPAQQ TEDIT.FNKEY.VERBOSE T)
+
+
+
+(* ; "Read-table Utilities")
+
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS TEDIT.READTABLE TEDIT.WORDBOUND.READTABLE)
+)
+(DEFINEQ
+
+(\TEDIT.READTABLE
+  [LAMBDA NIL                                                (* ; "Edited 18-Mar-2025 11:08 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 13:51 by rmk")
+                                                             (* ; "Edited 11-Mar-2025 22:49 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 09:54 by rmk")
+                                                            (* ; "Edited 20-Apr-2018 07:59 by rmk:")
+                                                             (* jds "12-Sep-86 13:48")
+
+    (* ;; "Create a TEdit read-table, to control which characters have what functions and call which commands.")
+
+    (LET [(RTBL (create READTABLEP
+                       READMACRODEFS _ (HASHARRAY 50]
+         (TEDIT.INSTALL.CHARBINDINGS NIL RTBL)
+         RTBL])
+
+(\TEDIT.WORDBOUND.READTABLE
+  [LAMBDA NIL                                                (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited  2-Aug-2025 22:06 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 12:00 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 22:24 by rmk")
+                                                             (* ; "Edited 22-May-92 15:10 by jds")
+
+    (* ;; "Create a readtable which will let TEdit find word boundaries.  A word boundary is any point where the SYNCODE of the adjacent characters is different")
+
+    (LET* ((RTBL (create READTABLEP
+                        READMACRODEFS _ (HARRAY 50)))
+           (READSA (fetch READSA of RTBL))
+           (TEXTTTC (\TEDIT.TTC TEXT)))
+
+          (* ;; "By default, every character except those noted below is a punctuation character")
+
+          (for CH from 0 to 255 do (\SETSYNCODE READSA CH (\TEDIT.TTC PUNCT)))
+          (for CH from (CHARCODE A) to (CHARCODE Z) do (\SETSYNCODE READSA CH TEXTTTC))
+                                                             (* ; "Upper case alpha")
+          (for CH from (CHARCODE a) to (CHARCODE z) do (\SETSYNCODE READSA CH TEXTTTC))
+                                                             (* ; "Lower case alpha")
+          (for CH from (CHARCODE 0) to (CHARCODE 9) do (\SETSYNCODE READSA CH TEXTTTC))
+                                                             (* ; "And digits are text characters")
+
+          (* ;; "European chars and accents are text characters:")
+
+          (for CH from (CHARCODE "361,41") to (CHARCODE "361,376") do (\SETSYNCODE READSA CH TEXTTTC)
+               )
+          (for CH from (CHARCODE "0,301") to (CHARCODE "0,317") do (\SETSYNCODE READSA CH TEXTTTC))
+          (for CH from (CHARCODE "0,341") to (CHARCODE "0,376") do (\SETSYNCODE READSA CH TEXTTTC))
+          (for CH in (CHARCODE (CR LF EOL SPACE TAB FORM)) do (\SETSYNCODE READSA CH (\TEDIT.TTC
+                                                                                      WHITESPACE)))
+                                                             (* ; 
+                                                             "And these are nonbreaking white space")
+          (for CH in '(EMQUAD ENQUAD THINSPACE FIGURESPACE) do (\SETSYNCODE READSA (CHARCODE.DECODE
+                                                                                    CH)
+                                                                      TEXTTTC))
+          (for CH from (CHARCODE "360,41") to (CHARCODE "360,46") do (\SETSYNCODE READSA CH TEXTTTC))
+                                                             (* ; "Ligatures")
+          RTBL])
+
+(TEDIT.GETSYNTAX
+  [LAMBDA (CH TABLE)                                         (* ; "Edited 12-Nov-2025 14:46 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 13:36 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 13:32 by rmk")
+                                                             (* ; "Edited 29-May-2025 16:20 by rmk")
+                                                             (* ; "Edited 12-Mar-2025 12:55 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 09:47 by rmk")
+                                                             (* ; "Edited 31-Mar-87 10:01 by jds")
+
+    (* ;; "Map back to documented syntax-class names just for those defined classes, otherwise FN, for compatibility with documentation and history.  ")
+
+    (SELECTQ (TEDIT.GET.CHARACTION CH TABLE)
+        (:CHARDELETE.BACKWARD 
+             'CHARDELETE)
+        (:WORDDELETE.BACKWARD 
+             'WORDDELETE)
+        (:DELETE 'DELETE)
+        (:UNDO 'UNDO)
+        (:REDO 'REDO)
+        (:NEXT 'NEXT)
+        (NIL 'NONE)
+        'FN])
+
+(TEDIT.SETSYNTAX
+  [LAMBDA (CHAR CLASS RDTBL)                                 (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 21:52 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 09:17 by rmk")
+                                                             (* ; "Edited 31-Mar-87 10:00 by jds")
+                                                             (* ; 
+                                                        "SETS TEDIT-STYLE SYNTAX BITS IN A TERMTABLE")
+    (SETQ CHAR (CL:IF (OR (LITATOM CHAR)
+                          (STRINGP CHAR))
+                   (CHARCODE.DECODE CHAR)
+                   CHAR))
+    (SETQ RDTBL (if (NULL RDTBL)
+                    then TEDIT.READTABLE
+                  elseif (TEXTSTREAM RDTBL T)
+                    then (OR (GETTOBJ (TEXTOBJ RDTBL)
+                                    TXTRTBL)
+                             TEDIT.READTABLE)
+                  else RDTBL))
+    (PROG1 (TEDIT.GETSYNTAX CHAR RDTBL)
+        (\SETSYNCODE (fetch READSA of RDTBL)
+               CHAR
+               (OR (CADR (ASSOC CLASS \TEDIT.TTCCODES))
+                   (\TEDIT.TTC NONE))))])
+
+(TEDIT.GETFUNCTION
+  [LAMBDA (CHARCODE RDTBL)                                   (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 11:13 by rmk")
+                                                             (* ; "Edited  5-Apr-2025 11:37 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 22:56 by rmk")
+                                                             (* ; "Edited  7-Mar-2025 12:02 by rmk")
+                                                             (* jds "19-Sep-85 17:06")
+
+    (* ;; "Gets the FN that is called when CH is hit inside TEDIT.")
+
+    (CL:UNLESS (CHARCODEP CHARCODE)
+        (SETQ CHARCODE (CHARCODE.DECODE CHARCODE)))
+    (SETQ RDTBL (if (NULL RDTBL)
+                    then TEDIT.READTABLE
+                  elseif (TEXTSTREAM RDTBL T)
+                    then (OR (GETTOBJ (TEXTOBJ RDTBL)
+                                    TXTRTBL)
+                             TEDIT.READTABLE)
+                  else RDTBL))
+    (CL:WHEN (AND (READTABLEP RDTBL)
+                  (EQ (\TEDIT.TTC FN)
+                      (\SYNCODE (fetch READSA of RDTBL)
+                             CHARCODE))
+                  (fetch READMACRODEFS of RDTBL))
+        [CAR (FETCH MACROFN OF (GETHASH CHARCODE (fetch READMACRODEFS of RDTBL])])
+
+(TEDIT.SETFUNCTION
+  [LAMBDA (CHARCODE FN RDTBL)                                (* ; "Edited 24-Nov-2025 00:36 by rmk")
+                                                             (* ; "Edited 12-Nov-2025 14:44 by rmk")
+                                                             (* ; "Edited  8-Nov-2025 10:02 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 22:51 by rmk")
+                                                             (* ; "Edited  7-Mar-2025 12:03 by rmk")
+                                                             (* ; "Edited 31-Mar-87 10:58 by jds")
+                                                             (* ; 
+                           "Set TEDITs (read) table so that FN is called whenever CHARCODE is typed.")
+                                                             (* ; 
+                                                  "If FN is NIL, make the character be normal again.")
+    (CL:UNLESS (CHARCODEP CHARCODE)
+        (SETQ CHARCODE (CHARCODE.DECODE CHARCODE)))          (* ; 
+                                            "Mark the character whether or not it invokes a function")
+    (SETQ RDTBL (if (NULL RDTBL)
+                    then TEDIT.READTABLE
+                  elseif (TEXTSTREAM RDTBL T)
+                    then (OR (GETTOBJ (TEXTOBJ RDTBL)
+                                    TXTRTBL)
+                             TEDIT.READTABLE)
+                  else RDTBL))
+    (\SETSYNCODE (fetch READSA of RDTBL)
+           CHARCODE
+           (CL:IF FN
+               (\TEDIT.TTC FN)
+               (\TEDIT.TTC NONE)))
+    (CL:UNLESS (fetch READMACRODEFS of RDTBL)
+        (replace READMACRODEFS of RDTBL with (HARRAY 50)))   (* ; 
+                                           "Make sure there's a hash table to store the function in.")
+    (PUTHASH CHARCODE (CREATE READMACRODEF
+                             MACROTYPE _ 'TEDIT
+                             MACROFN _ (LIST FN))
+           (fetch READMACRODEFS of RDTBL])
+
+(TEDIT.WORDGET
+  [LAMBDA (CH TABLE)                                         (* jds "27-MAY-83 13:24")
+    (\SYNCODE (fetch READSA of (OR TABLE TEDIT.WORDBOUND.READTABLE))
+           (COND
+              ((SMALLP CH))
+              (T (CHCON1 CH])
+
+(TEDIT.WORDSET
+  [LAMBDA (CHARCODE CLASS TABLE)                             (* ; "Edited 12-Nov-2025 14:45 by rmk")
+                                                             (* ; "Edited 13-Mar-2025 21:43 by rmk")
+                                                             (* jds " 1-JUN-83 12:23")
+
+    (* ;; "Sets Tedit syntax bits in a termtable. ")
+
+    (\SETSYNCODE (fetch READSA of (OR TABLE TEDIT.WORDBOUND.READTABLE))
+           (OR (SMALLP CHARCODE)
+               (CHARCODE.DECODE CHARCODE))
+           (OR (FIXP CLASS)
+               (SELECTQ CLASS
+                   (PUNCT (\TEDIT.TTC PUNCT))
+                   (WHITESPACE (\TEDIT.TTC WHITESPACE))
+                   (\TEDIT.TTC TEXT])
+
+(TEDIT.ATOMBOUND.READTABLE
+  [LAMBDA (READTABLE)                                        (* ; "Edited  5-Apr-2025 11:47 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 18:13 by rmk")
+                                                             (* ; "Edited 25-Dec-2023 13:10 by rmk")
+                                                             (* ; "Edited  5-Dec-2023 23:47 by rmk")
+
+    (* ;; "A wordbound table that approximates the unquoted OTHER characters of Lisp atoms as defined by READTABLE or the current readtable.  This is specified as the BOUNDTABLE for Lisp source code edits.  Not perfect, but not bad.")
+
+    (* ;; "Could cache this for common readtables (interlisp, commonlisp)")
+
+    (CL:UNLESS READTABLE (SETQ READTABLE *READTABLE*))
+    (LET ((TABLE (\TEDIT.WORDBOUND.READTABLE)))              (* ; 
+                                            "\TEDIT.WORDBOUND.READTABLE creates a new one each time.")
+         (for CODE IN (GETSYNTAX 'OTHER READTABLE) do (TEDIT.WORDSET CODE 'TEXT TABLE))
+         (for CODE IN (GETSYNTAX 'BREAK READTABLE) do (TEDIT.WORDSET CODE 'PUNCT TABLE))
+         (TEDIT.WORDSET (CHARCODE %:)
+                'TEXT TABLE)
+         TABLE])
+)
+
+
+
+(* ;; "On-screen formatting buttons (TEDIT.BUTTONS.BUILD) creates the default button menu")
+
+(DEFINEQ
+
+(TEDIT.BUTTONS.BUILD
+  [LAMBDA (BUTTONSPEC TITLE NROWS KEYBINDINGS)               (* ; "Edited  6-Aug-2025 08:59 by rmk")
+                                                             (* ; "Edited 23-Mar-2025 10:31 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 15:47 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 15:24 by rmk")
+                                                             (* ; "Edited   5-Nov-85 15:35 by lmm")
+
+    (* ;; "Each button is of the form (label action1 [action2]), e.g. (BOLD BOLD.ON BOLD.OFF) or (JUSTIFY QUAD)")
+
+    (CL:UNLESS (AND (WINDOWP TEDIT.BUTTONS.WINDOW)
+                    (OPENWP TEDIT.BUTTONS.WINDOW))
+        (CL:UNLESS BUTTONSPEC (SETQ BUTTONSPEC TEDIT.BUTTONS.SPEC))
+        (CL:UNLESS TITLE
+            (SETQ TITLE '(Tedit Buttons)))                   (* ; "List for the Shrink button label")
+        (CL:UNLESS KEYBINDINGS (SETQ KEYBINDINGS TEDIT.CHARBINDINGS))
+
+        (* ;; "The constructed menu will bksysbuf a character bound to action1 if the shift is not down, otherwise a character bound to action2.  action2 is action1 if it is not specified.  Buttons with no actions are skipped.")
+
+        (LET (ITEMS)
+             (SETQ ITEMS (for BUTTON CHARS in BUTTONSPEC
+                            eachtime (CL:WHEN (AND (CDR BUTTON)
+                                                   (NULL (CDDR BUTTON)))
+                                         [SETQ BUTTON (APPEND BUTTON (CONS (CADR BUTTON])
+                            when [SETQ CHARS (for ANAME CHAR in (CDR BUTTON)
+                                                when (SETQ CHAR (CADR (ASSOC ANAME KEYBINDINGS)))
+                                                collect (CL:IF (CHARCODEP CHAR)
+                                                            CHAR
+                                                            (CHARCODE.DECODE CHAR))]
+                            collect (LIST (TEDIT.BUTTONBITMAP.FILL (CAR BUTTON))
+                                          CHARS)))
+             (SETQ TEDIT.BUTTONS.WINDOW (ADDMENU [create MENU
+                                                        ITEMS _ ITEMS
+                                                        TITLE _ (CL:IF (LISTP TITLE)
+                                                                    (SUBSTRING TITLE 2 -2)
+                                                                    TITLE)
+                                                        MENUROWS _ (OR NROWS 1)
+                                                        WHENSELECTEDFN _
+                                                        (FUNCTION (LAMBDA (X)
+                                                                    (CL:WHEN 
+                                                                        (EQ '\TEDIT.PROCENTRYFN
+                                                                            (FETCH (PROCESS 
+                                                                                       PROCTTYENTRYFN
+                                                                                          )
+                                                                               OF (TTY.PROCESS)))
+                                                                        [\TEDIT.COMMAND.FUNCTION?
+                                                                         (TEXTSTREAM (TTY.PROCESS))
+                                                                         (CL:IF (SHIFTDOWNP
+                                                                                 'SHIFT)
+                                                                             (CADR (CADR X))
+                                                                             (CAR (CADR X)))])]
+                                               NIL
+                                               (create POSITION
+                                                      XCOORD _
+                                                      (PLUS (DIFFERENCE (QUOTIENT SCREENWIDTH 2)
+                                                                   (QUOTIENT (TIMES (BITMAPWIDTH
+                                                                                     
+                                                                                   TEDIT.BUTTONBITMAP
+                                                                                     )
+                                                                                    (LENGTH ITEMS))
+                                                                          2))
+                                                            (TIMES 2 WBorder))
+                                                      YCOORD _ 0)))
+             [WINDOWPROP TEDIT.BUTTONS.WINDOW 'ICON (TEDIT.BUTTONBITMAP.FILL '(Tedit Buttons]
+             (WINDOWPROP TEDIT.BUTTONS.WINDOW 'ICONPOSITION (create POSITION
+                                                                   XCOORD _ 0
+                                                                   YCOORD _ 0))))])
+
+(TEDIT.BUTTONBITMAP.FILL
+  [LAMBDA (X)                                                (* ; "Edited 16-Mar-2025 21:12 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 14:55 by rmk")
+                                                             (* lmm " 5-Nov-85 14:04")
+    (LET ((BITMAP (BITMAPCOPY TEDIT.BUTTONBITMAP))
+          DS QUARTER REGION)
+         (SETQ DS (DSPCREATE BITMAP))
+         (DSPFONT MENUFONT DS)
+         (if (LISTP X)
+             then                                            (* ; 
+                                       "this is supposed to have two labels, one on top of the other")
+                  (SETQ QUARTER (IQUOTIENT (BITMAPHEIGHT BITMAP)
+                                       4))
+                  (CENTERPRINTINREGION (CADR X)
+                         (SETQ REGION (create REGION
+                                             LEFT _ 0
+                                             BOTTOM _ QUARTER
+                                             WIDTH _ (BITMAPWIDTH BITMAP)
+                                             HEIGHT _ QUARTER))
+                         DS)
+                  (replace BOTTOM of REGION with (ITIMES 2 QUARTER))
+                  (CENTERPRINTINREGION (CAR X)
+                         REGION DS)
+           else (CENTERPRINTINREGION X (create REGION
+                                              LEFT _ 0
+                                              BOTTOM _ 0
+                                              WIDTH _ (BITMAPWIDTH BITMAP)
+                                              HEIGHT _ (BITMAPHEIGHT BITMAP))
+                       DS))
+         BITMAP])
+)
+
+(RPAQ? TEDIT.BUTTONS.WINDOW NIL)
+
+(RPAQQ TEDIT.BUTTONBITMAP #*(78 48)OOOOOOOOOOOOOOOOOOOLON@@@@@@@@@@@@@@@AOLO@@@@@@@@@@@@@@@@@CLO@@@@@@@@@@@@@@@@@CLMH@@@@@@@@@@@@@@@@DLNLGOOOOOOOOOOOOOOHHLMFL@@@@@@@@@@@@@@M@LJK@@@@@@@@@@@@@@@B@DMF@@@@@@@@@@@@@@@A@DJN@@@@@@@@@@@@@@@AHDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMD@@@@@@@@@@@@@@@@HDJL@@@@@@@@@@@@@@@@HDMF@@@@@@@@@@@@@@@AHDJJ@@@@@@@@@@@@@@@A@DMG@@@@@@@@@@@@@@@B@DNEL@@@@@@@@@@@@@@O@LLIGOOOOOOOOOOOOOOMHLOBBJJJJJJJJJJJJJJJLLNDEEEEEEEEEEEEEEEEGLOHJJJJJJJJJJJJJJJJKLOLEEEEEEEEEEEEEEEEOLOOOOOOOOOOOOOOOOOOOL
+)
+
+(RPAQ? TEDIT.BUTTONS.SPEC
+       '((Bold :BOLD.ON :BOLD.OFF)
+         (Italic :ITALIC.ON :ITALIC.OFF)
+         (Case :UCASE :LCASE)
+         ((Strike- out)
+          :STRIKEOUT.ON :STRIKEOUT.OFF)
+         ((Under- line)
+          :UNDERLINE.ON :UNDERLINE.OFF)
+         ((Super/ Sub)
+          :SUPERSCRIPT :SUBSCRIPT)
+         ((Larger Smaller)
+          :LARGER :SMALLER)
+         (Justify :QUAD)
+         (Defaults :DEFAULTS)
+         (Show :SHOW.CHARLOOKS)
+         (Redo :REDO)))
+
+
+
+(* ; "Keybindings")
+
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+(* "FOLLOWING DEFINITIONS EXPORTED")(DECLARE%: EVAL@COMPILE 
+
+(RPAQQ \TEDIT.TTCCODES
+       ((NONE . 0)
+        (CHARDELETE . 1)
+        (:CHARDELETE.BACKWARD . 1)
+        (WORDDELETE . 2)
+        (:WORDDELETE.BACKWORD . 2)
+        (DELETE . 3)
+        (:DELETE . 3)
+        (FN . 4)
+        (REDO . 5)
+        (:REDO . 5)
+        (UNDO . 6)
+        (:UNDO . 6)
+        (CMD . 7)
+        (:CMD . 7)
+        (NEXT . 8)
+        (:NEXT . 8)
+        (EXPAND . 9)
+        (:EXPAND . 9)
+        (CHARDELETE.FORWARD . 10)
+        (:CHARDELETE.FORWARD . 10)
+        (:WORDDELETE.FORWARD . 11)
+        (PUNCT . 20)
+        (TEXT . 21)
+        (WHITESPACE . 22)))
+
+
+(CONSTANTS \TEDIT.TTCCODES)
+)
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS \TEDIT.TTC MACRO [(ACTION)
+                            (CONSTANT (GETMULTI \TEDIT.TTCCODES 'ACTION])
+)
+
+(* "END EXPORTED DEFINITIONS")
+
+)
+(DEFINEQ
+
+(\TEDIT.TTCCLASS
+  [LAMBDA (CODE/CLASS)                                       (* ; "Edited 12-Nov-2025 13:51 by rmk")
+                                                             (* ; "Edited 10-Nov-2025 14:34 by rmk")
+
+    (* ;; "Class gets the (normalized) class for a CODE (or class atom).")
+
+    (CAR (find TTC in \TEDIT.TTCCODES suchthat (if (FIXP CODE/CLASS)
+                                                   then (EQ CODE/CLASS (CDR TTC))
+                                                 elseif (EQ CODE/CLASS (CAR TTC])
+)
+
+(RPAQQ ORIG.TEDIT.CHARACTIONS
+       (
+        (* ;; "This defines Tedit's implementation of the named actions.  They are activated by keybinding specifications given to TEDIT.INSTALL.KEYBINDINGS.")
+
+        
+        (* ;; "")
+
+        
+        (* ;; "History")
+
+        (:UNDO (TEDIT.UNDO TSTREAM))
+        (:UNDO.UNDO \TEDIT.UNDO.UNDO)
+                                                             (* ; "CHECK")
+        (:REDO TEDIT.REDO)
+        
+        (* ;; "")
+
+        
+        (* ;; "Find")
+
+        (:FIND.FORWARD (\TEDIT.KEY.FIND TSTREAM))
+        (:FIND.BACKWARD (\TEDIT.KEY.FIND TSTREAM NIL T))
+        (:FIND.FORWARD-AGAIN (\TEDIT.KEY.FIND TSTREAM T))
+        (:FIND.BACKWARD-AGAIN (\TEDIT.KEY.FIND TSTREAM T T))
+        (:SUBSTITUTE \TEDIT.KEY.SUBSTITUTE)
+        (:NEXT TEDIT.NEXT)
+        
+        (* ;; "")
+
+        
+        (* ;; "Character looks")
+
+        (:BOLD.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'BOLD 'ON))
+        (:BOLD.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'BOLD 'OFF))
+        (:BOLD.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'BOLD 'TOGGLE))
+        (:ITALIC.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'ITALIC 'ON))
+        (:ITALIC.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'ITALIC 'OFF))
+        (:ITALIC.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'ITALIC 'TOGGLE))
+        (:UCASE (\TEDIT.KEY.TRANSFORM TSTREAM (FUNCTION U-CASECODE)))
+        (:LCASE (\TEDIT.KEY.TRANSFORM TSTREAM (FUNCTION L-CASECODE)))
+        (:INITIALCAP (\TEDIT.KEY.TRANSFORM TSTREAM (FUNCTION CAP-CASECODE)))
+        (:STRIKEOUT.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'STRIKEOUT 'ON))
+        (:STRIKEOUT.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'STRIKEOUT 'OFF))
+        (:STRIKEOUT.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'STRIKEOUT 'TOGGLE))
+        (:UNDERLINE.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNDERLINE 'ON))
+        (:UNDERLINE.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNDERLINE 'OFF))
+        (:UNDERLINE.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNDERLINE 'TOGGLE))
+        (:OVERLINE.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'OVERLINE 'ON))
+        (:OVERLINE.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'OVERLINE 'OFF))
+        (:OVERLINE.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'OVERLINE 'TOGGLE))
+        (:UNBREAKABLE.ON (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNBREAKABLE 'ON))
+        (:UNBREAKABLE.OFF (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNBREAKABLE 'OFF))
+        (:UNBREAKABLE.TOGGLE (\TEDIT.KEY.CHARLOOKS TSTREAM 'UNBREAKABLE 'TOGGLE))
+        (:SUBSCRIPT \TEDIT.SUBSCRIPTSEL)
+        (:SUPERSCRIPT \TEDIT.SUPERSCRIPTSEL)
+        (:SMALLER (\TEDIT.KEY.SIZE TSTREAM '-))
+        (:LARGER (\TEDIT.KEY.SIZE TSTREAM '+))
+        (:FAMILYN (\TEDIT.KEY.FAMILYN TSTREAM CHARCODE))
+        (:DEFAULTS \TEDIT.DEFAULTSSEL)
+        (:SHOW.CHARLOOKS \TEDIT.SHOWCARETLOOKS)
+        
+        (* ;; "")
+
+        
+        (* ;; "Paragraph looks")
+
+        (:NEST (\TEDIT.KEY.NEST TSTREAM))
+        (:UNNEST (\TEDIT.KEY.NEST TSTREAM T))
+        (:QUAD (\TEDIT.KEY.QUAD TSTREAM))
+        (:QUAD.REVERSE (\TEDIT.KEY.QUAD TSTREAM T))
+        
+        (* ;; "")
+
+        
+        (* ;; "Cursor/selection")
+
+        (:ONECHAR.BACKWARD \TEDIT.ONECHAR.BACKWARD)
+        (:ONECHAR.FORWARD \TEDIT.ONECHAR.FORWARD)
+        (:LINE.UP \TEDIT.ONELINE.UP)
+        (:LINE.DOWN \TEDIT.ONELINE.DOWN)
+        (:ONEWORD.FORWARD \TEDIT.ONEWORD.FORWARD)
+        (:ONEWORD.BACKWARD \TEDIT.ONEWORD.BACKWARD)
+        (:LINE.BEGIN \TEDIT.LINE.BEGIN)
+        (:LINE.END \TEDIT.LINE.END)
+        (:DOCUMENT.BEGIN \TEDIT.DOCUMENT.BEGIN)
+        (:DOCUMENT.END \TEDIT.DOCUMENT.END)
+        (:ALL \TEDIT.SELECT.ALL)
+        
+        (* ;; "")
+
+        
+        (* ;; "Deletion ")
+
+        (:CHARDELETE.BACKWARD (\TEDIT.CHARDELETE TSTREAM))
+        (:CHARDELETE.FORWARD (\TEDIT.CHARDELETE TSTREAM T))
+        (:WORDDELETE.BACKWARD \TEDIT.WORDDELETE)
+        (:WORDDELETE.FORWARD \TEDIT.WORDDELETE.FORWARD)
+        (:LINEDELETE.FORWARD \TEDIT.LINEDELETE.FORWARD)
+        (:LINEDELETE.BACKWARD \TEDIT.LINEDELETE.BACKWARD)
+        (:LINEDELETE \TEDIT.LINEDELETE)
+        
+        (* ;; "")
+
+        
+        (* ;; "Miscellaneous")
+
+        (:MANPAGE \TEDIT.MANPAGE)
+        (:OPEN.SEDIT \TEDIT.CALL.ED)
+        (:PRINT.MENU \TEDIT.PRINT.MENU)
+        (:EXPAND \TEDIT.ABBREV.EXPAND)
+        (:GET.OBJECT GET.OBJ.FROM.USER)
+        (:PAGENUMOBJ (TEDIT.INSERT.OBJECT (TEDIT.PAGENO.CREATE)
+                            TSTREAM))
+        (:OPENLINE \TEDIT.KEY.OPENLINE)
+        
+        (* ;; "")
+
+        
+        (* ;; "From TEDITDORADOKEYS")
+
+        (:WRAP.PARENS (\TEDIT.KEY.WRAP TSTREAM "(" ")"))
+        (:WRAP.NEUTRAL.DOUBLEQUOTES (\TEDIT.KEY.WRAP TSTREAM "%"" "%""))
+        [:WRAP.REAL.DOUBLEQUOTES (\TEDIT.KEY.WRAP TSTREAM (CHARACTER (CHARCODE LEFT-DOUBLEQUOTE))
+                                        (CHARACTER (CHARCODE RIGHT-DOUBLEQUOTE]
+        
+        (* ;; "")
+
+        
+        (* ;; "Clipboard")
+
+        (:CLIPBOARD-PASTE PASTEFROMCLIPBOARD)
+        (:CLIPBOARD-COPY \TEDIT.COPYTOCLIPBOARD)
+        (:CLIPBOARD-EXTRACT \TEDIT.EXTRACTTOCLIPBOARD)
+        
+        (* ;; "")
+
+        
+        (* ;; "Wheelscroll")
+
+        (:WHEELSCROLL-UP (WHEELSCROLL 'VERTICAL T))
+        (:WHEELSCROLL-DOWN (WHEELSCROLL 'VERTICAL))
+        (:WHEELSCROLL-LEFT (WHEELSCROLL 'HORIZONTAL))
+        (:WHEELSCROLL-RIGHT (WHEELSCROLL 'HORIZONTAL T))))
+
+(RPAQ? TEDIT.CHARACTIONS (APPEND ORIG.TEDIT.CHARACTIONS))
+
+(RPAQQ TEDIT.BASIC.CHARBINDINGS
+       (
+        (* ;; "Establishes key bindings for particular Tedit key actions. Function,xxx roughly correspond to Koto release notes, but this preserves the immediately preceding assignments if those drifted away from the Koto notes. There is no obvious way of typing Function.  Maybe Meta,^xxx instead, as in DORADO.KEYBINDINGS.  (But CTRL collapses upper and lower case).")
+
+        
+        (* ;; "")
+
+        
+        (* ;; "History")
+
+        (:UNDO "Meta,u" "Meta,z" "Function,4" "Function,44")
+        (:UNDO.UNDO "Meta,U" "Meta,Z")
+        (:REDO "Meta,r" "Meta,R" "Function,10" "Function,50")
+        
+        (* ;; "")
+
+        
+        (* ;; "Find")
+
+        (:FIND.FORWARD "Meta,f" "Function,3" "Function,43")
+        (:FIND.BACKWARD "Meta,F")
+        (:FIND.FORWARD-AGAIN "Meta,g")
+        (:FIND.BACKWARD-AGAIN "Meta,G")
+        (:SUBSTITUTE "Meta,s" "Meta,S")
+        (:NEXT "Meta,N" "Meta,n" "Function,22")
+        
+        (* ;; "")
+
+        
+        (* ;; "Character looks")
+
+        (:BOLD.ON "Function,102")
+        (:BOLD.OFF "Function,142")
+        (:BOLD.TOGGLE)
+        (:ITALIC.ON "Function,103")
+        (:ITALIC.OFF "Function,143")
+        (:ITALIC.TOGGLE)
+        (:UCASE "Function,104")
+        (:LCASE "Function,144")
+        (:STRIKEOUT.ON "Function,105")
+        (:STRIKEOUT.OFF "Function,145")
+        (:STRIKEOUT.TOGGLE)
+        (:UNDERLINE.ON "Function,106")
+        (:UNDERLINE.OFF "Function,146")
+        (:UNDERLINE.TOGGLE)
+        (:OVERLINE.ON)
+        (:OVERLINE.OFF)
+        (:OVERLINE.TOGGLE)
+        (:SUBSCRIPT "Function,114")
+        (:SUPERSCRIPT "Function,113")
+        (:SMALLER "Function,110")
+        (:LARGER "Function,150")
+        (:FAMILYN "Meta,One" "Meta,Two" "Meta,Three" "Meta,Four" "Meta,Five" "Meta,Six")
+        (:DEFAULTS "Function,115" "Function,155")
+        (:SHOW.CHARLOOKS "Function,1")
+        
+        (* ;; "")
+
+        
+        (* ;; "Paragraph looks")
+
+        (:QUAD "Function,101")
+        (:NEST "Meta,[")
+        (:UNNEST "Meta,]")
+        
+        (* ;; "")
+
+        
+        (* ;; "Cursor/selection")
+
+        (:ONECHAR.BACKWARD "Meta,<" "Meta,,")
+                                                             (* ; "From arrows")
+        (:ONECHAR.FORWARD "Meta,>" "Meta,.")
+        (:LINE.UP "Meta,^")
+        (:LINE.DOWN "Meta,LF")
+        (:ONEWORD.FORWARD)
+        (:ONEWORD.BACKWARD)
+        (:LINE.BEGIN)
+        (:LINE.END)
+        (:ALL "Meta,a" "Meta,A")
+        
+        (* ;; "")
+
+        
+        (* ;; "Deletion")
+
+        (:CHARDELETE.BACKWARD "BS" "^A")
+        (:CHARDELETE.FORWARD RUBOUT)
+        (:WORDDELETE.BACKWARD "^W")
+        (:WORDDELETE.FORWARD "^U")
+        (:LINEDELETE.FORWARD)
+        (:LINEDELETE.BACKWARD)
+        (:LINEDELETE)
+        
+        (* ;; "")
+
+        
+        (* ;; "Miscellaneous")
+
+        (:MANPAGE "Meta,D" "Meta,d")
+        (:OPEN.SEDIT "Meta,O" "Meta,o")
+        (:PRINT.MENU "Meta,P" "Meta,p")
+        (:EXPAND "^X")
+        (:GET.OBJECT "^O")
+        (:PAGENUMOBJ "^P")
+        
+        (* ;; "")
+
+        
+        (* ;; "Wheelscroll  ")
+
+        (:WHEELSCROLL-UP "WHEELSCROLL-UP")
+        (:WHEELSCROLL-DOWN "WHEELSCROLL-DOWN")
+        (:WHEELSCROLL-LEFT "WHEELSCROLL-LEFT")
+        (:WHEELSCROLL-RIGHT "WHEELSCROLL-RIGHT")
+        
+        (* ;; "")
+
+        
+        (* ;; "Clipboard")
+
+        (:CLIPBOARD-PASTE "Meta,V" "Meta,v")
+        (:CLIPBOARD-COPY "Meta,C" "Meta,c")
+        (:CLIPBOARD-EXTRACT "Meta,X" "Meta,x")))
+
+(RPAQQ TEDIT.DORADO.CHARBINDINGS
+       (
+        (* ;; "Taken from lispusers>TKDORADO, these make the indicated Tedit commands available from the Dorado keyboard.")
+
+        (:DEFAULTS "Meta,^V")
+        (:BOLD.ON "Meta,^B" "Meta,b")
+        (:BOLD.OFF "Meta,^N" "Meta,B")
+        (:ITALIC.ON "Meta,^I" "Meta,i")
+        (:ITALIC.OFF "Meta,^O" "Meta,I")
+        (:OVERLINE.ON "Meta,^D")
+        (:OVERLINE.OFF "Meta,^F")
+        (:STRIKEOUT.ON "Meta,^G" "Meta,=")
+        (:STRIKEOUT.OFF "Meta,^H" "Meta,+")
+        (* (UNDERLINE.ON "Meta,^J")
+           conflicts with :LINE.DOWN)
+        (:UNDERLINE.ON "Meta,-")
+        (:UNDERLINE.OFF "Meta,^K" "Meta,_")
+        (:SMALLER "Meta,^[")
+        (:LARGER "Meta,^^]")
+        (:SUBSCRIPT "Meta,^^")
+        (:SUPERSCRIPT "Meta,^_")
+        (:QUAD "Meta,^C")
+        
+        (* ;; "Mappings from lispusers>TEDITDORADOKEYS")
+
+        (* ("Meta,c" QUAD)
+           ("Meta,C" QUAD)
+           ("Meta,x" EXPAND)
+           ("Meta,X" EXPAND)
+           conflict with clipboard)
+        (* ("Meta,^" SUBSCRIPT)
+           conflicts with LINE.UP)
+        (:WRAP.PARENS "Meta,(" "Meta,Nine")
+        (:WRAP.NEUTRAL.DOUBLEQUOTES "Meta,%"")
+        (:WRAP.REAL.DOUBLEQUOTES "Meta,'")))
+
+(RPAQ? TEDIT.CHARBINDINGS (APPEND TEDIT.BASIC.CHARBINDINGS TEDIT.DORADO.CHARBINDINGS))
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS TEDIT.CHARBINDINGS TEDIT.CHARACTIONS)
+)
+
+
+
+(* ; "Installation")
+
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(RPAQ TEDIT.READTABLE (\TEDIT.READTABLE))
+
+(RPAQ TEDIT.WORDBOUND.READTABLE (\TEDIT.WORDBOUND.READTABLE))
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (5054 23319 (TEDIT.INSTALL.CHARBINDINGS 5064 . 7915) (TEDIT.CLEAR.CHARBINDINGS 7917 . 
+10937) (TEDIT.GET.CHARACTION 10939 . 13720) (TEDIT.GET.CHARBINDING 13722 . 15899) (
+TEDIT.GET.ALL.CHARBINDINGS 15901 . 18400) (TEDIT.CHARBINDINGS.INVERT 18402 . 19681) (
+TEDIT.GET.ALL.CHARACTIONS 19683 . 22005) (TEDIT.CONFLICTING.CHARBINDINGS 22007 . 23317)) (23379 33434 
+(\TEDIT.KEY.CHARLOOKS 23389 . 24581) (\TEDIT.KEY.QUAD 24583 . 26676) (\TEDIT.DEFAULTSSEL 26678 . 27289
+) (\TEDIT.SETDEFAULT.FROM.SEL 27291 . 27968) (\TEDIT.KEY.SIZE 27970 . 29166) (\TEDIT.SUBSCRIPTSEL 
+29168 . 29371) (\TEDIT.SUPERSCRIPTSEL 29373 . 29577) (\TEDIT.KEY.TRANSFORM 29579 . 31576) (
+\TEDIT.KEY.OPENLINE 31578 . 32032) (\TEDIT.KEY.FAMILYN 32034 . 33432)) (33435 33724 (CAP-CASECODE 
+33445 . 33722)) (33758 37190 (\TEDIT.SHOWCARETLOOKS 33768 . 36283) (\TEDIT.DESCRIBEFONT 36285 . 37188)
+) (37221 52194 (\TEDIT.ONECHAR.BACKWARD 37231 . 38378) (\TEDIT.ONECHAR.FORWARD 38380 . 39616) (
+\TEDIT.ONELINE.UP 39618 . 42579) (\TEDIT.ONELINE.DOWN 42581 . 44238) (\TEDIT.ONELINE.MOVE 44240 . 
+46527) (\TEDIT.ONEWORD.BACKWARD 46529 . 47717) (\TEDIT.ONEWORD.FORWARD 47719 . 48906) (
+\TEDIT.LINE.BEGIN 48908 . 49987) (\TEDIT.LINE.END 49989 . 51226) (\TEDIT.DOCUMENT.BEGIN 51228 . 51587)
+ (\TEDIT.DOCUMENT.END 51589 . 52192)) (52195 55503 (\TEDIT.LINEDELETE.FORWARD 52205 . 53314) (
+\TEDIT.LINEDELETE.BACKWARD 53316 . 54455) (\TEDIT.LINEDELETE 54457 . 55501)) (55504 58032 (
+\TEDIT.KEY.NEST 55514 . 58030)) (58033 59315 (\TEDIT.KEY.WRAP 58043 . 59313)) (59406 67454 (
+\TEDIT.KEY.FIND 59416 . 64594) (\TEDIT.KEY.FIND.SEARCHSTRING 64596 . 65736) (\TEDIT.GET.TARGET.STRING 
+65738 . 67452)) (67485 70117 (\TEDIT.KEY.SUBSTITUTE 67495 . 67716) (\TEDIT.MANPAGE 67718 . 68965) (
+\TEDIT.CALL.ED 68967 . 69797) (\TEDIT.SELECT.ALL 69799 . 70115)) (70144 75834 (\TEDIT.CLIPBOARD 70154
+ . 71909) (\TEDIT.COPYTOCLIPBOARD 71911 . 72691) (\TEDIT.EXTRACTTOCLIPBOARD 72693 . 72888) (
+\TEDIT.WRITE.SEL 72890 . 75832)) (76000 88507 (\TEDIT.READTABLE 76010 . 76946) (
+\TEDIT.WORDBOUND.READTABLE 76948 . 79996) (TEDIT.GETSYNTAX 79998 . 81227) (TEDIT.SETSYNTAX 81229 . 
+82543) (TEDIT.GETFUNCTION 82545 . 84018) (TEDIT.SETFUNCTION 84020 . 86176) (TEDIT.WORDGET 86178 . 
+86439) (TEDIT.WORDSET 86441 . 87181) (TEDIT.ATOMBOUND.READTABLE 87183 . 88505)) (88608 95596 (
+TEDIT.BUTTONS.BUILD 88618 . 93864) (TEDIT.BUTTONBITMAP.FILL 93866 . 95594)) (98061 98649 (
+\TEDIT.TTCCLASS 98071 . 98647)))))
+STOP

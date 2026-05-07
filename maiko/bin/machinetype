@@ -1,0 +1,29 @@
+#!/bin/sh
+#########################################################################
+#									#
+#                    M A C H I N E T Y P E				#
+#									#
+#  Compute the hardware architecture we're running on.			#
+#									#
+#  (C) Copyright 2001 Venue.  All Rights Reserved			#
+#									#
+#########################################################################
+
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+os=${LDEARCH:-`$SCRIPTPATH/config.guess`}
+# o/s switch block
+case "$os" in
+        m68k-*)		      echo m68k ;;
+        sparc-*)	      echo sparc ;;
+        alpha-*)	      echo alpha ;;
+	i*86-*-*)             echo 386 ;;
+	armv7l-*-*)	      echo armv7l ;;
+	aarch64-*-*)	      echo aarch64 ;;
+        x86_64-apple-darwin15*) echo 386 ;;
+	x86_64-*)	      echo x86_64 ;;
+        powerpc-*)	      echo ppc ;;
+	amd64-*)	      echo x86_64 ;;
+esac
+
+### Don't leave the variables set.
+unset os

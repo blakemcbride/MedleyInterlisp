@@ -1,0 +1,1021 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 9-Dec-2024 21:07:13" {WMEDLEY}<lispusers>DOC-OBJECTS.;58 52672  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS DOCOBJ-STRING-IMAGEBOX)
+
+      :PREVIOUS-DATE " 8-Dec-2024 15:49:01" {WMEDLEY}<lispusers>DOC-OBJECTS.;57)
+
+
+(PRETTYCOMPRINT DOC-OBJECTSCOMS)
+
+(RPAQQ DOC-OBJECTSCOMS
+       [
+
+(* ;;; "This TEdit subsystem implements an extensible facility originally intended to provide bibliography and citation capabilities.  The TEdit function GET.OBJ.FROM.USER, the one triggered by typing ^O, calls the function PROMPTFOREVALED which is redefined by this subsystem to be equivalent to the function DocObj-Acquire-Object.  This function inserts IMAGEOBJects into the current TEdit, and is driven by the variables DocObjectsMenu and DocObjectsMenuCommands (analogous to BackgroundMenu and BackgroundMenuCommands).  Each menu entry contains a form that, when EVAL'd, creates and returns a particular kind of IMAGEOBJ.  Note that this form is EVAL'd under the function DocObj-Acquire-Object, which runs under the function GET.OBJ.FROM.USER, which gets TEXTSTREAM and TEXTOBJ as arguments.  They can be (and are) used freely to record state or other desired info.  The image objects supplied by this subsystem are 'Eval`d Form' (i.e., the original behavior of ^O), 'Screen Snap' (equivalent to right-buttoning in the background while holding the SHIFT key down), etc.")
+
+        (FILES (SYSLOAD)
+               TEDIT IMAGEOBJ)
+        (DECLARE%: EVAL@COMPILE DONTCOPY (FILES TEDIT-EXPORTS.ALL))
+        (VARS (DocObjectsMenu NIL)
+              (DocObjectsConfirmEditMenu NIL))
+        [INITVARS (DocObjectsMenuCommands NIL)
+               (DocObjectsMenuFont (FONTCREATE '(MODERN 12 BOLD]
+        (COMS 
+              (* ;; "The hook into GET.OBJ.FROM.USER")
+
+              (FNS DOCOBJ-ACQUIRE-OBJECT DOCOBJ-INIT DOCOBJ-TEDIT-MENU-ENTRY DOCOBJ-GET-LOOKS 
+                   DOCOBJ-REGISTER-OBJECT DOCOBJ-STRING-IMAGEBOX DOCOBJ-WAIT-MOUSE 
+                   DOCOBJ-BEFOREHARDCOPYFN DOCOBJ-AFTERHARDCOPYFN))
+        [COMS 
+              (* ;; "Eval'd Form")
+
+              (FNS DOCOBJ-ACQUIRE-EVALED-OBJECT)
+              (ADDVARS (DocObjectsMenuCommands ("Eval'd Form" (DOCOBJ-ACQUIRE-EVALED-OBJECT)
+                                                      "Insert the value of a form to be typed in"]
+        [COMS 
+              (* ;; "Screen Snap")
+
+              (FNS DOCOBJ-ACQUIRE-SNAPPED-OBJECT)
+              (ADDVARS (DocObjectsMenuCommands ("Screen Snap" (DOCOBJ-ACQUIRE-SNAPPED-OBJECT)
+                                                      "Insert a snap from the screen"]
+        [COMS 
+              (* ;; "Time Stamp")
+
+              (DECLARE%: DONTCOPY (RECORDS DOCOBJ-TIMESTAMP))
+              (FILES (SYSLOAD)
+                     DATEFORMAT-EDITOR)
+              (FNS DOCOBJ-EDIT-TIMESTAMP DOCOBJ-MAKE-TIMESTAMP DOCOBJ-MAKE-TIMESTAMP-IMAGEFNS 
+                   DOCOBJ-TIMESTAMP-BUTTONEVENTINFN DOCOBJ-TIMESTAMP-COPYFN 
+                   DOCOBJ-TIMESTAMP-DISPLAYFN DOCOBJ-TIMESTAMP-GETFN DOCOBJ-TIMESTAMP-IMAGEBOXFN 
+                   DOCOBJ-TIMESTAMP-PREPRINTFN DOCOBJ-TIMESTAMP-PUTFN DOCOBJ-TIMESTAMP-TO-STRING)
+              (INITVARS (DocObjectsTimeStampFormat)
+                     (DOCOBJ-TIMESTAMP-IMAGEFNS (DOCOBJ-MAKE-TIMESTAMP-IMAGEFNS)))
+              (ADDVARS (DocObjectsMenuCommands ("Time Stamp" (DOCOBJ-MAKE-TIMESTAMP)
+                                                      "Date & time this document is PUT"]
+        [COMS 
+              (* ;; "File Stamp")
+
+              (FNS DOCOBJ-MAKE-FILESTAMP DOCOBJ-MAKE-FILESTAMP-IMAGEFNS DOCOBJ-FILESTAMP-COPYFN 
+                   DOCOBJ-FILESTAMP-DISPLAYFN DOCOBJ-FILESTAMP-GETFN DOCOBJ-FILESTAMP-IMAGEBOXFN 
+                   DOCOBJ-FILESTAMP-GET-FULLNAME DOCOBJ-FILESTAMP-NEW-FULLNAME 
+                   DOCOBJ-FILESTAMP-PREPRINTFN DOCOBJ-FILESTAMP-PUTFN)
+              (INITVARS (DOCOBJ-FILESTAMP-IMAGEFNS (DOCOBJ-MAKE-FILESTAMP-IMAGEFNS)))
+              (ADDVARS (DocObjectsMenuCommands ("File Stamp" (DOCOBJ-MAKE-FILESTAMP)
+                                                      
+                                                  "Name of file to which this document was last PUT."
+                                                      ]
+        (COMS 
+              (* ;; "Horizontal Rule")
+
+              (FILES (SYSLOAD)
+                     HRULE READNUMBER)
+              (FNS DOCOBJ-MAKE-HRULE DOCOBJ-EDIT-HRULE DOCOBJ-HRULE-INIT DOCOBJ-HRULE-GET-WIDTH 
+                   DOCOBJ-HRULE-BUTTONEVENTINFN)
+              (VARS (DOCOBJ-HRULE-RULE-PAD)
+                    (DOCOBJ-HRULE-BLANK-PAD))
+              (ADDVARS (DocObjectsMenuCommands ("Horizontal Rule" (DOCOBJ-MAKE-HRULE)
+                                                      "One or more horizontal rules")))
+              (P (DOCOBJ-HRULE-INIT)))
+        [COMS 
+              (* ;; "INCLUDE")
+
+              (DECLARE%: EVAL@COMPILE DONTCOPY (RECORDS INCLOBJ))
+              (INITVARS (DOCOBJ-INCLUDE-SAFE T))
+              (FNS DOCOBJ-MAKE-INCLUDE DOCOBJ-MAKE-INCLUDE-IMAGEFNS DOCOBJ-INCLUDE-CREATE-OBJ 
+                   DOCOBJ-INCLUDE-EDIT DOCOBJ-INCLUDE-EDIT-WINDOWP DOCOBJ-INCLUDE-RESET-OBJ)
+              (FNS DOCOBJ-INCLUDE-BEFOREHARDCOPYFN DOCOBJ-INCLUDE-CLEANUPFN 
+                   DOCOBJ-INCLUDE-BUTTONEVENTINFN DOCOBJ-INCLUDE-COPYFN DOCOBJ-INCLUDE-DISPLAYFN 
+                   DOCOBJ-INCLUDE-GETFN DOCOBJ-INCLUDE-IMAGEBOXFN DOCOBJ-INCLUDE-PREPRINTFN 
+                   DOCOBJ-INCLUDE-PUTFN)
+              (INITVARS (DOCOBJ-INCLUDE-EDITMENU)
+                     (DOCOBJ-INCLUDE-IMAGEFNS (DOCOBJ-MAKE-INCLUDE-IMAGEFNS)))
+              (ADDVARS (DocObjectsMenuCommands ("Include" (DOCOBJ-MAKE-INCLUDE)
+                                                      
+                                               "Include another document right here when hardcopying"
+                                                      ]
+        (DECLARE%: DONTEVAL@LOAD DOCOPY (P (DOCOBJ-INIT)))
+        (DECLARE%: EVAL@LOAD DONTCOPY (COMS (PROP FILETYPE DOC-OBJECTS)
+                                            (PROP MAKEFILE-ENVIRONMENT DOC-OBJECTS])
+
+
+
+(* ;;; 
+"This TEdit subsystem implements an extensible facility originally intended to provide bibliography and citation capabilities.  The TEdit function GET.OBJ.FROM.USER, the one triggered by typing ^O, calls the function PROMPTFOREVALED which is redefined by this subsystem to be equivalent to the function DocObj-Acquire-Object.  This function inserts IMAGEOBJects into the current TEdit, and is driven by the variables DocObjectsMenu and DocObjectsMenuCommands (analogous to BackgroundMenu and BackgroundMenuCommands).  Each menu entry contains a form that, when EVAL'd, creates and returns a particular kind of IMAGEOBJ.  Note that this form is EVAL'd under the function DocObj-Acquire-Object, which runs under the function GET.OBJ.FROM.USER, which gets TEXTSTREAM and TEXTOBJ as arguments.  They can be (and are) used freely to record state or other desired info.  The image objects supplied by this subsystem are 'Eval`d Form' (i.e., the original behavior of ^O), 'Screen Snap' (equivalent to right-buttoning in the background while holding the SHIFT key down), etc."
+)
+
+
+(FILESLOAD (SYSLOAD)
+       TEDIT IMAGEOBJ)
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+
+(FILESLOAD TEDIT-EXPORTS.ALL)
+)
+
+(RPAQQ DocObjectsMenu NIL)
+
+(RPAQQ DocObjectsConfirmEditMenu NIL)
+
+(RPAQ? DocObjectsMenuCommands NIL)
+
+(RPAQ? DocObjectsMenuFont (FONTCREATE '(MODERN 12 BOLD)))
+
+
+
+(* ;; "The hook into GET.OBJ.FROM.USER")
+
+(DEFINEQ
+
+(DOCOBJ-ACQUIRE-OBJECT
+  [LAMBDA NIL                                                (* ; "Edited 22-Jun-2023 14:14 by rmk")
+                                                            (* ; "Edited 15-Oct-87 16:27 by Koomen")
+
+(* ;;; "This function is invoked by TEdit's GET.OBJ.FROM.USER (cf.  the Library file IMAGEOBJ) after (CHANGENAME (QUOTE GET.OBJ.FROM.USER) (QUOTE PROMPTFOREVALED) (QUOTE DOCOBJ-ACQUIRE-OBJECT))")
+
+(* ;;; "When adding more items to the DocObjectsMenuCommands, do (SETQ DocObjectsMenu)")
+
+    (DECLARE (GLOBALVARS DocObjectsMenu DocObjectsMenuCommands DocObjectsMenuFont))
+    (CL:UNLESS (type? MENU DocObjectsMenu)
+        (SETQ DocObjectsMenu (create MENU
+                                    TITLE _ "Select object type: "
+                                    CENTERFLG _ T
+                                    ITEMS _ DocObjectsMenuCommands
+                                    MENUFONT _ DocObjectsMenuFont)))
+    (MENU DocObjectsMenu])
+
+(DOCOBJ-INIT
+  [LAMBDA NIL                      (* ; 
+                                   "Edited  8-Oct-87 21:32 by Koomen")
+
+(* ;;; "This function changes the behavior of standard TEdit such that ^O will invoke the DocObjects system;  an entry to invoke the DocObjects system is also added to TEdit's middle button menu.")
+
+    (DECLARE (GLOBALVARS TEDIT.DEFAULT.MENU))
+    (CHANGENAME 'GET.OBJ.FROM.USER 'PROMPTFOREVALED '
+           DOCOBJ-ACQUIRE-OBJECT)
+    (TEDIT.ADD.MENUITEM TEDIT.DEFAULT.MENU
+           '(Object (FUNCTION DOCOBJ-TEDIT-MENU-ENTRY)
+                   "Insert a Document Object"])
+
+(DOCOBJ-TEDIT-MENU-ENTRY
+  [LAMBDA (TEXTSTREAM)             (* ; 
+                                   "Edited  8-Oct-87 21:31 by Koomen")
+
+(* ;;; "This is the entry point into the DocObjects system from TEdit's middle button menu.  GET.OBJ.FROM.USER used to call PROMPTFOREVALED but DocObjects changes this into a call to DOCOBJ-ACQUIRE-OBJECT.")
+
+    (GET.OBJ.FROM.USER TEXTSTREAM (TEXTOBJ TEXTSTREAM])
+
+(DOCOBJ-GET-LOOKS
+  [LAMBDA (TEXTOBJ CH#ORCHARLOOKS)                           (* ; "Edited  5-Apr-2024 12:20 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 19:36 by rmk")
+                                                             (* ; "Edited 29-Oct-2022 21:30 by rmk")
+                                                             (* Koomen " 4-Feb-87 23:37")
+
+(* ;;; "Adapted from {ERIS}<TEDIT>TEDITLOOKS.;30 dated '15-Oct-85 16:51:10' to return looks itself, rather than a proplist.")
+                                                             (* jds "10-Jul-85 16:02")
+                                                             (* ; "Return a PLIST of character looks")
+    (LET ((TEXTOBJ (TEXTOBJ TEXTOBJ)))
+         (if (type? CHARLOOKS CH#ORCHARLOOKS)
+             then                                            (* ; 
+                                                     "He handed us a CHARLOOKS.  Unparse it for him.")
+                  CH#ORCHARLOOKS
+           elseif (ZEROP (FGETTOBJ TEXTOBJ TEXTLEN))
+             then                                            (* ; 
+                                      "There's no text in the document.  Use the extant caret looks.")
+                  (FGETTOBJ TEXTOBJ CARETLOOKS)
+           else (PLOOKS (\TEDIT.CHTOPC (if (FIXP CH#ORCHARLOOKS)
+                                           then              (* ; 
+                                                    "He gave us a CH# to get the looks of.  Grab it.")
+                                                CH#ORCHARLOOKS
+                                         elseif (type? SELECTION CH#ORCHARLOOKS)
+                                           then              (* ; 
+                                                             "Get the looks of the selected text")
+                                                (GETSEL CH#ORCHARLOOKS CH#)
+                                         elseif (NULL CH#ORCHARLOOKS)
+                                           then              (* ; 
+                                                             "Get the looks of the selected text")
+                                                (GETSEL (FGETTOBJ TEXTOBJ SEL)
+                                                       CH#))
+                               TEXTOBJ])
+
+(DOCOBJ-REGISTER-OBJECT
+  [LAMBDA (OBJECT)                                          (* ; "Edited 23-Oct-87 14:48 by Koomen")
+          
+          (* ;; "The following ensures that all DocObjects get a chance to do whatever they want to before and after hardcopying.  Each DocObject can associate a BEFOREHARDCOPYFN and/or an AFTERHARDCOPYFN with the ImageObj representing the DocObject")
+
+    (DECLARE (SPECVARS TEXTOBJ))
+    (if OBJECT
+        then (TEXTPROP TEXTOBJ 'BEFOREHARDCOPYFN (FUNCTION DOCOBJ-BEFOREHARDCOPYFN))
+             (TEXTPROP TEXTOBJ 'AFTERHARDCOPYFN (FUNCTION DOCOBJ-AFTERHARDCOPYFN))
+             OBJECT])
+
+(DOCOBJ-STRING-IMAGEBOX
+  [LAMBDA (STRING IMAGESTREAM)                               (* ; "Edited  9-Dec-2024 21:04 by rmk")
+                                                             (* Koomen " 9-Feb-87 17:22")
+    (DECLARE (USEDFREE CHNO TEXTOBJ))
+    (PROG (LOOKS CLOFFSET FONT DEVICE HEIGHT DESCENT)
+          (SETQ LOOKS (DOCOBJ-GET-LOOKS TEXTOBJ CHNO))
+          (SETQ CLOFFSET (fetch (CHARLOOKS CLOFFSET) of LOOKS))
+          (SETQ FONT (fetch (CHARLOOKS CLFONT) of LOOKS))
+          (if (NEQ (FONTPROP FONT 'DEVICE)
+                   (SETQ DEVICE (IMAGESTREAMTYPE IMAGESTREAM)))
+              then (SETQ FONT (FONTCOPY FONT 'DEVICE DEVICE)))
+          (SETQ HEIGHT (FONTHEIGHT FONT))
+          (SETQ DESCENT (FONTPROP FONT 'DESCENT))
+          (RETURN (create IMAGEBOX
+                         XSIZE _ (STRINGWIDTH STRING FONT)
+                         YSIZE _ (IPLUS HEIGHT (IABS CLOFFSET))
+                         YDESC _ (IDIFFERENCE DESCENT CLOFFSET)
+                         XKERN _ 0])
+
+(DOCOBJ-WAIT-MOUSE
+  [LAMBDA (STREAM)                 (* ; 
+                                   "Edited  8-Oct-87 23:46 by Koomen")
+
+    (while (NOT (MOUSESTATE UP)) bind (REGION _ (DSPCLIPPINGREGION
+                                                 NIL STREAM))
+       do (if (NOT (INSIDEP REGION (LASTMOUSEX STREAM)
+                          (LASTMOUSEY STREAM)))
+              then (RETURN NIL)) finally (RETURN T])
+
+(DOCOBJ-BEFOREHARDCOPYFN
+  [LAMBDA (TEXTSTREAM)                                       (* ; "Edited  8-Dec-2024 15:48 by rmk")
+                                                             (* ; "Edited 12-Jul-2024 12:46 by rmk")
+                                                             (* ; "Edited  7-Jul-2024 00:09 by rmk")
+                                                             (* ; "Edited  8-May-2024 00:05 by rmk")
+                                                             (* ; "Edited  6-May-2024 22:50 by rmk")
+                                                             (* ; "Edited  5-Apr-2024 08:03 by rmk")
+                                                             (* ; "Edited 16-Mar-2024 10:05 by rmk")
+                                                             (* ; "Edited 16-Jul-2023 16:53 by rmk")
+                                                             (* ; "Edited 10-Jul-2023 22:29 by rmk")
+                                                             (* ; 
+                                                        "Edited 25-May-93 13:07 by sybalsky:mv:envos")
+
+    (* ;; "This is the only BEFOREHARDCOPYFN provided by DOC-OBJECTS.  If the text doesn't contain any such objects, the property is NIL and te piece-scan doesn't happen.  This is installed in the TEXTOBJ by the call to  DOCOBJ-REGISTER-OBJECT from every DOCOBJ create function.")
+
+    (* ;; "This runs through the file applying the BEFOREHARDCOPYFN of every object that has one.  For example, an include object will replace the object by its target file.")
+
+    (* ;; "This records all of the history events created during the object pass into a single composite even so that the DOCOBJ-AFTERHARDCOPYFN can restore the stream to its original state.")
+
+    (RESETLST
+
+        (* ;; "We don't want to update the display lines to show the intermediate state while we are updating the pieces.    ")
+
+        (TEDIT.DEFER.UPDATES TEXTSTREAM)
+        (LET* ((TEXTOBJ (TEXTOBJ TEXTSTREAM))
+               (OLDDIRTY (GETTOBJ TEXTOBJ \DIRTY))
+               (PREVSEL (\TEDIT.COPYSEL (TEXTSEL TEXTOBJ)))
+               FAILED EVENTS)
+
+              (* ;; "This is a little tricky because the imageobj function may screw around with the piece containining the object, delete it or replace it with something else.  But presumably it links into the previous saved piece, and we continue from there.")
+
+              [bind OBJ FN PREVPC (CH# _ 1)
+                    (PC _ (\TEDIT.FIRSTPIECE TEXTOBJ)) while PC
+                 do (SETQ PC (if (AND (EQ OBJECT.PTYPE (PTYPE PC))
+                                      (SETQ OBJ (PCONTENTS PC))
+                                      (SETQ FN (IMAGEOBJPROP OBJ 'BEFOREHARDCOPYFN))
+                                      (DEFINEDP FN))
+                                 then (SETQ PREVPC (PREVPIECE PC))
+                                      (CL:UNLESS (APPLY* FN TEXTOBJ OBJ PC CH#)
+                                          (SETQ FAILED T)
+                                          (RETURN))
+                                      (push EVENTS (\TEDIT.POPEVENT TEXTOBJ)) 
+                                                             (* ; "Accumulate undo events")
+                                      (if PREVPC
+                                          then (NEXTPIECE (if (EQ PC (NEXTPIECE PREVPC))
+                                                              then 
+                                                                   (* ;; 
+                                                                  "Nothing affected this PC, advance")
+
+                                                                   (add CH# (PLEN PC))
+                                                                   PC
+                                                            else 
+                                                                 (* ;; 
+                                                              "Otherwise investigate its replacement")
+
+                                                                 PREVPC))
+                                        elseif (EQ PC (\TEDIT.FIRSTPIECE TEXTOBJ))
+                                          then (add CH# (PLEN PC))
+                                               (NEXTPIECE PC)
+                                        else 
+                                             (* ;; 
+                                           "Investigate the replacement of the previous first piece.")
+
+                                             (\TEDIT.FIRSTPIECE TEXTOBJ))
+                               else (add CH# (PLEN PC))
+                                    (NEXTPIECE PC]           (* ; "Restore previous settings")
+                                                             (* ; 
+                                                          "The history event may restore SEL, but...")
+              (SETTOBJ TEXTOBJ \DIRTY OLDDIRTY)
+
+              (* ;; "Make a single event for the afterfn to undo")
+
+              (\TEDIT.HISTORYADD.COMPOSITE TEXTOBJ EVENTS)
+              (CL:WHEN FAILED
+                  (DOCOBJ-AFTERHARDCOPYFN TEXTSTREAM)        (* ; "UNDO whatever was saved")
+                  (SETTOBJ TEXTOBJ SEL PREVSEL)
+                  'DON'T)))])
+
+(DOCOBJ-AFTERHARDCOPYFN
+  [LAMBDA (TSTREAM)                                          (* ; "Edited  7-Jul-2024 00:07 by rmk")
+                                                             (* ; "Edited  5-Jul-2024 22:59 by rmk")
+                                                             (* ; "Edited  3-Jul-2024 09:55 by rmk")
+                                                             (* ; "Edited  8-May-2024 10:42 by rmk")
+                                                             (* ; "Edited  7-May-2024 08:20 by rmk")
+                                                             (* ; "Edited  5-Apr-2024 08:05 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 14:24 by rmk")
+                                                             (* ; "Edited 15-Jul-2023 15:57 by rmk")
+                                                             (* ; 
+                                                        "Edited 25-May-93 13:08 by sybalsky:mv:envos")
+    (SETQ TSTREAM (TEXTSTREAM TSTREAM))
+    (RESETLST
+        [RESETSAVE (TEXTPROP TSTREAM 'DON'TUPDATE T)
+               `(PROGN (TEXTPROP ,TSTREAM 'DON'TUPDATE OLDVALUE)
+                       (\TEDIT.FILL.PANES ,TSTREAM]
+        (LET* ((TEXTOBJ (TEXTOBJ TSTREAM))
+               (PREVUNDONE (GETTOBJ TEXTOBJ TXTHISTORYUNDONE)))
+              (TEDIT.UNDO TSTREAM T)
+              (SETTOBJ TEXTOBJ TXTHISTORYUNDONE PREVUNDONE)))])
+)
+
+
+
+(* ;; "Eval'd Form")
+
+(DEFINEQ
+
+(DOCOBJ-ACQUIRE-EVALED-OBJECT
+  [LAMBDA NIL                             (* Koomen "30-Sep-86 02:08")
+       
+       (* * This is the original function called under 
+       GET.OBJ.FROM.USER * *)
+
+    (PROMPTFOREVALED "Form to eval: "])
+)
+
+(ADDTOVAR DocObjectsMenuCommands ("Eval'd Form" (DOCOBJ-ACQUIRE-EVALED-OBJECT)
+                                        "Insert the value of a form to be typed in"))
+
+
+
+(* ;; "Screen Snap")
+
+(DEFINEQ
+
+(DOCOBJ-ACQUIRE-SNAPPED-OBJECT
+  [LAMBDA NIL                             (* Koomen "26-Sep-86 16:55")
+    (GETREGION])
+)
+
+(ADDTOVAR DocObjectsMenuCommands ("Screen Snap" (DOCOBJ-ACQUIRE-SNAPPED-OBJECT)
+                                        "Insert a snap from the screen"))
+
+
+
+(* ;; "Time Stamp")
+
+(DECLARE%: DONTCOPY 
+(DECLARE%: EVAL@COMPILE
+
+(RECORD DOCOBJ-TIMESTAMP (IDATE DATESTR FORMAT))
+)
+)
+
+(FILESLOAD (SYSLOAD)
+       DATEFORMAT-EDITOR)
+(DEFINEQ
+
+(DOCOBJ-EDIT-TIMESTAMP
+  [LAMBDA (TIMESTAMP)                     (* Koomen " 4-Feb-87 14:08")
+    (PROG [(FORMAT (EDIT-DATEFORMAT (fetch (DOCOBJ-TIMESTAMP FORMAT)
+                                       of TIMESTAMP]
+          (if FORMAT
+              then (replace (DOCOBJ-TIMESTAMP FORMAT) of TIMESTAMP
+                      with FORMAT)
+                   (replace (DOCOBJ-TIMESTAMP DATESTR) of TIMESTAMP
+                      with NIL)
+                   (RETURN TIMESTAMP])
+
+(DOCOBJ-MAKE-TIMESTAMP
+  [LAMBDA NIL                             (* Koomen " 4-Feb-87 13:54")
+    (DECLARE (GLOBALVARS DOCOBJ-TIMESTAMP-IMAGEFNS 
+                    DocObjectsTimeStampFormat))
+    (IMAGEOBJCREATE (create DOCOBJ-TIMESTAMP
+                           IDATE _ (IDATE)
+                           FORMAT _ DocObjectsTimeStampFormat)
+           DOCOBJ-TIMESTAMP-IMAGEFNS])
+
+(DOCOBJ-MAKE-TIMESTAMP-IMAGEFNS
+  [LAMBDA NIL                      (* ; 
+                                   "Edited  8-Oct-87 22:53 by Koomen")
+
+    (LET ((DISPLAYFN (FUNCTION DOCOBJ-TIMESTAMP-DISPLAYFN))
+          (IMAGEBOXFN (FUNCTION DOCOBJ-TIMESTAMP-IMAGEBOXFN))
+          (PUTFN (FUNCTION DOCOBJ-TIMESTAMP-PUTFN))
+          (GETFN (FUNCTION DOCOBJ-TIMESTAMP-GETFN))
+          (COPYFN (FUNCTION DOCOBJ-TIMESTAMP-COPYFN))
+          (BUTTONEVENTINFN (FUNCTION DOCOBJ-TIMESTAMP-BUTTONEVENTINFN))
+          (COPYBUTTONEVENTINFN (FUNCTION NILL))
+          (WHENMOVEDFN (FUNCTION NILL))
+          (WHENINSERTEDFN (FUNCTION NILL))
+          (WHENDELETEDFN (FUNCTION NILL))
+          (WHENCOPIEDFN (FUNCTION NILL))
+          (WHENOPERATEDONFN (FUNCTION NILL))
+          (PREPRINTFN (FUNCTION DOCOBJ-TIMESTAMP-PREPRINTFN)))
+         (IMAGEFNSCREATE DISPLAYFN IMAGEBOXFN PUTFN GETFN COPYFN 
+                BUTTONEVENTINFN COPYBUTTONEVENTINFN WHENMOVEDFN 
+                WHENINSERTEDFN WHENDELETEDFN WHENCOPIEDFN 
+                WHENOPERATEDONFN PREPRINTFN])
+
+(DOCOBJ-TIMESTAMP-BUTTONEVENTINFN
+  [LAMBDA (IMAGEOBJ WINDOWSTREAM SELECTION RELX RELY WINDOW HOSTSTREAM 
+                 BUTTON)           (* ; 
+                                   "Edited  8-Oct-87 23:43 by Koomen")
+
+    (if (AND (EQ BUTTON 'MIDDLE)
+             (DOCOBJ-WAIT-MOUSE WINDOWSTREAM))
+        then (ALLOW.BUTTON.EVENTS)
+             (if (DOCOBJ-EDIT-TIMESTAMP (IMAGEOBJPROP IMAGEOBJ
+                                               'OBJECTDATUM))
+                 then 'CHANGED])
+
+(DOCOBJ-TIMESTAMP-COPYFN
+  [LAMBDA (IMAGEOBJ SOURCEHOSTSTREAM TARGETHOSTSTREAM)
+                                          (* Koomen "31-Jan-87 00:30")
+    (DECLARE (GLOBALVARS DOCOBJ-TIMESTAMP-IMAGEFNS))
+    (IMAGEOBJCREATE (COPYALL (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM))
+           DOCOBJ-TIMESTAMP-IMAGEFNS])
+
+(DOCOBJ-TIMESTAMP-DISPLAYFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM IMAGESTREAMTYPE HOSTSTREAM)
+                                          (* Koomen " 4-Feb-87 14:11")
+    (PRINTOUT IMAGESTREAM (DOCOBJ-TIMESTAMP-TO-STRING
+                           (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM])
+
+(DOCOBJ-TIMESTAMP-GETFN
+  [LAMBDA (FILESTREAM)                    (* Koomen "31-Jan-87 00:19")
+    (DECLARE (GLOBALVARS DOCOBJ-TIMESTAMP-IMAGEFNS))
+    (IMAGEOBJCREATE (READ FILESTREAM)
+           DOCOBJ-TIMESTAMP-IMAGEFNS])
+
+(DOCOBJ-TIMESTAMP-IMAGEBOXFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM CURRENTX RIGHTMARGIN)
+                                          (* Koomen " 9-Feb-87 17:13")
+    (LET* ((TIMESTAMP (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM))
+           (TIMESTRING (DOCOBJ-TIMESTAMP-TO-STRING TIMESTAMP)))
+          (DOCOBJ-STRING-IMAGEBOX TIMESTRING IMAGESTREAM])
+
+(DOCOBJ-TIMESTAMP-PREPRINTFN
+  [LAMBDA (IMAGEOBJ)               (* ; 
+                                   "Edited  8-Oct-87 22:29 by Koomen")
+
+    (DOCOBJ-TIMESTAMP-TO-STRING (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM])
+
+(DOCOBJ-TIMESTAMP-PUTFN
+  [LAMBDA (IMAGEOBJ FILESTREAM)           (* Koomen " 4-Feb-87 14:08")
+    (PROG [(TIMESTAMP (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM]
+          (replace (DOCOBJ-TIMESTAMP IDATE) of TIMESTAMP with (IDATE))
+          (replace (DOCOBJ-TIMESTAMP DATESTR) of TIMESTAMP with NIL)
+          (PRINT TIMESTAMP FILESTREAM])
+
+(DOCOBJ-TIMESTAMP-TO-STRING
+  [LAMBDA (TIMESTAMP)                     (* Koomen " 4-Feb-87 14:12")
+    (OR (STRINGP (fetch (DOCOBJ-TIMESTAMP DATESTR) of TIMESTAMP))
+        (replace (DOCOBJ-TIMESTAMP DATESTR) of TIMESTAMP
+           with (GDATE (fetch (DOCOBJ-TIMESTAMP IDATE) of TIMESTAMP)
+                       (fetch (DOCOBJ-TIMESTAMP FORMAT) of TIMESTAMP])
+)
+
+(RPAQ? DocObjectsTimeStampFormat )
+
+(RPAQ? DOCOBJ-TIMESTAMP-IMAGEFNS (DOCOBJ-MAKE-TIMESTAMP-IMAGEFNS))
+
+(ADDTOVAR DocObjectsMenuCommands ("Time Stamp" (DOCOBJ-MAKE-TIMESTAMP)
+                                        "Date & time this document is PUT"))
+
+
+
+(* ;; "File Stamp")
+
+(DEFINEQ
+
+(DOCOBJ-MAKE-FILESTAMP
+  [LAMBDA NIL                      (* ; 
+                                   "Edited  8-Oct-87 22:55 by Koomen")
+
+    (DECLARE (SPECVARS TEXTOBJ)
+           (GLOBALVARS DOCOBJ-FILESTAMP-IMAGEFNS))
+    (IMAGEOBJCREATE (DOCOBJ-FILESTAMP-NEW-FULLNAME TEXTOBJ)
+           DOCOBJ-FILESTAMP-IMAGEFNS])
+
+(DOCOBJ-MAKE-FILESTAMP-IMAGEFNS
+  [LAMBDA NIL                      (* ; 
+                                   "Edited  8-Oct-87 22:54 by Koomen")
+
+    (LET ((DISPLAYFN (FUNCTION DOCOBJ-FILESTAMP-DISPLAYFN))
+          (IMAGEBOXFN (FUNCTION DOCOBJ-FILESTAMP-IMAGEBOXFN))
+          (PUTFN (FUNCTION DOCOBJ-FILESTAMP-PUTFN))
+          (GETFN (FUNCTION DOCOBJ-FILESTAMP-GETFN))
+          (COPYFN (FUNCTION DOCOBJ-FILESTAMP-COPYFN))
+          (BUTTONEVENTINFN (FUNCTION NILL))
+          (COPYBUTTONEVENTINFN (FUNCTION NILL))
+          (WHENMOVEDFN (FUNCTION NILL))
+          (WHENINSERTEDFN (FUNCTION NILL))
+          (WHENDELETEDFN (FUNCTION NILL))
+          (WHENCOPIEDFN (FUNCTION NILL))
+          (WHENOPERATEDONFN (FUNCTION NILL))
+          (PREPRINTFN (FUNCTION DOCOBJ-FILESTAMP-PREPRINTFN)))
+         (IMAGEFNSCREATE DISPLAYFN IMAGEBOXFN PUTFN GETFN COPYFN 
+                BUTTONEVENTINFN COPYBUTTONEVENTINFN WHENMOVEDFN 
+                WHENINSERTEDFN WHENDELETEDFN WHENCOPIEDFN 
+                WHENOPERATEDONFN PREPRINTFN])
+
+(DOCOBJ-FILESTAMP-COPYFN
+  [LAMBDA (IMAGEOBJ SOURCEHOSTSTREAM TARGETHOSTSTREAM)
+                                          (* Koomen "31-Jan-87 04:10")
+    (DECLARE (GLOBALVARS DOCOBJ-FILESTAMP-IMAGEFNS))
+    (IMAGEOBJCREATE (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM)
+           DOCOBJ-FILESTAMP-IMAGEFNS])
+
+(DOCOBJ-FILESTAMP-DISPLAYFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM IMAGESTREAMTYPE HOSTSTREAM)
+                                   (* ; 
+                                   "Edited  8-Oct-87 22:56 by Koomen")
+
+    (PRINTOUT IMAGESTREAM (DOCOBJ-FILESTAMP-GET-FULLNAME IMAGEOBJ])
+
+(DOCOBJ-FILESTAMP-GETFN
+  [LAMBDA (FILESTREAM)             (* ; 
+                                   "Edited  8-Oct-87 22:58 by Koomen")
+
+    (DECLARE (GLOBALVARS DOCOBJ-FILESTAMP-IMAGEFNS))
+    (LET ((FULLNAME (READ FILESTREAM)))
+         (IMAGEOBJCREATE (AND FULLNAME (MKSTRING FULLNAME))
+                DOCOBJ-FILESTAMP-IMAGEFNS])
+
+(DOCOBJ-FILESTAMP-IMAGEBOXFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM CURRENTX RIGHTMARGIN)
+                                   (* ; 
+                                   "Edited  8-Oct-87 22:59 by Koomen")
+
+    (LET ((FULLNAME (DOCOBJ-FILESTAMP-GET-FULLNAME IMAGEOBJ)))
+         (DOCOBJ-STRING-IMAGEBOX FULLNAME IMAGESTREAM])
+
+(DOCOBJ-FILESTAMP-GET-FULLNAME
+  [LAMBDA (IMAGEOBJ NODEFAULTFLG)  (* ; 
+                                   "Edited  8-Oct-87 22:59 by Koomen")
+
+    (PROG [(FULLNAME (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM]
+          (RETURN (OR (if FULLNAME
+                          then (if (LITATOM FULLNAME)
+                                   then (MKSTRING FULLNAME)
+                                 elseif (STRINGP FULLNAME)
+                                   then (COPYALL FULLNAME)))
+                      (if (NOT NODEFAULTFLG)
+                          then "-- not yet filed --"])
+
+(DOCOBJ-FILESTAMP-NEW-FULLNAME
+  [LAMBDA (TEXTOBJ)                (* ; 
+                                   "Edited  8-Oct-87 22:52 by Koomen")
+
+    (PROG ((FULLNAME (FULLNAME TEXTOBJ)))
+          (RETURN (if FULLNAME
+                      then (if (LITATOM FULLNAME)
+                               then (MKSTRING FULLNAME)
+                             elseif (STRINGP FULLNAME)
+                               then (COPYALL FULLNAME])
+
+(DOCOBJ-FILESTAMP-PREPRINTFN
+  [LAMBDA (IMAGEOBJ)               (* ; 
+                                   "Edited  8-Oct-87 22:56 by Koomen")
+
+    (DOCOBJ-FILESTAMP-GET-FULLNAME IMAGEOBJ T])
+
+(DOCOBJ-FILESTAMP-PUTFN
+  [LAMBDA (IMAGEOBJ FILESTREAM)    (* ; 
+                                   "Edited  8-Oct-87 22:39 by Koomen")
+
+    (PROG [(FULLNAME (MKSTRING (FULLNAME FILESTREAM]
+          (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM FULLNAME)
+          (PRINT FULLNAME FILESTREAM])
+)
+
+(RPAQ? DOCOBJ-FILESTAMP-IMAGEFNS (DOCOBJ-MAKE-FILESTAMP-IMAGEFNS))
+
+(ADDTOVAR DocObjectsMenuCommands ("File Stamp" (DOCOBJ-MAKE-FILESTAMP)
+                                        "Name of file to which this document was last PUT."))
+
+
+
+(* ;; "Horizontal Rule")
+
+
+(FILESLOAD (SYSLOAD)
+       HRULE READNUMBER)
+(DEFINEQ
+
+(DOCOBJ-MAKE-HRULE
+  [LAMBDA NIL                             (* Koomen " 4-Feb-87 16:12")
+    (HRULE.CREATE (bind WIDTH for I from 1
+                     while (AND (SETQ WIDTH (DOCOBJ-HRULE-GET-WIDTH
+                                             (ODDP I)
+                                             (EQ I 1)))
+                                (GREATERP WIDTH 0)) collect WIDTH])
+
+(DOCOBJ-EDIT-HRULE
+  [LAMBDA (IMAGEOBJ)                      (* Koomen " 4-Feb-87 15:45")
+    (PROG [NEWWIDTH (OLDWIDTH (MKLIST (IMAGEOBJPROP IMAGEOBJ
+                                             'RULE.WIDTH]
+          (SETQ NEWWIDTH (COPYALL OLDWIDTH))
+          (if (AND (NLSETQ (EDITE NEWWIDTH))
+                   (NOT (EQUAL NEWWIDTH OLDWIDTH)))
+              then (IMAGEOBJPROP IMAGEOBJ 'RULE.WIDTH NEWWIDTH)
+                   (RETURN IMAGEOBJ])
+
+(DOCOBJ-HRULE-INIT
+  [LAMBDA NIL                             (* Koomen " 4-Feb-87 16:13")
+       
+       (* * provide HRULE editing * *)
+
+    (DECLARE (GLOBALVARS HRULE.IMAGEFNS))
+    (replace (IMAGEFNS BUTTONEVENTINFN) of HRULE.IMAGEFNS
+       with (FUNCTION DOCOBJ-HRULE-BUTTONEVENTINFN))
+    NIL])
+
+(DOCOBJ-HRULE-GET-WIDTH
+  [LAMBDA (RULE? FIRST?)                      (* ; 
+                                                "Edited 24-May-93 23:35 by sybalsky:mv:envos")
+    (DECLARE (GLOBALVARS DOCOBJ-HRULE-BLANK-PAD DOCOBJ-HRULE-RULE-PAD LASTMOUSEX LASTMOUSEY))
+    [COND
+       ((NULL DOCOBJ-HRULE-RULE-PAD)
+        (SETQ DOCOBJ-HRULE-RULE-PAD (CREATE.NUMBERPAD.READER "Rule width: " NIL NIL NIL T T))
+        (SETQ DOCOBJ-HRULE-BLANK-PAD (CREATE.NUMBERPAD.READER "Blank space: " NIL NIL NIL T T]
+    (COND
+       (FIRST? (MOVEW DOCOBJ-HRULE-RULE-PAD LASTMOUSEX LASTMOUSEY)
+              (MOVEW DOCOBJ-HRULE-BLANK-PAD LASTMOUSEX LASTMOUSEY)))
+    (NUMBERPAD.READ (COND
+                       (RULE? DOCOBJ-HRULE-RULE-PAD)
+                       (T DOCOBJ-HRULE-BLANK-PAD))
+           T])
+
+(DOCOBJ-HRULE-BUTTONEVENTINFN
+  [LAMBDA (IMAGEOBJ WINDOWSTREAM SELECTION RELX RELY WINDOW HOSTSTREAM 
+                 BUTTON)           (* ; 
+                                   "Edited  8-Oct-87 23:43 by Koomen")
+
+    (if (AND (EQ BUTTON 'MIDDLE)
+             (DOCOBJ-WAIT-MOUSE WINDOWSTREAM))
+        then (ALLOW.BUTTON.EVENTS)
+             (if (DOCOBJ-EDIT-HRULE IMAGEOBJ)
+                 then 'CHANGED])
+)
+
+(RPAQQ DOCOBJ-HRULE-RULE-PAD NIL)
+
+(RPAQQ DOCOBJ-HRULE-BLANK-PAD NIL)
+
+(ADDTOVAR DocObjectsMenuCommands ("Horizontal Rule" (DOCOBJ-MAKE-HRULE)
+                                        "One or more horizontal rules"))
+
+(DOCOBJ-HRULE-INIT)
+
+
+
+(* ;; "INCLUDE")
+
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+(DECLARE%: EVAL@COMPILE
+
+(RECORD INCLOBJ (FILENAME ENABLEDP))
+)
+)
+
+(RPAQ? DOCOBJ-INCLUDE-SAFE T)
+(DEFINEQ
+
+(DOCOBJ-MAKE-INCLUDE
+  [LAMBDA NIL                                               (* ; "Edited 15-Oct-87 14:54 by Koomen")
+
+    (DECLARE (SPECVARS TEXTOBJ))
+    (PROG ((SUBFILE (TEDIT.GETINPUT TEXTOBJ "Enter file name: ")))
+          (if SUBFILE
+              then (RETURN (DOCOBJ-INCLUDE-CREATE-OBJ SUBFILE))
+            else (TEDIT.PROMPTPRINT TEXTOBJ "... aborted."])
+
+(DOCOBJ-MAKE-INCLUDE-IMAGEFNS
+  [LAMBDA NIL                                               (* ; "Edited 23-Oct-87 00:20 by Koomen")
+
+    (LET ((DISPLAYFN (FUNCTION DOCOBJ-INCLUDE-DISPLAYFN))
+          (IMAGEBOXFN (FUNCTION DOCOBJ-INCLUDE-IMAGEBOXFN))
+          (PUTFN (FUNCTION DOCOBJ-INCLUDE-PUTFN))
+          (GETFN (FUNCTION DOCOBJ-INCLUDE-GETFN))
+          (COPYFN (FUNCTION DOCOBJ-INCLUDE-COPYFN))
+          (BUTTONEVENTINFN (FUNCTION DOCOBJ-INCLUDE-BUTTONEVENTINFN))
+          (COPYBUTTONEVENTINFN (FUNCTION NILL))
+          (WHENMOVEDFN (FUNCTION NILL))
+          (WHENINSERTEDFN (FUNCTION NILL))
+          (WHENDELETEDFN (FUNCTION NILL))
+          (WHENCOPIEDFN (FUNCTION NILL))
+          (WHENOPERATEDONFN (FUNCTION NILL))
+          (PREPRINTFN (FUNCTION DOCOBJ-INCLUDE-PREPRINTFN)))
+         (IMAGEFNSCREATE DISPLAYFN IMAGEBOXFN PUTFN GETFN COPYFN BUTTONEVENTINFN COPYBUTTONEVENTINFN 
+                WHENMOVEDFN WHENINSERTEDFN WHENDELETEDFN WHENCOPIEDFN WHENOPERATEDONFN PREPRINTFN])
+
+(DOCOBJ-INCLUDE-CREATE-OBJ
+  [LAMBDA (INCLOBJ)                                          (* ; "Edited 21-Jun-2023 20:37 by rmk")
+                                                            (* ; "Edited 23-Oct-87 14:06 by Koomen")
+    (DECLARE (GLOBALVARS DOCOBJ-INCLUDE-IMAGEFNS))
+    (LET (IMAGEOBJ)
+         (CL:WHEN (AND INCLOBJ (NLISTP INCLOBJ))
+
+             (* ;; "Just a file name")
+
+             (SETQ INCLOBJ (create INCLOBJ
+                                  FILENAME _ (MKSTRING INCLOBJ)
+                                  ENABLEDP _ T)))
+         (SETQ IMAGEOBJ (IMAGEOBJCREATE INCLOBJ DOCOBJ-INCLUDE-IMAGEFNS))
+         (DOCOBJ-INCLUDE-RESET-OBJ IMAGEOBJ)
+         (DOCOBJ-REGISTER-OBJECT IMAGEOBJ)
+         IMAGEOBJ])
+
+(DOCOBJ-INCLUDE-EDIT
+  [LAMBDA (INCLOBJ TSTREAM)                                  (* ; "Edited 12-May-2024 09:03 by rmk")
+                                                            (* ; "Edited  9-May-2018 11:09 by rmk:")
+                                                            (* ; "Edited  9-May-2018 10:35 by rmk:")
+                                                            (* ; "Edited 26-Oct-87 19:57 by Koomen")
+    (SELECTQ [MENU (OR DOCOBJ-INCLUDE-EDITMENU (SETQ DOCOBJ-INCLUDE-EDITMENU
+                                                (create MENU
+                                                       TITLE _ "Edit Include"
+                                                       ITEMS _ '(("New File" 'NEW.FILE 
+                                                                        "Include a different file")
+                                                                 ("Edit File" 'EDIT.FILE 
+                                                                        "Edit the included file")
+                                                                 ("Enable" 'ENABLE 
+                                                                   "Include the file during hardcopy"
+                                                                        )
+                                                                 ("Disable" 'DISABLE 
+                                                            "Do not include the file during hardcopy"
+                                                                        ))
+                                                       CENTERFLG _ T
+                                                       MENUOFFSET _ '(-1 . 30)
+                                                       CHANGEOFFSETFLG _ 'Y]
+        (NEW.FILE (LET [(NEWNAME (TEDIT.GETINPUT TSTREAM "Enter new file name: " (fetch (INCLOBJ
+                                                                                         FILENAME)
+                                                                                    of INCLOBJ]
+                       (if [AND NEWNAME (SETQ NEWNAME (MKSTRING NEWNAME))
+                                (NOT (EQUAL NEWNAME (fetch (INCLOBJ FILENAME) of INCLOBJ]
+                           then (replace (INCLOBJ FILENAME) of INCLOBJ with NEWNAME)
+                                T)))
+        (EDIT.FILE (for W in (OPENWINDOWS)
+                      bind [FULLNAME _ (OR (FINDFILE-WITH-EXTENSIONS
+                                            (fetch (INCLOBJ FILENAME) of INCLOBJ)
+                                            (CONS (PACKFILENAME.STRING 'HOST (FILENAMEFIELD
+                                                                              TXTFILE
+                                                                              'HOST)
+                                                         'DIRECTORY
+                                                         (FILENAMEFIELD TXTFILE 'DIRECTORY))
+                                                  DIRECTORIES)
+                                            *TEDIT-EXTENSIONS*)
+                                           (INFILEP (fetch (INCLOBJ FILENAME) of INCLOBJ]
+                      first (if (NULL FULLNAME)
+                                then (TEDIT.PROMPTPRINT TSTREAM "Can't find " T)
+                                     (TEDIT.PROMPTPRINT TSTREAM (fetch (INCLOBJ FILENAME)
+                                                                   of INCLOBJ))
+                                     (RETURN)) when (SETQ W (DOCOBJ-INCLUDE-EDIT-WINDOWP FULLNAME W))
+                      do (TOTOPW W)
+                         (GIVE.TTY.PROCESS W)
+                         (RETURN) finally (TEDIT (MKATOM FULLNAME))))
+        (ENABLE (if (NOT (fetch (INCLOBJ ENABLEDP) of INCLOBJ))
+                    then (replace (INCLOBJ ENABLEDP) of INCLOBJ with T)
+                         T))
+        (DISABLE (if (fetch (INCLOBJ ENABLEDP) of INCLOBJ)
+                     then (replace (INCLOBJ ENABLEDP) of INCLOBJ with NIL)
+                          T))
+        NIL])
+
+(DOCOBJ-INCLUDE-EDIT-WINDOWP
+  [LAMBDA (FILENAME WINDOW)                                  (* ; "Edited 27-Mar-2024 23:42 by rmk")
+                                                            (* ; "Edited 26-Oct-87 19:53 by Koomen")
+    (CL:WHEN (WINDOWP WINDOW)
+        [OR (LET (TEXTOBJ TXTFILE)
+                 (CL:WHEN (AND (SETQ TEXTOBJ (TEXTOBJ WINDOW T))
+                               (SETQ TXTFILE (GETTOBJ TEXTOBJ TXTFILE))
+                               (STREAMP TXTFILE)
+                               (SETQ TXTFILE (FULLNAME TXTFILE))
+                               (OR (STRINGP TXTFILE)
+                                   (LITATOM TXTFILE))
+                               (STRING-EQUAL FILENAME TXTFILE))
+                        WINDOW))
+            (DOCOBJ-INCLUDE-EDIT-WINDOWP FILENAME (WINDOWPROP WINDOW 'ICONFOR])])
+
+(DOCOBJ-INCLUDE-RESET-OBJ
+  [LAMBDA (IMAGEOBJ)                                         (* ; "Edited 16-Jul-2023 10:02 by rmk")
+                                                            (* ; "Edited 23-Oct-87 14:09 by Koomen")
+    (DECLARE (GLOBALVARS DOCOBJ-INCLUDE-IMAGEFNS))
+    (PROG (INCLOBJ FNAME)
+          (if (SETQ INCLOBJ (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM))
+              then (SETQ FNAME (fetch (INCLOBJ FILENAME) of INCLOBJ))
+                   (IMAGEOBJPROP IMAGEOBJ 'INCLDISPLAYSTRING (CONCAT "@Include[" FNAME "]"))
+                   (IMAGEOBJPROP IMAGEOBJ 'DONTINCLDISPLAYSTRING (CONCAT "@DoNotInclude[" FNAME "]"))
+              )
+          (IMAGEOBJPROP IMAGEOBJ 'BEFOREHARDCOPYFN (FUNCTION DOCOBJ-INCLUDE-BEFOREHARDCOPYFN))
+
+     (* ;; "There is now no need to cleanup afterwards--the TEDIT history undoes the inclusion and any other hardcopy stuff.")
+
+          (AND NIL (IMAGEOBJPROP IMAGEOBJ 'AFTERHARDCOPYFN (FUNCTION DOCOBJ-INCLUDE-AFTERHARDCOPYFN])
+)
+(DEFINEQ
+
+(DOCOBJ-INCLUDE-BEFOREHARDCOPYFN
+  [LAMBDA (TEXTOBJ OBJ PC CH#)                               (* ; "Edited 13-Sep-2024 15:13 by rmk")
+                                                             (* ; "Edited 12-May-2024 08:48 by rmk")
+                                                             (* ; "Edited  7-May-2024 23:33 by rmk")
+                                                             (* ; "Edited 16-Feb-2024 23:47 by rmk")
+                                                             (* ; "Edited 23-Jul-2023 22:45 by rmk")
+                                                             (* ; "Edited 16-Jul-2023 11:14 by rmk")
+                                                             (* ; "Edited 10-Jul-2023 22:18 by rmk")
+                                                             (* ; "Edited 22-Jun-2023 16:44 by rmk")
+
+    (* ;; "This  replaces the PC, the piece with an included-file object, with the contents of that file.  The undo event will restore the object.  Since the piece with the object is deleted, its paragraph looks are ignored and only the looks of the inserted file are interpreted.  E.g., to get a page break before the included file, either the first piece of that file must be a page break, or a blank NEWPAGEBEFORE paragraph must come before the OBJ.")
+
+    (* ;; "Returns T if the inclusion is succeeds as intended, NIL otherwise.")
+
+    (* ;; "Not sure why the INCLUDEDP property.  If enabled, it's included.")
+
+    (CL:WHEN (fetch (INCLOBJ ENABLEDP) of (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+        (LET ([INCLFILE (fetch (INCLOBJ FILENAME) of (IMAGEOBJPROP OBJ 'OBJECTDATUM]
+              (TXTFILE (GETTOBJ TEXTOBJ TXTFILE)))
+             (SETQ INCLFILE (FINDFILE-WITH-EXTENSIONS INCLFILE
+                                   (AND TXTFILE (CONS (PACKFILENAME.STRING 'HOST (FILENAMEFIELD
+                                                                                  TXTFILE
+                                                                                  'HOST)
+                                                             'DIRECTORY
+                                                             (FILENAMEFIELD TXTFILE 'DIRECTORY))
+                                                      DIRECTORIES))
+                                   *TEDIT-EXTENSIONS*))
+             (if INCLFILE
+                 then                                        (* ; "Don't update/show until end")
+                      (\TEDIT.UPDATE.SEL (TEXTSEL TEXTOBJ)
+                             CH# 1 'LEFT)                    (* ; "Deletes this include-object")
+                      (\TEDIT.DELETE TEXTOBJ (TEXTSEL TEXTOBJ))
+                      (TEDIT.INCLUDE TEXTOBJ INCLFILE NIL NIL DOCOBJ-INCLUDE-SAFE)
+                      (TEDIT.PROMPTPRINT TEXTOBJ (CONCAT "Included " INCLFILE)) 
+
+                      (* ;; "Succeeded as intended")
+
+                      T
+               else 
+                    (* ;; "Did not succeed as intended.  Caller should restore the stream, maybe selecting and highlighting the bad inclusion.")
+
+                    (TEDIT.PROMPTPRINT TEXTOBJ (CONCAT "Included file " (fetch (INCLOBJ FILENAME)
+                                                                           of OBJ)
+                                                      " not found")
+                           T T)
+                    NIL)))])
+
+(DOCOBJ-INCLUDE-CLEANUPFN
+  [LAMBDA (TEXTSTREAM STARTPOS LEN)                          (* ; "Edited 15-Mar-2024 14:08 by rmk")
+                                                             (* ; "Edited 11-Dec-2023 11:32 by rmk")
+                                                             (* ; "Edited 22-Jun-2023 16:53 by rmk")
+                                                             (* ; "Edited  6-Sep-2022 10:08 by rmk")
+                                                             (* ; 
+                                                        "Edited  3-Jun-93 12:43 by sybalsky:mv:envos")
+
+    (* ;; "Do the cleanup of removing an included file's pieces (and closing it) after hardcopying with inclusions.")
+
+    (HELP "NOTUSED?" 'DOCOBJ-INCLUDE-CLEANUPFN)
+    (LET ((TEXTOBJ (TEXTOBJ TEXTSTREAM)))
+         (for PC inselpieces (\TEDIT.SELPIECES STARTPOS (SUB1 (IPLUS STARTPOS LEN))
+                                    TEXTOBJ) when (MEMB (PTYPE PC)
+                                                        FILE.PTYPES) do (CLOSEF? (PCONTENTS PC)))
+
+         (* ;; "We don't want these deletes on the history list")
+
+         (replace (TEXTOBJ TXTHISTORY) of TEXTOBJ with (PROG1 (fetch (TEXTOBJ TXTHISTORY)
+                                                                 of TEXTOBJ)
+                                                              (TEDIT.DELETE TEXTSTREAM STARTPOS LEN))
+                )
+         (BLOCK])
+
+(DOCOBJ-INCLUDE-BUTTONEVENTINFN
+  [LAMBDA (IMAGEOBJ WINDOWSTREAM SELECTION RELX RELY WINDOW HOSTSTREAM BUTTON)
+                                                             (* ; "Edited 12-May-2024 09:01 by rmk")
+                                                            (* ; "Edited 23-Oct-87 00:46 by Koomen")
+    (if (AND (EQ BUTTON 'MIDDLE)
+             (DOCOBJ-WAIT-MOUSE WINDOWSTREAM))
+        then (ALLOW.BUTTON.EVENTS)
+             (if (DOCOBJ-INCLUDE-EDIT (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM)
+                        HOSTSTREAM)
+                 then (DOCOBJ-INCLUDE-RESET-OBJ IMAGEOBJ)
+                      'CHANGED])
+
+(DOCOBJ-INCLUDE-COPYFN
+  [LAMBDA (IMAGEOBJ SOURCEHOSTSTREAM TARGETHOSTSTREAM)      (* ; "Edited 23-Oct-87 00:13 by Koomen")
+
+    (DOCOBJ-INCLUDE-CREATE-OBJ (COPYALL (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM])
+
+(DOCOBJ-INCLUDE-DISPLAYFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM IMAGESTREAMTYPE HOSTSTREAM)  (* ; "Edited 22-Jun-2023 14:00 by rmk")
+                                                            (* ; "Edited 23-Oct-87 14:42 by Koomen")
+    (LET [(INCLOBJ (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM]
+         (CL:WHEN [AND INCLOBJ (OR (EQ IMAGESTREAMTYPE 'DISPLAY)
+                                   (NOT (fetch (INCLOBJ ENABLEDP) of INCLOBJ]
+             [printout IMAGESTREAM (IMAGEOBJPROP IMAGEOBJ (if (fetch (INCLOBJ ENABLEDP) of INCLOBJ)
+                                                              then 'INCLDISPLAYSTRING
+                                                            else 'DONTINCLDISPLAYSTRING])])
+
+(DOCOBJ-INCLUDE-GETFN
+  [LAMBDA (FILESTREAM)                                      (* ; "Edited 26-Oct-87 22:00 by Koomen")
+
+    (LET ((INCLOBJ (READ FILESTREAM)))
+         (if (NLISTP INCLOBJ)
+             then 
+          
+          (* ;; "Version 1:  Just filename as string")
+          
+          (* ;; "Version 2:  List whose CAR is filename")
+
+                  (SETQ INCLOBJ (create INCLOBJ
+                                       FILENAME _ INCLOBJ)))
+         (if (NLISTP (CDR INCLOBJ))
+             then 
+          
+          (* ;; "Version 3:  List whose CADR is ENABLEDP flag")
+
+                  (NCONC1 INCLOBJ T))
+         (DOCOBJ-INCLUDE-CREATE-OBJ INCLOBJ])
+
+(DOCOBJ-INCLUDE-IMAGEBOXFN
+  [LAMBDA (IMAGEOBJ IMAGESTREAM CURRENTX RIGHTMARGIN)       (* ; "Edited 23-Oct-87 14:41 by Koomen")
+
+    (OR (LET [(INCLOBJ (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM]
+             (if [AND INCLOBJ (OR (EQ (IMAGESTREAMTYPE IMAGESTREAM)
+                                      'DISPLAY)
+                                  (NOT (fetch (INCLOBJ ENABLEDP) of INCLOBJ]
+                 then (DOCOBJ-STRING-IMAGEBOX (IMAGEOBJPROP IMAGEOBJ (if (fetch (INCLOBJ ENABLEDP)
+                                                                            of INCLOBJ)
+                                                                         then 'INCLDISPLAYSTRING
+                                                                       else 'DONTINCLDISPLAYSTRING))
+                             IMAGESTREAM)))
+        (create IMAGEBOX
+               XSIZE _ 0
+               YSIZE _ 0
+               YDESC _ 0
+               XKERN _ 0])
+
+(DOCOBJ-INCLUDE-PREPRINTFN
+  [LAMBDA (IMAGEOBJ)                                        (* ; "Edited 23-Oct-87 14:19 by Koomen")
+
+    (fetch (INCLOBJ FILENAME) of (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM])
+
+(DOCOBJ-INCLUDE-PUTFN
+  [LAMBDA (IMAGEOBJ FILESTREAM)                             (* ; "Edited 15-Oct-87 17:17 by Koomen")
+
+    (PRINT (IMAGEOBJPROP IMAGEOBJ 'OBJECTDATUM)
+           FILESTREAM])
+)
+
+(RPAQ? DOCOBJ-INCLUDE-EDITMENU )
+
+(RPAQ? DOCOBJ-INCLUDE-IMAGEFNS (DOCOBJ-MAKE-INCLUDE-IMAGEFNS))
+
+(ADDTOVAR DocObjectsMenuCommands ("Include" (DOCOBJ-MAKE-INCLUDE)
+                                        "Include another document right here when hardcopying"))
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(DOCOBJ-INIT)
+)
+(DECLARE%: EVAL@LOAD DONTCOPY 
+
+(PUTPROPS DOC-OBJECTS FILETYPE :TCOMPL)
+
+(PUTPROPS DOC-OBJECTS MAKEFILE-ENVIRONMENT (:READTABLE "INTERLISP" :PACKAGE "INTERLISP" :BASE 10))
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (7640 21328 (DOCOBJ-ACQUIRE-OBJECT 7650 . 8651) (DOCOBJ-INIT 8653 . 9281) (
+DOCOBJ-TEDIT-MENU-ENTRY 9283 . 9705) (DOCOBJ-GET-LOOKS 9707 . 12167) (DOCOBJ-REGISTER-OBJECT 12169 . 
+12823) (DOCOBJ-STRING-IMAGEBOX 12825 . 13881) (DOCOBJ-WAIT-MOUSE 13883 . 14343) (
+DOCOBJ-BEFOREHARDCOPYFN 14345 . 19815) (DOCOBJ-AFTERHARDCOPYFN 19817 . 21326)) (21358 21625 (
+DOCOBJ-ACQUIRE-EVALED-OBJECT 21368 . 21623)) (21825 21967 (DOCOBJ-ACQUIRE-SNAPPED-OBJECT 21835 . 21965
+)) (22306 27102 (DOCOBJ-EDIT-TIMESTAMP 22316 . 22845) (DOCOBJ-MAKE-TIMESTAMP 22847 . 23258) (
+DOCOBJ-MAKE-TIMESTAMP-IMAGEFNS 23260 . 24330) (DOCOBJ-TIMESTAMP-BUTTONEVENTINFN 24332 . 24863) (
+DOCOBJ-TIMESTAMP-COPYFN 24865 . 25190) (DOCOBJ-TIMESTAMP-DISPLAYFN 25192 . 25485) (
+DOCOBJ-TIMESTAMP-GETFN 25487 . 25727) (DOCOBJ-TIMESTAMP-IMAGEBOXFN 25729 . 26085) (
+DOCOBJ-TIMESTAMP-PREPRINTFN 26087 . 26318) (DOCOBJ-TIMESTAMP-PUTFN 26320 . 26689) (
+DOCOBJ-TIMESTAMP-TO-STRING 26691 . 27100)) (27396 31703 (DOCOBJ-MAKE-FILESTAMP 27406 . 27747) (
+DOCOBJ-MAKE-FILESTAMP-IMAGEFNS 27749 . 28791) (DOCOBJ-FILESTAMP-COPYFN 28793 . 29108) (
+DOCOBJ-FILESTAMP-DISPLAYFN 29110 . 29398) (DOCOBJ-FILESTAMP-GETFN 29400 . 29753) (
+DOCOBJ-FILESTAMP-IMAGEBOXFN 29755 . 30093) (DOCOBJ-FILESTAMP-GET-FULLNAME 30095 . 30713) (
+DOCOBJ-FILESTAMP-NEW-FULLNAME 30715 . 31188) (DOCOBJ-FILESTAMP-PREPRINTFN 31190 . 31399) (
+DOCOBJ-FILESTAMP-PUTFN 31401 . 31701)) (32026 34523 (DOCOBJ-MAKE-HRULE 32036 . 32450) (
+DOCOBJ-EDIT-HRULE 32452 . 32924) (DOCOBJ-HRULE-INIT 32926 . 33258) (DOCOBJ-HRULE-GET-WIDTH 33260 . 
+34071) (DOCOBJ-HRULE-BUTTONEVENTINFN 34073 . 34521)) (34942 43284 (DOCOBJ-MAKE-INCLUDE 34952 . 35353) 
+(DOCOBJ-MAKE-INCLUDE-IMAGEFNS 35355 . 36360) (DOCOBJ-INCLUDE-CREATE-OBJ 36362 . 37130) (
+DOCOBJ-INCLUDE-EDIT 37132 . 41401) (DOCOBJ-INCLUDE-EDIT-WINDOWP 41403 . 42259) (
+DOCOBJ-INCLUDE-RESET-OBJ 42261 . 43282)) (43285 52131 (DOCOBJ-INCLUDE-BEFOREHARDCOPYFN 43295 . 46789) 
+(DOCOBJ-INCLUDE-CLEANUPFN 46791 . 48310) (DOCOBJ-INCLUDE-BUTTONEVENTINFN 48312 . 48989) (
+DOCOBJ-INCLUDE-COPYFN 48991 . 49209) (DOCOBJ-INCLUDE-DISPLAYFN 49211 . 49963) (DOCOBJ-INCLUDE-GETFN 
+49965 . 50688) (DOCOBJ-INCLUDE-IMAGEBOXFN 50690 . 51699) (DOCOBJ-INCLUDE-PREPRINTFN 51701 . 51920) (
+DOCOBJ-INCLUDE-PUTFN 51922 . 52129)))))
+STOP

@@ -1,0 +1,104 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED " 8-Feb-2022 09:25:36" |{DSK}<home>larry>medley>lispusers>HARDCOPY-RETAIN.;2| 6048   
+
+      :PREVIOUS-DATE "29-Sep-88 17:02:58" |{DSK}<home>larry>medley>lispusers>HARDCOPY-RETAIN.;1|)
+
+
+; Copyright (c) 1987-1988, 2022 by Xerox Corporation.
+
+(PRETTYCOMPRINT HARDCOPY-RETAINCOMS)
+
+(RPAQQ HARDCOPY-RETAINCOMS ((FUNCTIONS HARDCOPYIMAGEW.TOFILE&PRINTER INSTALL-OPTION)
+                            (DECLARE\: DONTEVAL@LOAD DOCOPY (P (INSTALL-OPTION)))))
+
+(CL:DEFUN HARDCOPYIMAGEW.TOFILE&PRINTER (&OPTIONAL XCL-USER::WINDOW)
+   "Send hardcopy of WINDOW to a printer and a file."
+   (LET
+    ((XCL-USER::RESULT (|GetImageFile|)))
+    (CL:WHEN XCL-USER::RESULT
+        (LET ((XCL-USER::PRINTER-NAME (|GetPrinterName|)))
+             (DESTRUCTURING-BIND
+              (XCL-USER::FILE . TYPE)
+              XCL-USER::RESULT
+              (HARDCOPY.SOMEHOW XCL-USER::WINDOW XCL-USER::FILE TYPE)
+              (CL:WHEN XCL-USER::PRINTER-NAME
+                  (LET ((XCL-USER::FULL-NAME (PACKFILENAME.STRING
+                                              'HOST
+                                              (CL:PATHNAME-HOST XCL-USER::FILE)
+                                              'DEVICE
+                                              (CL:PATHNAME-DEVICE XCL-USER::FILE)
+                                              'DIRECTORY
+                                              (CL:PATHNAME-DIRECTORY XCL-USER::FILE)
+                                              'NAME
+                                              (CL:PATHNAME-NAME XCL-USER::FILE)
+                                              'EXTENSION
+                                              (OR (CL:FIRST (CL:SECOND (CL:ASSOC 'EXTENSION
+                                                                              (CL:REST (CL:ASSOC
+                                                                                        TYPE 
+                                                                                       PRINTFILETYPES
+                                                                                        )))))
+                                                  TYPE)
+                                              'BODY
+                                              (CL:NAMESTRING *DEFAULT-PATHNAME-DEFAULTS*))))
+                       (SEND.FILE.TO.PRINTER XCL-USER::FULL-NAME XCL-USER::PRINTER-NAME))))))))
+
+(CL:DEFUN INSTALL-OPTION ()
+   "Install the new Hardcopy option."
+   (CL:LABELS ((XCL-USER::GET-SUBITEMS (XCL-USER::ITEM)
+                      (AND (EQ (CL:FIRST (CL:FOURTH XCL-USER::ITEM))
+                               'SUBITEMS)
+                           (CL:REST (CL:FOURTH XCL-USER::ITEM))))
+               (XCL-USER::FIND-PLACE-WM
+                (XCL-USER::ITEM)
+                (LET ((XCL-USER::SUBITEMS (XCL-USER::GET-SUBITEMS XCL-USER::ITEM)))
+                     (CL:WHEN XCL-USER::SUBITEMS
+                         (CL:IF (EQ (CAR XCL-USER::ITEM)
+                                    '|Hardcopy|)
+                             (CL:UNLESS                      (* \; "Install if not already there.")
+                                 (CL:FIND 'HARDCOPYIMAGEW.TOFILE&PRINTER XCL-USER::SUBITEMS :KEY
+                                        #'(CL:LAMBDA (XCL-USER::X)
+                                                 (CL:SECOND (CL:SECOND XCL-USER::X)))
+                                        :TEST
+                                        #'EQ)
+                                 (NCONC XCL-USER::SUBITEMS (LIST (LIST "To a file and a printer"
+                                                                       '
+                                                                        '
+                                                                        HARDCOPYIMAGEW.TOFILE&PRINTER
+                                                                       
+              "Sends image to a printer of your choosing, retaining the printer version of the file."
+                                                                       ))))
+                             (CL:MAPC #'XCL-USER::FIND-PLACE-WM XCL-USER::SUBITEMS)))))
+               (XCL-USER::FIND-PLACE-BM
+                (XCL-USER::ITEM)
+                (LET ((XCL-USER::SUBITEMS (XCL-USER::GET-SUBITEMS XCL-USER::ITEM)))
+                     (CL:WHEN XCL-USER::SUBITEMS
+                         (CL:IF (EQ (CAR XCL-USER::ITEM)
+                                    '|Hardcopy|)
+                             (CL:UNLESS                      (* \; "Install if not already there.")
+                                 (CL:FIND 'HARDCOPYIMAGEW.TOFILE&PRINTER XCL-USER::SUBITEMS :KEY
+                                        #'(CL:LAMBDA (XCL-USER::X)
+                                                 (CL:FIRST (CL:SECOND (CL:SECOND XCL-USER::X))))
+                                        :TEST
+                                        #'EQ)
+                                 (NCONC XCL-USER::SUBITEMS (LIST (LIST "To a file and a printer"
+                                                                       ''(
+                                                                        HARDCOPYIMAGEW.TOFILE&PRINTER
+                                                                          )
+                                                                       
+              "Sends image to a printer of your choosing, retaining the printer version of the file."
+                                                                       ))))
+                             (CL:MAPC #'XCL-USER::FIND-PLACE-BM XCL-USER::SUBITEMS))))))
+          (CL:MAPC #'XCL-USER::FIND-PLACE-WM |WindowMenuCommands|)
+          (CL:MAPC #'XCL-USER::FIND-PLACE-BM |BackgroundMenuCommands|)
+          (CL:SETQ |WindowMenu| NIL)
+          (CL:SETQ |BackgroundMenu| NIL)))
+(DECLARE\: DONTEVAL@LOAD DOCOPY 
+
+(INSTALL-OPTION)
+)
+(PUTPROPS HARDCOPY-RETAIN COPYRIGHT ("Xerox Corporation" 1987 1988 2022))
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (540 2464 (HARDCOPYIMAGEW.TOFILE&PRINTER 540 . 2464)) (2466 5894 (INSTALL-OPTION 2466 . 
+5894)))))
+STOP

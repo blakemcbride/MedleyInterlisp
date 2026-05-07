@@ -1,0 +1,609 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "12-Aug-2025 08:33:13" 
+|{DSK}<Users>kaplan>Local>medley3.5>working-medley>lispusers>tmax>TMAX-NUMBER.;33| 34020  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS NGROUP.BUTTONEVENTINFN)
+
+      :PREVIOUS-DATE "28-Feb-2025 23:58:55" 
+|{DSK}<Users>kaplan>Local>medley3.5>working-medley>lispusers>tmax>TMAX-NUMBER.;32|)
+
+
+(PRETTYCOMPRINT TMAX-NUMBERCOMS)
+
+(RPAQQ TMAX-NUMBERCOMS
+       (
+        (* |;;| "Developed under support from NIH grant RR-00785.")
+
+        
+        (* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+        
+
+(* |;;;| "TMAX-NUMBER ImageObject functions")
+
+        (FNS NUMBEROBJ NUMBEROBJP NGROUPP NUMBER.DISPLAYFN NUMBER.PREPRINTFN NUMBER.IMAGEBOXFN 
+             NUMBER.NUMSTRING NUMBER.DISPLAYSTRING NUMBER.PUTFN NUMBER.GETFN NUMBER.COPYFN 
+             NUMBER.BUTTONEVENTINFN NUMBEROBJ.TEDIT-TO-TEX-FN)
+        (FNS COPY.NGROUP.BRANCH DUMP.NGROUP.GRAPH NGROUP.BUTTONEVENTINFN NGROUP.DEFINE.TAG 
+             NUMBER.DELETE.TAG NGROUP.SHOW.TAG CHANGE.NGROUP.FORMAT.#TEXT SHOW.INSERTED.NGROUP.FORMAT
+             )
+        
+
+(* |;;;| "Variable and Record definitions")
+
+        (VARS NGROUP.GRAPH.MENU.ITEMS NGROUP.INSERTED.MENU.ITEMS NGROUP.INSERTED.NOTAG.ITEMS 
+              NGROUP.INSERTED.TAG.ITEMS)
+        (FILES (COMPILED SYSLOAD)
+               TMAX)
+        (INITVARS (\\NUMBEROBJ.IMAGEFNS (IMAGEFNSCREATE (FUNCTION NUMBER.DISPLAYFN)
+                                               (FUNCTION NUMBER.IMAGEBOXFN)
+                                               (FUNCTION NUMBER.PUTFN)
+                                               (FUNCTION NUMBER.GETFN)
+                                               (FUNCTION NUMBER.COPYFN)
+                                               (FUNCTION NUMBER.BUTTONEVENTINFN)
+                                               (FUNCTION NILL)
+                                               (FUNCTION NILL)
+                                               (FUNCTION NILL)
+                                               (FUNCTION XREF.WHENDELETEDFN)
+                                               (FUNCTION NILL)
+                                               (FUNCTION NILL)
+                                               (FUNCTION NUMBER.PREPRINTFN))))
+        (DECLARE\: EVAL@COMPILE DONTCOPY (RECORDS NGCOUNTER NGTEMPLATE NUMBEROBJ))))
+
+
+
+(* |;;| "Developed under support from NIH grant RR-00785.")
+
+
+
+
+(* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+
+
+
+(* |;;;| "TMAX-NUMBER ImageObject functions")
+
+(DEFINEQ
+
+(NUMBEROBJ
+  (LAMBDA (USE TEMPLATE NUMSTRING REF.TYPE FONT MOTHER ABBREV.LEVEL)
+                                                             (* |fsg| "26-Aug-87 14:29")
+    (LET ((NEWOBJ (IMAGEOBJCREATE (|create| NUMBEROBJ
+                                         REF.TYPE _ REF.TYPE
+                                         NUMSTRING _ (OR NUMSTRING "Note#")
+                                         USE _ USE
+                                         NGROUP.MOTHER _ MOTHER
+                                         TEMPLATE _ TEMPLATE
+                                         UPDATED.OBJ _ NIL
+                                         TEXT.AFTER# _ NIL
+                                         PAGE.NUMBER _ NIL
+                                         FONT _ FONT
+                                         TEXT.BEFORE# _ NIL
+                                         ABBREV-VAL _ ABBREV.LEVEL)
+                         \\NUMBEROBJ.IMAGEFNS)))
+         (IMAGEOBJPROP NEWOBJ 'TYPE 'NUMBEROBJ)
+         (IMAGEOBJPROP NEWOBJ 'TEDIT-TO-TEX-FN (FUNCTION NUMBEROBJ.TEDIT-TO-TEX-FN))
+         NEWOBJ)))
+
+(NUMBEROBJP
+  (LAMBDA (IMOBJ)                                           (* \; "Edited 23-Feb-2025 21:39 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:21")
+
+(* |;;;| "Tests an imageobj to see if it is a number imageobject.  The only number imageobjects so far are NGroups and Endnotes.  By convention, testing functions for an imageobject will be named (CONCAT <type of imageobj> 'P')")
+
+    (AND IMOBJ (EQ (IMAGEOBJPROP IMOBJ 'TYPE)
+                   'NUMBEROBJ))))
+
+(NGROUPP
+  (LAMBDA (IMOBJ LABEL)                                     (* \; "Edited 23-Feb-2025 21:42 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:15")
+
+(* |;;;| "Like NUMBEROBJP but also checks for NGroup ImageObject and LABEL if given")
+
+    (AND (NUMBEROBJP IMOBJ)
+         (EQ (|fetch| (NUMBEROBJ USE) |of| (|fetch| OBJECTDATUM |of| IMOBJ))
+             'NGROUP)
+         (OR (NOT LABEL)
+             (EQ LABEL (|fetch| (NUMBEROBJ REF.TYPE) |of| (|fetch| OBJECTDATUM |of| IMOBJ)))))))
+
+(NUMBER.DISPLAYFN
+  (LAMBDA (IMAGE.OBJ IMAGESTREAM IMAGESTREAMTYPE TSTREAM)   (* \; "Edited 26-Feb-2025 15:23 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 10:48 by rmk")
+                                                            (* \; "Edited 20-Feb-2025 23:54 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:46 by rmk")
+                                                             (* |fsg| "24-Sep-87 14:56")
+
+    (* |;;| "Display function for numberobjs.  Allows different formats for display according to the use to which the numberobj is being put.  If no specific action is specified, displaying defaults to printing out as a plain number.*")
+
+    (DECLARE (USEDFREE FORMATTINGSTATE))
+    (LET* ((NUMOBJ (|fetch| OBJECTDATUM |of| IMAGE.OBJ))
+           (USE (|fetch| (NUMBEROBJ USE) |of| NUMOBJ))
+           (IMAGE.TAG (IMAGEOBJPROP IMAGE.OBJ 'TAG))
+           (OLD.FONT (DSPFONT NIL IMAGESTREAM))
+           (NBR.FONT (SELECTQ USE
+                         (NOTE (|fetch| (ENDNOTEFONTS NUMBER.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM)))
+                         (NGROUP (|fetch| (NUMBEROBJ FONT) |of| NUMOBJ))
+                         (ERROR "Undefined USE field" USE))))
+          (CL:WHEN IMAGE.TAG
+              (OR (TSP.GETCODEVAL IMAGE.TAG TSTREAM)
+                  (TSP.PUTCODE IMAGE.TAG IMAGE.OBJ TSTREAM)))
+          (CL:WHEN (FONTP NBR.FONT)
+                 (DSPFONT NBR.FONT IMAGESTREAM))
+          (CL:UNLESS (IMAGESTREAMTYPEP IMAGESTREAM 'DISPLAY)
+              (|replace| (NUMBEROBJ PAGE.NUMBER) |of| NUMOBJ |with| (CAR FORMATTINGSTATE)))
+          (TMAX.SHADEOBJ IMAGE.OBJ IMAGESTREAM)
+          (SELECTQ USE
+              (NGROUP (PRIN1 (NUMBER.DISPLAYSTRING IMAGE.OBJ)
+                             IMAGESTREAM)
+                      (CL:UNLESS (IMAGESTREAMTYPEP IMAGESTREAM 'DISPLAY)
+                             (UPDATE.NGROUP.MANINDEX NUMOBJ TSTREAM)))
+              (NOTE (LET ((CURRENT.YPOS (DSPYPOSITION NIL IMAGESTREAM))
+                          (IMAGEBOX (IMAGEOBJPROP IMAGE.OBJ 'BOUNDBOX)))
+                         (DSPYPOSITION (IPLUS CURRENT.YPOS (IDIFFERENCE (|fetch| YSIZE |of| IMAGEBOX)
+                                                                  (FONTPROP IMAGESTREAM 'HEIGHT)))
+                                IMAGESTREAM)
+                         (PRIN3 (|fetch| (NUMBEROBJ NUMSTRING) |of| NUMOBJ)
+                                IMAGESTREAM)
+                         (DSPYPOSITION CURRENT.YPOS IMAGESTREAM)))
+              NIL)
+          (DSPFONT OLD.FONT IMAGESTREAM))))
+
+(NUMBER.PREPRINTFN
+  (LAMBDA (IMAGE.OBJ)                                       (* \; "Edited 25-Feb-2025 10:49 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:47 by rmk")
+                                                             (* \; "Edited 18-May-99 22:51 by rmk:")
+                                                             (* |fsg| "24-Sep-87 14:56")
+
+    (* |;;| "Returns string that represents the number object, for plaintext put.  If no specific action is specified, displaying defaults to printing out as a plain number.*")
+
+    (DECLARE (USEDFREE TSTREAM))
+    (WITH NUMBEROBJ (FETCH OBJECTDATUM OF IMAGE.OBJ)
+          (LET ((IMAGE.TAG (IMAGEOBJPROP IMAGE.OBJ 'TAG)))
+               (CL:WHEN IMAGE.TAG
+                   (OR (TSP.GETCODEVAL IMAGE.TAG TSTREAM)
+                       (TSP.PUTCODE IMAGE.TAG IMAGE.OBJ TSTREAM)))
+               (NUMBER.DISPLAYSTRING IMAGE.OBJ)))))
+
+(NUMBER.IMAGEBOXFN
+  (LAMBDA (OBJ STREAM CURRENTX RIGHTMARGIN TSTREAM)         (* \; "Edited 26-Feb-2025 15:31 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 10:55 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 25-May-2024 20:46 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:47 by rmk")
+                                                             (* |fsg| " 4-Aug-87 14:56")
+
+    (* |;;| "For Endnote numbers the YSize is the current font height plus 0.25 times the Endnote number font height.  We do this so that the Endnote number will be superscripted but not too much.")
+
+    (LET* ((NUMBEROBJ (|fetch| OBJECTDATUM |of| OBJ))
+           (USE (|fetch| (NUMBEROBJ USE) |of| NUMBEROBJ))
+           (FONT (SELECTQ USE
+                     (NOTE (|fetch| (ENDNOTEFONTS NUMBER.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM)))
+                     (NGROUP (|fetch| (NUMBEROBJ FONT) |of| NUMBEROBJ))
+                     (ERROR "Undefined USE field" USE)))
+           (HEIGHT (FONTPROP FONT 'HEIGHT))
+           STRING)
+          (SETQ STRING (SELECTQ USE
+                           (NOTE (SETQ HEIGHT (FIX (PLUS (TIMES (DSPSCALE NIL STREAM)
+                                                                HEIGHT)
+                                                         (TIMES 0.25 HEIGHT))))
+                                 (|fetch| (NUMBEROBJ NUMSTRING) |of| NUMBEROBJ))
+                           (NGROUP (NUMBER.DISPLAYSTRING OBJ))
+                           NIL))
+          (|create| IMAGEBOX
+                 XSIZE _ (STRINGWIDTH STRING FONT)
+                 YSIZE _ HEIGHT
+                 YDESC _ (FONTPROP FONT 'DESCENT)
+                 XKERN _ 0))))
+
+(NUMBER.NUMSTRING
+  (LAMBDA (OBJ NCOUNT)                                      (* \; "Edited 25-Feb-2025 21:29 by rmk")
+    (LET ((DATUM (|fetch| OBJECTDATUM |of| OBJ))
+          NEWSTRING)
+         (SETQ NEWSTRING (NGROUP.CHARTYPE.CONVERT (|fetch| (NUMBEROBJ TEMPLATE) |of| DATUM)
+                                NCOUNT))
+         (CL:UNLESS (STREQUAL NEWSTRING (|fetch| (NUMBEROBJ NUMSTRING) |of| DATUM))
+             (|replace| (NUMBEROBJ NUMSTRING) |of| DATUM |with| NEWSTRING)))))
+
+(NUMBER.DISPLAYSTRING
+  (LAMBDA (OBJ)                                             (* \; "Edited 25-Feb-2025 10:58 by rmk")
+    (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| OBJ)
+           (CONCAT (OR TEXT.BEFORE# "")
+                  NUMSTRING
+                  (OR TEXT.AFTER# "")))))
+
+(NUMBER.PUTFN
+  (LAMBDA (OBJ STREAM)                                      (* \; "Edited 22-Feb-2025 17:45 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:48 by rmk")
+                                                             (* |fsg| " 5-Aug-87 08:24")
+    (DECLARE (USEDFREE TSTREAM))
+    (LET ((USE (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| OBJ)
+                      USE))
+          (OLD.FONT (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| OBJ)
+                           FONT)))
+         (SELECTQ USE
+             (NOTE (NOTE.PUTFN OBJ STREAM TSTREAM))
+             (NGROUP (LET ((NGROUP.REC (COPY (|fetch| OBJECTDATUM |of| OBJ))))
+                          (|with| NUMBEROBJ NGROUP.REC (SETQ FONT (LIST.FONT.PROPS FONT))
+                                 (PRIN4 (LIST '|NGroup| (AND (TMAXPROP TSTREAM 'DUMPNGROUPGRAPH)
+                                                             (DUMP.NGROUP.GRAPH TSTREAM))
+                                              (IMAGEOBJPROP OBJ 'TAG)
+                                              NGROUP.REC)
+                                        STREAM))))
+             (ERROR "Unknown NUMBER ImageObject type" USE)))))
+
+(NUMBER.GETFN
+  (LAMBDA (STREAM COPY.OBJECT)                              (* \; "Edited 28-Feb-2025 23:39 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 12:24 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:48 by rmk")
+                                                             (* |fsg| " 3-Sep-87 15:17")
+
+(* |;;;| "If COPY.OBJECT is non-NIL then we are COPYing it to this window.")
+
+    (DECLARE (USEDFREE TSTREAM))
+    (LET ((NBROBJ.DATUM (OR COPY.OBJECT (CDR (READ STREAM))))
+          (NEWOBJ (NUMBEROBJ)))
+
+         (* |;;| "READ returns (NGroup [graphstuff] [actual datum]")
+
+         (TSP.SETUP.FMMENU TSTREAM)
+         (CL:WHEN (ILESSP (LENGTH NBROBJ.DATUM)
+                         3)                                  (* \; "No graph, push  NIL")
+             (|push| NBROBJ.DATUM NIL))
+         (CL:WHEN (AND (CAR NBROBJ.DATUM)
+                       (NOT (AND (BOUNDP 'TMAX.PRUNE.NGRAPH)
+                                 TMAX.PRUNE.NGRAPH)))        (* \; "The graph is in this object")
+             (COPY.NGROUP.BRANCH (CAR NBROBJ.DATUM)
+                    TSTREAM))
+         (CL:WHEN (AND (CADR NBROBJ.DATUM)
+                       (NOT (GETHASH (CADR NBROBJ.DATUM)
+                                   (TMAXPROP TSTREAM 'TSP.CODE.ARRAY))))
+                                                             (* \; "CADR is the actual DATUM")
+             (TSP.PUTCODE (CADR NBROBJ.DATUM)
+                    NEWOBJ TSTREAM)
+             (IMAGEOBJPROP NEWOBJ 'TAG (CADR NBROBJ.DATUM)))
+         (|with| NUMBEROBJ (SETQ NBROBJ.DATUM (NGROUP.FIXUP.RECORDS (CADDR NBROBJ.DATUM)
+                                                     COPY.OBJECT))
+                (SELECTQ USE
+                    (NOTE (NOTE.GETFN NEWOBJ NBROBJ.DATUM TSTREAM))
+                    (NGROUP (AND (LISTP FONT)
+                                 (SETQ FONT (FONTCREATE FONT)))
+                            (CREATE.NGROUP.NODE REF.TYPE NGROUP.MOTHER NBROBJ.DATUM TSTREAM)
+                            (CREATE.NGROUP.NODE NGROUP.MOTHER NIL NIL TSTREAM)
+                            (ADD.NGROUP.TO.MOTHER.NODE REF.TYPE NGROUP.MOTHER TSTREAM)
+                            (TMAXPROP TSTREAM 'REBUILD.GRAPHFLG T)
+                            (CL:WHEN (|fetch| (NGTEMPLATE NG.MANUALINDEX) |of| TEMPLATE)
+                                (TMAXADDPROP TSTREAM 'MANUALGROUPS REF.TYPE))
+                            (|replace| OBJECTDATUM |of| NEWOBJ |with| NBROBJ.DATUM))
+                    (ERROR "Unknown USE type in NUMBER.GETFN" USE)))
+         NEWOBJ)))
+
+(NUMBER.COPYFN
+  (LAMBDA (IMAGE.OBJ SOURCE.STREAM TARGET.STREAM)           (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:48 by rmk")
+                                                             (* |fsg| " 4-Aug-87 09:46")
+
+(* |;;;| "Here to COPY a Number Image Object.  If we are copying to our own window, we delete the TAG if any so we don't get two ImageObjs with the same TAG name.")
+
+    (DECLARE (USEDFREE TSTREAM))
+    (SELECTQ (IMAGESTREAMTYPE TARGET.STREAM)
+        (TEXT (LET ((SOURCE.WINDOW (\\TEDIT.PRIMARYPANE TSTREAM)))
+                   (APPLY* (IMAGEOBJPROP IMAGE.OBJ 'GETFN)
+                          TARGET.STREAM
+                          (LIST (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| IMAGE.OBJ)
+                                       (AND (EQ USE 'NGROUP)
+                                            (NEQ SOURCE.STREAM TARGET.STREAM)
+                                            (|for| PARENT |in| (APPEND (LIST.ANCESTORS REF.TYPE NIL 
+                                                                              SOURCE.WINDOW)
+                                                                      (LIST REF.TYPE))
+                                               |collect| (CAR (GETHASH PARENT (TSP.GET.NGROUP.ARRAY
+                                                                               SOURCE.WINDOW))))))
+                                (AND (NEQ SOURCE.STREAM TARGET.STREAM)
+                                     (IMAGEOBJPROP IMAGE.OBJ 'TAG))
+                                (|fetch| OBJECTDATUM |of| IMAGE.OBJ)))))
+        (ERROR "Unknown TARGET stream type" (IMAGESTREAMTYPE TARGET.STREAM)))))
+
+(NUMBER.BUTTONEVENTINFN
+  (LAMBDA (OBJ STREAM SEL RELX RELY WINDOW TSTREAM BUTTON)  (* \; "Edited 21-Feb-2025 16:17 by rmk")
+                                                             (* |fsg| " 2-Sep-87 11:09")
+
+(* |;;;| "Here when a NumberOBJ is left or middle buttoned.  Left just dislays the Tag if any in the prompt window.  Middle pops up a menu allowing this user to do various things.")
+
+    (SELECTQ BUTTON
+        (LEFT (COND
+                 ((IMAGEOBJPROP OBJ 'TAG)
+                  (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| OBJ)
+                         (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Tag for this " (SELECTQ USE
+                                                                                (NOTE "Endnote")
+                                                                                (NGROUP REF.TYPE)
+                                                                                (ERROR 
+                                                                                 "Undefined USE code"
+                                                                                       USE))
+                                                           " is \""
+                                                           (IMAGEOBJPROP OBJ 'TAG)
+                                                           "\"")
+                                T)))
+                 (T (TEDIT.PROMPTCLEAR TSTREAM))))
+        (MIDDLE (LET* ((DATUM (|fetch| OBJECTDATUM |of| OBJ))
+                       (USE (|fetch| (NUMBEROBJ USE) |of| DATUM))
+                       (REF.TYPE (|fetch| (NUMBEROBJ REF.TYPE) |of| DATUM)))
+                      (SELECTQ USE
+                          (NOTE (NOTE.BUTTONEVENTINFN OBJ STREAM WINDOW TSTREAM))
+                          (NGROUP (NGROUP.BUTTONEVENTINFN REF.TYPE OBJ STREAM WINDOW TSTREAM))
+                          (ERROR "Undefined USE code" USE))))
+        NIL)))
+
+(NUMBEROBJ.TEDIT-TO-TEX-FN
+  (LAMBDA (OBJ STREAM)
+    (PRIN3 "\\ex{" STREAM)
+    (LET ((DATUM (IMAGEOBJPROP OBJ 'OBJECTDATUM)))
+         (PRIN3 (CAR DATUM)
+                STREAM)
+         (PRIN3 (CADR DATUM)
+                STREAM))
+    (PRIN3 "}" STREAM)
+    T))
+)
+(DEFINEQ
+
+(COPY.NGROUP.BRANCH
+  (LAMBDA (NGROUP.PARENTS TSTREAM)                          (* \; "Edited 28-Feb-2025 14:53 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 18:22 by rmk")
+                                                            (* \; "Edited 20-Feb-2025 23:20 by rmk")
+                                                             (* |fsg| "11-Aug-87 09:36")
+
+(* |;;;| "Build the NGroup database for the parents of a copied NGroup or the entire NGroup database on a GET.")
+
+    (|for| PARENT |in| NGROUP.PARENTS |when| PARENT |do| (SETQ PARENT (NGROUP.FIXUP.RECORDS PARENT))
+                                                         (|with| NUMBEROBJ PARENT
+                                                                (CL:WHEN (LISTP FONT)
+                                                                    (SETQ FONT (FONTCREATE FONT)))
+                                                                (CL:UNLESS NGROUP.MOTHER
+                                                                    (SETQ NGROUP.MOTHER 'NEW.NGROUP))
+                                                                (CREATE.NGROUP.NODE REF.TYPE 
+                                                                       NGROUP.MOTHER PARENT TSTREAM)
+                                                                (CREATE.NGROUP.NODE NGROUP.MOTHER NIL
+                                                                       NIL TSTREAM)
+                                                                (ADD.NGROUP.TO.MOTHER.NODE REF.TYPE 
+                                                                       NGROUP.MOTHER TSTREAM)))))
+
+(DUMP.NGROUP.GRAPH
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 22-Feb-2025 17:43 by rmk")
+                                                             (* |fsg| " 3-Aug-87 16:03")
+
+(* |;;;| "Return a list of the NGroup graph data that is PUT along with the NGroup Imageobject.  We can then rebuild the entire NGroup graph on a GET.")
+
+    (LET ((GRAPH.LIST (TCONC NIL)))
+         (MAPHASH (TSP.GET.NGROUP.ARRAY TSTREAM)
+                (FUNCTION (LAMBDA (VAL KEY)
+                            (AND (NEQ KEY 'NEW.NGROUP)
+                                 (LET ((NGROUP.REC (COPY (CAR VAL))))
+                                      (|with| NUMBEROBJ NGROUP.REC (SETQ FONT (LIST.FONT.PROPS FONT))
+                                             (TCONC GRAPH.LIST NGROUP.REC)))))))
+         (TMAXPROP TSTREAM 'DUMPNGROUPGRAPH NIL)
+         (CDAR GRAPH.LIST))))
+
+(NGROUP.BUTTONEVENTINFN
+  (LAMBDA (REF.TYPE NGROUP.OBJ STREAM WINDOW TSTREAM)       (* \; "Edited 12-Aug-2025 08:31 by rmk")
+                                                            (* \; "Edited 27-Feb-2025 17:27 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 11:50 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 16:13 by rmk")
+                                                             (* |fsg| " 5-Aug-87 08:31")
+
+(* |;;;| "Here when an inserted NGroup  object is middle buttoned.  This is under a RESETLST in TEDIT.SELECT.OBJECT.")
+
+    (DECLARE (SPECVARS TSTREAM NGROUP.OBJ))
+    (LET ((TAG (IMAGEOBJPROP NGROUP.OBJ 'TAG)))
+         (MENU (|create| MENU
+                      TITLE _ (CONCAT REF.TYPE " Menu")
+                      ITEMS _ (APPEND (CL:IF TAG
+                                          NGROUP.INSERTED.TAG.ITEMS
+                                          NGROUP.INSERTED.NOTAG.ITEMS)
+                                     NGROUP.INSERTED.MENU.ITEMS)
+                      CENTERFLG _ T)))))
+
+(NGROUP.DEFINE.TAG
+  (LAMBDA (REF.TYPE TSTREAM NGROUP.OBJ)                     (* \; "Edited 21-Feb-2025 16:13 by rmk")
+                                                             (* |fsg| " 5-Aug-87 09:26")
+
+(* |;;;| "Define a TAG for this NGroup or Change the TAG if it already exists.")
+
+    (LET ((OLD.TAG (IMAGEOBJPROP NGROUP.OBJ 'TAG))
+          (NEW.TAG (TSP.GET.INCODE TSTREAM)))
+         (CL:WHEN (AND NEW.TAG (NEQ NEW.TAG OLD.TAG))
+             (CL:WHEN OLD.TAG (NUMBER.DELETE.TAG TSTREAM NGROUP.OBJ))
+             (TSP.PUTCODE NEW.TAG NGROUP.OBJ TSTREAM)
+             (IMAGEOBJPROP NGROUP.OBJ 'TAG NEW.TAG)
+             'CHANGED))))
+
+(NUMBER.DELETE.TAG
+  (LAMBDA (TSTREAM NGROUP.OBJ)                              (* \; "Edited 21-Feb-2025 16:14 by rmk")
+                                                             (* |fsg| " 5-Aug-87 09:27")
+
+(* |;;;| "Delete this Imageobj's TAG.")
+
+    (TSP.PUTCODE (IMAGEOBJPROP NGROUP.OBJ 'TAG NIL)
+           NIL TSTREAM)
+    'CHANGED))
+
+(NGROUP.SHOW.TAG
+  (LAMBDA (REF.TYPE WINDOW NGROUP.OBJ)                      (* \; "Edited 21-Feb-2025 16:14 by rmk")
+                                                             (* |fsg| " 5-Aug-87 08:43")
+
+(* |;;;| "Show this NGroup's TAG.")
+
+    (TEDIT.PROMPTPRINT (TEXTSTREAM WINDOW)
+           (CONCAT REF.TYPE ":  Tag=\"" (IMAGEOBJPROP NGROUP.OBJ 'TAG)
+                  "\"")
+           T)
+    NIL))
+
+(CHANGE.NGROUP.FORMAT.#TEXT
+  (LAMBDA (TSTREAM NGROUP.OBJ FLAVOR)                       (* \; "Edited 28-Feb-2025 23:55 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 00:18 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 12:50 by rmk")
+                                                             (* |fsg| "25-Aug-87 14:48")
+
+(* |;;;| "Change the text before or after an inserted NGroup regardless of the Text Before or Text After toggle settings.")
+
+    (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| NGROUP.OBJ)
+           (LET ((OLD.STRING (SELECTQ FLAVOR
+                                 (BEFORE TEXT.BEFORE#)
+                                 TEXT.AFTER#))
+                 (NEW.STRING (TEDIT.GETINPUT TSTREAM (CONCAT "Text " (SELECTQ FLAVOR
+                                                                         (BEFORE "before ")
+                                                                         "after ")
+                                                            REF.TYPE ":"))))
+                (CL:WHEN NEW.STRING
+                    (SETQ NEW.STRING (CONCAT (SELECTQ FLAVOR
+                                                 (BEFORE "")
+                                                 " ")
+                                            (CONVERT.TABS.TO.SPACES NEW.STRING)
+                                            (SELECTQ FLAVOR
+                                                (BEFORE " ")
+                                                ""))))
+                (SELECTQ FLAVOR
+                    (BEFORE (SETQ TEXT.BEFORE# NEW.STRING))
+                    (SETQ TEXT.AFTER# NEW.STRING))
+                (NOT (STREQUAL OLD.STRING NEW.STRING))))))
+
+(SHOW.INSERTED.NGROUP.FORMAT
+  (LAMBDA (REF.TYPE NGROUP.OBJ TSTREAM WINDOW)              (* \; "Edited 24-Feb-2025 22:53 by rmk")
+                                                             (* |fsg| "26-Aug-87 12:05")
+
+(* |;;;| "Show the format of an inserted NGroup. ")
+
+    (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| NGROUP.OBJ)
+           (TEDIT.PROMPTPRINT TSTREAM (CONCAT REF.TYPE ": Display= " "\"" (OR TEXT.BEFORE# "")
+                                             "["
+                                             (|fetch| NG.CHARTYPE |of| TEMPLATE)
+                                             "]"
+                                             (OR TEXT.AFTER# "")
+                                             "\"" " Abbrev=" (OR ABBREV-VAL "None"))
+                  T))))
+)
+
+
+
+(* |;;;| "Variable and Record definitions")
+
+
+(RPAQQ NGROUP.GRAPH.MENU.ITEMS
+       `((|Change Font| (CHANGE.NGROUP.FONT LABEL TSTREAM)
+                "Change this NGroup's entire FONT."
+                (SUBITEMS (|Family| (CHANGE.NGROUP.FONT LABEL TSTREAM 'FAMILY)
+                                 "Change this NGroup's font family.")
+                       (|Size| (CHANGE.NGROUP.FONT LABEL TSTREAM 'SIZE)
+                              "Change this NGroup's font size.")
+                       (|Face| (CHANGE.NGROUP.FONT LABEL TSTREAM 'FACE)
+                              "Change this NGroup's font face.")))
+         (|Show Font| (SHOW.NGROUP.FONT LABEL TSTREAM)
+                "Show this NGroup's FONT.")
+         (|Change Format| (CHANGE.NGROUP.FORMAT LABEL TSTREAM)
+                "Change this NGroup's entire FORMAT."
+                (SUBITEMS (|Delimiter Before| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'DELIMBEFORE)
+                                 "Change the delimiter preceding this NGroup.")
+                       (|Delimiter After| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'DELIMAFTER)
+                              "Change the delimiter following this NGroup.")
+                       (|Display Type| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'DISPLAY)
+                              "Change how this NGroup is displayed.")
+                       (|Abbreviate Level| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'ABBREVVAL)
+                              "Specify the starting level of this NGroup value.")
+                       (|Starting Value| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'START)
+                              "Change this NGroup's starting value.")
+                       (|Table-Of-Contents| (CHANGE.NGROUP.FORMAT LABEL TSTREAM 'TOC)
+                              "Include this NGroup in the Table-Of-Contents.")
+                       \,@
+                       (CL:WHEN (MANUALINDEX.ENABLED? (WINDOWPROP GRAPHW 'TSTREAM))
+                           (LIST (LIST '|Manual Index| (FUNCTION (CHANGE.NGROUP.FORMAT LABEL TSTREAM
+                                                                        'MANINDEX))
+                                       "Include this NGroup in the Manual Index page numbers.")))))
+         (|Show Format| (SHOW.NGROUP.FORMAT LABEL TSTREAM)
+                "Show this NGroup's FORMAT.")))
+
+(RPAQQ NGROUP.INSERTED.MENU.ITEMS
+       ((|Change Font| (CHANGE.NGROUP.FONT REF.TYPE TSTREAM NIL NGROUP.OBJ)
+               "Change this NGroup's entire FONT."
+               (SUBITEMS (|Family| (CHANGE.NGROUP.FONT REF.TYPE TSTREAM 'FAMILY NGROUP.OBJ)
+                                "Change this NGroup's font family.")
+                      (|Size| (CHANGE.NGROUP.FONT REF.TYPE TSTREAM 'SIZE NGROUP.OBJ)
+                             "Change this NGroup's font size.")
+                      (|Face| (CHANGE.NGROUP.FONT REF.TYPE TSTREAM 'FACE NGROUP.OBJ)
+                             "Change this NGroup's font face.")))
+        (|Show Font| (SHOW.NGROUP.FONT REF.TYPE TSTREAM NGROUP.OBJ)
+               "Show this NGroup's FONT.")
+        (|Change Format| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM)
+               "Change this NGroup's entire FORMAT."
+               (SUBITEMS (|Delimiter Before| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'DELIMBEFORE)
+                                "Change the delimiter preceding this NGroup.")
+                      (|Delimiter After| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'DELIMAFTER)
+                             "Change the delimiter following this NGroup.")
+                      (|Display Type| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'DISPLAY)
+                             "Change how this NGroup is displayed.")
+                      (|Abbreviate Level| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'ABBREVVAL 
+                                                 NGROUP.OBJ)
+                             "Specify the starting level of this NGroup value.")
+                      (|Text Before| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'BEFORE#TXT NGROUP.OBJ)
+                             "Change the text preceding this NGroup.")
+                      (|Text After| (CHANGE.NGROUP.FORMAT REF.TYPE TSTREAM 'AFTER#TXT NGROUP.OBJ)
+                             "Change the text following this NGroup.")))
+        (|Show Format| (SHOW.INSERTED.NGROUP.FORMAT REF.TYPE NGROUP.OBJ TSTREAM WINDOW)
+               "Show this NGroup's FORMAT.")))
+
+(RPAQQ NGROUP.INSERTED.NOTAG.ITEMS ((|Define Tag| (NGROUP.DEFINE.TAG REF.TYPE TSTREAM NGROUP.OBJ)
+                                           "Define a TAG for this NGroup.")))
+
+(RPAQQ NGROUP.INSERTED.TAG.ITEMS ((|Change Tag| (NGROUP.DEFINE.TAG REF.TYPE TSTREAM NGROUP.OBJ)
+                                         "Change this NGroup's TAG.")
+                                  (|Delete Tag| (NUMBER.DELETE.TAG TSTREAM NGROUP.OBJ)
+                                         "Delete this NGroup's TAG.")
+                                  (|Show Tag| (NGROUP.SHOW.TAG REF.TYPE TSTREAM NGROUP.OBJ)
+                                         "Show this NGroup's TAG.")))
+
+(FILESLOAD (COMPILED SYSLOAD)
+       TMAX)
+
+(RPAQ? \\NUMBEROBJ.IMAGEFNS
+       (IMAGEFNSCREATE (FUNCTION NUMBER.DISPLAYFN)
+              (FUNCTION NUMBER.IMAGEBOXFN)
+              (FUNCTION NUMBER.PUTFN)
+              (FUNCTION NUMBER.GETFN)
+              (FUNCTION NUMBER.COPYFN)
+              (FUNCTION NUMBER.BUTTONEVENTINFN)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION XREF.WHENDELETEDFN)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NUMBER.PREPRINTFN)))
+(DECLARE\: EVAL@COMPILE DONTCOPY 
+(DECLARE\: EVAL@COMPILE
+
+(RECORD NGCOUNTER (NCOUNT . ANCESTRY))
+
+(RECORD NGTEMPLATE (NG.CHARTYPE NG.DELIMAFTER NG.START NG.ADDTOTOC NG.CURRENTVAL NG.MANUALINDEX 
+                          NG.DELIMBEFORE NG.ABBREV-VAL NG.FONT))
+
+(RECORD NUMBEROBJ (REF.TYPE NUMSTRING USE NGROUP.MOTHER TEMPLATE UPDATED.OBJ TEXT.AFTER# PAGE.NUMBER
+                         FONT TEXT.BEFORE# ABBREV-VAL))
+)
+)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (2587 20019 (NUMBEROBJ 2597 . 3703) (NUMBEROBJP 3705 . 4238) (NGROUPP 4240 . 4839) (
+NUMBER.DISPLAYFN 4841 . 7695) (NUMBER.PREPRINTFN 7697 . 8807) (NUMBER.IMAGEBOXFN 8809 . 10814) (
+NUMBER.NUMSTRING 10816 . 11360) (NUMBER.DISPLAYSTRING 11362 . 11671) (NUMBER.PUTFN 11673 . 13055) (
+NUMBER.GETFN 13057 . 15986) (NUMBER.COPYFN 15988 . 17766) (NUMBER.BUTTONEVENTINFN 17768 . 19747) (
+NUMBEROBJ.TEDIT-TO-TEX-FN 19749 . 20017)) (20020 27913 (COPY.NGROUP.BRANCH 20030 . 21751) (
+DUMP.NGROUP.GRAPH 21753 . 22656) (NGROUP.BUTTONEVENTINFN 22658 . 23819) (NGROUP.DEFINE.TAG 23821 . 
+24489) (NUMBER.DELETE.TAG 24491 . 24852) (NGROUP.SHOW.TAG 24854 . 25280) (CHANGE.NGROUP.FORMAT.#TEXT 
+25282 . 27089) (SHOW.INSERTED.NGROUP.FORMAT 27091 . 27911)))))
+STOP

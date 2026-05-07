@@ -1,0 +1,550 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "24-Sep-2025 13:01:45" {MEDLEY}<library>BROWSER.;2 29583  
+
+      :EDIT-BY "PA"
+
+      :CHANGES-TO (FNS GET.BROWSE.PP.WINDOW)
+
+      :PREVIOUS-DATE "21-May-2024 18:46:31" {MEDLEY}<library>BROWSER.;1)
+
+
+(PRETTYCOMPRINT BROWSERCOMS)
+
+(RPAQQ BROWSERCOMS
+       [(FILES MASTERSCOPE GRAPHER)
+        (DECLARE%: EVAL@COMPILE DONTCOPY (FILES (LOADCOMP)
+                                                GRAPHER)
+               (CONSTANTS (CHANGEDSHADE 8840)))
+        (FNS MSPATHS.DISPATCH NUMSPATHS BROWSER BROWSER.WHENFNSCHANGED BRPATHS1 BROWSER.LEFTFN 
+             GET.BROWSE.PP.WINDOW GET.BROWSE.DESCRIBE.WINDOW BROWSEPP PPREPAINTFN PPRESHAPEFN 
+             DESCRIBEREPAINTFN BROWSERDESCRIBE BROWSER.MIDDLEFN DEDITPROCESSRUNNINGP 
+             REDRAWBROWSEGRAPH STBROWSER)
+        (GLOBALRESOURCES BROWSEHASH)
+        (DECLARE%: DONTCOPY (RECORDS BROWSEWIN PATHSARGS))
+        [INITVARS (BROWSER T)
+               (BROWSERBOXING)
+               (BROWSERFORMAT)
+               (BROWSERWINDOWS)
+               (NODESELECTIONWINDOW)
+               (PFWINDOW)
+               (BROWSER.DESCRIBE.WINDOW)
+               (BrowserPPWindowWidth 750)
+               (BROWSERMAX 10)
+               (BROWSERFONT '(GACHA 8]
+        (P (MOVD? 'NILL 'MODERNWINDOW))
+        (VARS BROWSER.BORDERS)
+        (GLOBALVARS BROWSER.BORDERS BROWSERWINDOWS)
+        (DECLARE%: DONTEVAL@LOAD DOCOPY (P (BROWSER T])
+
+(FILESLOAD MASTERSCOPE GRAPHER)
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+
+(FILESLOAD (LOADCOMP)
+       GRAPHER)
+
+(DECLARE%: EVAL@COMPILE 
+
+(RPAQQ CHANGEDSHADE 8840)
+
+
+(CONSTANTS (CHANGEDSHADE 8840))
+)
+)
+(DEFINEQ
+
+(MSPATHS.DISPATCH
+  [LAMBDA (FROM TO INVERTED AVOIDING SEPARATE NOTRACE MARKING)
+                                                             (* ; "Edited 15-Apr-2023 11:33 by lmm")
+    (IF (AND (GETD 'NUMSPATHS)
+             (WINDOWWORLD)
+             (EQ (OUTPUT)
+                 T))
+        THEN (NUMSPATHS FROM TO INVERTED AVOIDING SEPARATE NOTRACE MARKING)
+      ELSE (OLDMSPATHS FROM TO INVERTED AVOIDING SEPARATE NOTRACE MARKING])
+
+(NUMSPATHS
+  [LAMBDA (FROM TO INVERTED AVOIDING SEPARATE NOTRACE MARKING DEPTH)
+    (DECLARE (SPECVARS INVERTED GRAPHNODE.LIST))             (* ; "Edited 26-Apr-2023 09:12 by lmm")
+                                                             (* ; "Edited 15-Apr-2023 18:43 by lmm")
+                                                             (* ; "Edited  7-Feb-2022 13:57 by rmk")
+                                                             (* ; "Edited 11-Apr-88 11:08 by jrb:")
+    [OR AVOIDING (SETQ AVOIDING '(NIL (NIL NIL . FNS)
+                                      APPLY LAMBDA (X)
+                                      (GETPROP X 'AVOID]
+    (AND INVERTED (UPDATECHANGED))
+    (OR DEPTH (SETQ DEPTH BROWSERMAX))
+    (WITH-RESOURCES BROWSEHASH (PROG [NAMED TEM (UNDONE (MSLISTSET FROM T))
+                                            ROOTS GRAPHNODE.LIST (SEEN BROWSEHASH)
+                                            (CALLRELATION (PARSERELATION 'CALL]
+                                     (DECLARE (SPECVARS SEEN GRAPHNODE.LIST CALLRELATION))
+                                     (CLRHASH SEEN)
+                                     (for X in UNDONE do (PUTHASH X (COND
+                                                                       ((AND NOTRACE (MSMEMBSET
+                                                                                      X NOTRACE))
+                                                                        -1)
+                                                                       (T 0))
+                                                                SEEN)
+                                                         (OR INVERTED (UPDATEFN X NIL 0)))
+                                     [do (COND
+                                            (NAMED (PUTHASH (CAR NAMED)
+                                                          0 SEEN)
+                                                   (PUSH ROOTS (fetch (GRAPHNODE NODEID)
+                                                                  of (BRPATHS1 (CAR NAMED)
+                                                                            DEPTH)))
+                                                   (SETQ NAMED (CDR NAMED)))
+                                            (UNDONE [COND
+                                                       ([OR (NULL (SETQ TEM (GETHASH (CAR UNDONE)
+                                                                                   SEEN)))
+                                                            (EQ TEM 0)
+                                                            (AND (LISTP TEM)
+                                                                 (NULL (CAR TEM]
+                                                        (PUTHASH (CAR UNDONE)
+                                                               (LIST NIL)
+                                                               SEEN)
+                                                        (SETQ NAMED (LIST (CAR UNDONE]
+                                                   (SETQ UNDONE (CDR UNDONE)))
+                                            (T (RETURN]
+                                     (RETURN (STBROWSER (LAYOUTGRAPH GRAPHNODE.LIST ROOTS
+                                                               (APPEND BROWSERFORMAT BROWSERBOXING))
+                                                    (LIST FROM TO INVERTED AVOIDING SEPARATE NOTRACE
+                                                          MARKING DEPTH])
+
+(BROWSER
+  [LAMBDA (DISPLAYFLG)                                       (* ; "Edited 15-Apr-2023 14:55 by lmm")
+                                                             (* rmk%: "16-Dec-83 15:39")
+    (MOVD? 'MSPATHS 'OLDMSPATHS)
+    (MOVD 'MSPATHS.DISPATCH 'MSPATHS)
+    (SETQ BROWSER DISPLAYFLG)
+    (OR (FONTP BROWSERFONT)
+        (SETQ BROWSERFONT (FONTCREATE BROWSERFONT)))
+    (PROG [(WC (FILEPKGTYPE 'FNS 'WHENCHANGED]
+          (OR (MEMB 'BROWSER.WHENFNSCHANGED WC)
+              (FILEPKGTYPE 'FNS 'WHENCHANGED (CONS 'BROWSER.WHENFNSCHANGED WC])
+
+(BROWSER.WHENFNSCHANGED
+  [LAMBDA (FNNAME TYPE REASON)                               (* DECLARATIONS%: (RECORDS BROWSEWIN))
+                                                             (* ; "Edited 31-Mar-87 11:22 by jop")
+
+    (* ;; "called by system when FNNAME has changed If FNNAME is in a browser window, it reprints and redescribes it.")
+
+    (COND
+       ((AND (ACTIVEWP PFWINDOW)
+             (EQ (WINDOWPROP PFWINDOW 'FNBROWSED)
+                 FNNAME))
+        (BROWSEPP FNNAME PFWINDOW)))
+    (COND
+       ((AND (ACTIVEWP BROWSER.DESCRIBE.WINDOW)
+             (EQ (WINDOWPROP BROWSER.DESCRIBE.WINDOW 'FNBROWSED)
+                 FNNAME))
+        (BROWSERDESCRIBE FNNAME BROWSER.DESCRIBE.WINDOW)))
+    (for X in BROWSERWINDOWS do (COND
+                                   ((find GRAPHNODE in (fetch (GRAPH GRAPHNODES)
+                                                          of (fetch (BROWSEWIN GRAPH) of X))
+                                       suchthat (EQ (fetch (GRAPHNODE NODELABEL) of GRAPHNODE)
+                                                    FNNAME))
+                                    (COND
+                                       ((fetch (BROWSEWIN GRAPH) of X)
+                                        (DSPFILL NIL CHANGEDSHADE 'PAINT (fetch (BROWSEWIN WINDOW)
+                                                                            of X))
+                                        (WINDOWPROP (fetch (BROWSEWIN WINDOW) of X)
+                                               'BUTTONEVENTFN
+                                               (FUNCTION REDRAWBROWSEGRAPH))
+                                        (replace (BROWSEWIN GRAPH) of X with NIL])
+
+(BRPATHS1
+  [LAMBDA (FROM DEPTH)                                       (* ; "Edited 25-Apr-2023 10:59 by lmm")
+                                                             (* ; "Edited 11-Apr-88 11:27 by jrb:")
+    (DECLARE (SPECVARS INVERTED)
+           (GLOBALVARS BROWSERFONT MISSING.GRAPH.NODEBORDER))
+    (PROG (TEM ENTRY TOFNS)
+          (MSPATHS2 FROM)
+          (COND
+             ((EQ (SETQ TEM (GETHASH FROM SEEN))
+                  -1)                                        (* ; 
+                                                "on NOPATHS list - create a node for it with no subs")
+              (SETQ TEM (create GRAPHNODE
+                               NODEID _ FROM
+                               NODELABEL _ FROM
+                               NODEFONT _ BROWSERFONT
+                               TONODES _ NIL))
+              (PUAH GRAPHNODE.LIST TEM)
+              (PUTHASH FROM TEM SEEN)
+              (RETURN TEM))
+             ((NEQ TEM 0)                                    (* ; "already expanded into a list")
+              (RETURN TEM))
+             (T [SETQ TOFNS (COND
+                               ((NOT INVERTED)
+                                (GETRELATION FROM CALLRELATION))
+                               (T (GETRELATION FROM CALLRELATION T]
+                (SETQ ENTRY (create GRAPHNODE
+                                   NODEID _ FROM
+                                   NODELABEL _ FROM
+                                   NODEFONT _ BROWSERFONT))
+                (PUSH GRAPHNODE.LIST ENTRY)
+                (PUTHASH FROM ENTRY SEEN)
+                (IF (AND TOFNS (<= DEPTH 0))
+                    THEN (REPLACE (GRAPHNODE NODEBORDER) OF ENTRY WITH (CDDR (ASSOC 'ENDOFLINE 
+                                                                                    BROWSER.BORDERS))
+                                )
+                         (RETURN ENTRY))
+                (replace (GRAPHNODE TONODES) of ENTRY with (for X
+                                                              in (for Y in TOFNS
+                                                                    when (MSPATHS2 Y) collect Y)
+                                                              when (SETQ X (BRPATHS1 X
+                                                                                  (- DEPTH 1)))
+                                                              collect (fetch (GRAPHNODE NODEID)
+                                                                         of X)))
+                (RETURN ENTRY])
+
+(BROWSER.LEFTFN
+  [LAMBDA (NODE NWINDOW)                                     (* ; "Edited 21-May-2024 18:40 by mth")
+                                                             (* ; "Edited 26-Apr-2023 12:41 by lmm")
+                                                             (* ; "Edited 31-Mar-87 11:16 by jop")
+                                                             (* ; 
+                                                 "function that is applied upon selection of a node.")
+    (PROG (FN SELECTION)
+          (if (NULL NODE)
+              then (RETURN)
+                   (MOVEW NWINDOW)                           (* ; 
+                                                       " really want to just drag the content around")
+                   (RETURN))
+          (if (NULL (SETQ FN (fetch NODELABEL of NODE)))
+              then (RETURN))
+          [SETQ SELECTION (MENU (create MENU
+                                       ITEMS _ '(CallsFrom CallsTo Edit Show InspectCode]
+
+     (* ;; "Mot implemented: Ignore Avoid")
+
+          (DESTRUCTURING-BIND (FROM TO INVERTED AVOIDING SEPARATE NOTRACE MARKING DEPTH)
+                 (for BW in BROWSERWINDOWS when (EQ (fetch (BROWSEWIN WINDOW) of BW)
+                                                    NWINDOW) do (RETURN (fetch (BROWSEWIN ARGS)
+                                                                           of BW))
+                    finally (PROMPTPRINT "No browser window found for" FN)
+                          (RETURN))
+
+                 (* ;; "Now we have the arguments to MSPATHS .. insert this node?")
+
+                 (SELECTQ SELECTION
+                     ((NIL) 
+                          (RETURN))
+                     ((CallsFrom CallsTo) 
+                                          (* ;; "new graph, FN at the root")
+
+                          (NUMSPATHS (CREATE SENTENCE
+                                            SUBJECT _ '(NIL NIL . FNS)
+                                            MSPRED _ 'QUOTE
+                                            OTHERSTUFF _ (LIST FN))
+                                 (IF INVERTED
+                                     THEN TO
+                                   ELSE FROM)
+                                 INVERTED AVOIDING NIL NOTRACE MARKING DEPTH))
+                     NIL
+                     (Ignore                                 (* ; "local ignore"))
+                     (Avoid                                  (* ; " global ignore"))
+                     (Edit (ED FN (if (HASDEF FN 'FNS)
+                                      then '(FNS :DONTWAIT)
+                                    elseif (HASDEF FN 'FUNCTIONS)
+                                      then '(FUNCTIONS :DONTWAIT)
+                                    else (PROMPTPRINT FN "no definition")
+                                         NIL)))
+                     (Show (CL:UNLESS (EQ FN (WINDOWPROP (GET.BROWSE.PP.WINDOW)
+                                                    'FNBROWSED))
+                               (BROWSEPP FN (GET.BROWSE.PP.WINDOW))))
+                     (Describe (BROWSERDESCRIBE FN (GET.BROWSE.DESCRIBE.WINDOW)))
+                     (InspectCode (IF (NOT (CCODEP FN))
+                                      THEN (PROMPTPRINT FN "not compiled")
+                                    ELSE (INSPECTCODE FN)))
+                     (HELP])
+
+(GET.BROWSE.PP.WINDOW
+  [LAMBDA NIL                                                (* ; "Edited 24-Sep-2025 13:00 by PA")
+                                                             (* ; "Edited  7-Feb-2022 14:01 by rmk")
+                                                             (* ; "Edited 31-Mar-87 11:23 by jop")
+                                                             (* ; 
+                                           "returns the window for pretty printing from the browser.")
+    (COND
+       ((WINDOWP PFWINDOW)
+        PFWINDOW)
+       (T (SETQ PFWINDOW (CREATEW NIL "Browser print out window"))
+          (WINDOWPROP PFWINDOW 'REPAINTFN 'PPREPAINTFN)
+          (WINDOWPROP PFWINDOW 'RESHAPEFN 'PPRESHAPEFN)
+          (WINDOWPROP PFWINDOW 'SCROLLFN 'SCROLLBYREPAINTFN)
+          (MODERNWINDOW PFWINDOW)
+          PFWINDOW])
+
+(GET.BROWSE.DESCRIBE.WINDOW
+  [LAMBDA NIL                                                (* ; "Edited 31-Mar-87 11:23 by jop")
+                                                             (* ; 
+                                           "returns the window for describe action from the browser.")
+    (COND
+       ((WINDOWP BROWSER.DESCRIBE.WINDOW)
+        BROWSER.DESCRIBE.WINDOW)
+       (T (SETQ BROWSER.DESCRIBE.WINDOW (CREATEW NIL "Browser describe window"))
+          (WINDOWPROP BROWSER.DESCRIBE.WINDOW 'REPAINTFN 'DESCRIBEREPAINTFN)
+          (WINDOWPROP BROWSER.DESCRIBE.WINDOW 'RESHAPEFN 'DESCRIBEREPAINTFN)
+          (WINDOWPROP BROWSER.DESCRIBE.WINDOW 'SCROLLFN 'SCROLLBYREPAINTFN)
+          BROWSER.DESCRIBE.WINDOW])
+
+(BROWSEPP
+  [LAMBDA (FN WINDOW)                                        (* ; "Edited 31-Mar-87 11:16 by jop")
+    (DECLARE (GLOBALVARS BrowserPPWindowWidth))
+    (PROG (WIDTH BOTTOM)
+          (WINDOWPROP WINDOW 'FNBROWSED FN)
+          (CLEARW WINDOW)
+          (MOVETOUPPERLEFT WINDOW)
+          (WINDOWPROP WINDOW 'EXTENT NIL)
+          (SETQ WIDTH (PPREPAINTFN WINDOW))                  (* ; "set the extent of the window.")
+          (WINDOWPROP WINDOW 'EXTENT (create REGION
+                                            LEFT _ 0
+                                            BOTTOM _ (SETQ BOTTOM (DSPYPOSITION NIL WINDOW))
+                                            WIDTH _ WIDTH
+                                            HEIGHT _ (IDIFFERENCE (WINDOWPROP WINDOW 'HEIGHT)
+                                                            BOTTOM])
+
+(PPREPAINTFN
+  [LAMBDA (WINDOW REGION RESHAPE)                           (* ; "Edited 11-Jun-90 14:11 by mitani")
+
+    (* ;; "repaints the browser pp window WINDOW.  Returns the width of the image so that caller can set the EXTENT.")
+
+    (PROG ((FN (WINDOWPROP WINDOW 'FNBROWSED))
+           (EXTENT (WINDOWPROP WINDOW 'EXTENT))
+           DEF FNTYPE)
+          (RETURN (COND
+                     (FN (printout WINDOW .FONT LAMBDAFONT)
+                         (MOVETOUPPERLEFT WINDOW EXTENT)
+                         (printout WINDOW .FONT DEFAULTFONT)
+                         (COND
+                            ((for FPTYPE in MSFNTYPES when (SETQ DEF (GETDEF FN (ffetch (MSANALYZABLE
+                                                                                         FILEPKGNAME)
+                                                                                   of FPTYPE)
+                                                                            NIL
+                                                                            'NOERROR))
+                                do (SETQ FNTYPE (ffetch (MSANALYZABLE FILEPKGNAME) of FPTYPE))
+                                   (RETURN DEF) finally NIL) (* ; 
+                                                             "set up linelength characteristics.")
+                             (RESETLST
+                                 (RESETSAVE (OUTPUT WINDOW))
+                                 (RESETSAVE (SETREADTABLE T))
+                                 (RESETSAVE **COMMENT**FLG)
+                                 (if (EQ FNTYPE 'FNS)
+                                     then (printout WINDOW "(" .FONT LAMBDAFONT .P2 FN .FONT 
+                                                 DEFAULTFONT T))
+                                 (DSPRIGHTMARGIN (fetch (REGION RIGHT) of (DSPCLIPPINGREGION NIL 
+                                                                                 WINDOW))
+                                        WINDOW)
+                                 (PRINTDEF DEF (AND (EQ FNTYPE 'FNS)
+                                                    2)
+                                        'FNS)
+                                 (if (EQ FNTYPE 'FNS)
+                                     then (PRIN1 ")" WINDOW)))
+                             (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL WINDOW)))
+                            (T                               (* ; 
+                                                             "set right margin out so wouldn't clip.")
+                               (DSPRIGHTMARGIN 5000 WINDOW)
+                               (APPLY* (FUNCTION PF*)
+                                      FN NIL (GETSTREAM WINDOW))
+                               (DSPRIGHTMARGIN (fetch (REGION RIGHT) of (DSPCLIPPINGREGION NIL WINDOW
+                                                                               ))
+                                      WINDOW)
+                               BrowserPPWindowWidth)))
+                     (T 0])
+
+(PPRESHAPEFN
+  [LAMBDA (WINDOW)                                           (* lmm "20-Jul-84 15:48")
+    (BROWSEPP (WINDOWPROP WINDOW 'FNBROWSED)
+           WINDOW])
+
+(DESCRIBEREPAINTFN
+  [LAMBDA (WIN REG)                                          (* ; "Edited 31-Mar-87 11:24 by jop")
+                                                             (* ; 
+                                                        "reprints the contents of a describe window.")
+    (PROG [(FN (WINDOWPROP WIN 'FNBROWSED))
+           (EXTENT (WINDOWPROP WIN 'EXTENT]
+          (COND
+             (FN (RESETLST
+                     (RESETSAVE MSPRINTFLG NIL)
+                     (RESETSAVE (OUTPUT WIN))
+                     (DSPSCROLL 'OFF WIN)
+                     (COND
+                        (EXTENT (MOVETOUPPERLEFT WIN EXTENT)))
+                     (MSDESCRIBE FN))])
+
+(BROWSERDESCRIBE
+  [LAMBDA (FN WIN)                                           (* ; "Edited 31-Mar-87 11:15 by jop")
+
+    (* ;; "puts the masterscope DESCRIBE information in the window DS.  Keeps tracks of which fn so if it changes the window can be updated.")
+
+    (WINDOWPROP WIN 'FNBROWSED FN)
+    (CLEARW WIN)
+    (DESCRIBEREPAINTFN WIN)
+    (WINDOWPROP WIN 'EXTENT (create REGION
+                                   LEFT _ 0
+                                   BOTTOM _ (DSPYPOSITION NIL WIN)
+                                   WIDTH _ (WINDOWPROP WIN 'WIDTH)
+                                   HEIGHT _ (IDIFFERENCE (WINDOWPROP WIN 'HEIGHT)
+                                                   (DSPYPOSITION NIL WIN])
+
+(BROWSER.MIDDLEFN
+  [LAMBDA (NODE NWINDOW)                                     (* ; "Edited 25-Mar-94 13:25 by jds")
+                                                             (* ; 
+                   "called when yellow selection from browser.  Call display editor on the function.")
+    (COND
+       ((NULL NODE))
+       [(THIS.PROCESS)                                       (* ; "processes are running.")
+        (SELECTQ (EDITMODE)
+            (DEDIT [COND
+                      ((DEDITPROCESSRUNNINGP)
+                       (printout PROMPTWINDOW T T "Dedit can't run in two processes at once, yet." T
+                              "You can call Dedit in the same process by typing "
+                              (fetch NODELABEL of NODE)
+                              " " "into the Dedit " "window then selecting 'Edit'."))
+                      (T (ADD.PROCESS `(ED ',(fetch NODELABEL of NODE])
+            ((SEDIT SEDIT:SEDIT)                             (* ; 
+                                                       "SEdit doesn't have to worry about this stuff")
+                 (ED (fetch NODELABEL of NODE)
+                     ':DONTWAIT))
+            (ED (fetch NODELABEL of NODE]
+       (T (ED (fetch NODELABEL of NODE])
+
+(DEDITPROCESSRUNNINGP
+  [LAMBDA NIL                                                (* ; "Edited 31-Mar-87 11:27 by jop")
+
+    (* ;; "is there a dedit process running?")
+
+    (AND (EQ (EDITMODE)
+             'DEDIT)
+         \DEDITWINDOWS])
+
+(REDRAWBROWSEGRAPH
+  [LAMBDA (WINDOW)                                           (* DECLARATIONS%: (RECORDS BROWSEWIN))
+                                                             (* ; "Edited 15-Apr-2023 16:12 by lmm")
+                                                             (* ; "Edited 31-Mar-87 11:24 by jop")
+    (PROG [(WN (find X in BROWSERWINDOWS suchthat (EQ (fetch (BROWSEWIN WINDOW) of X)
+                                                      WINDOW]
+          (AND WN (APPLY (FUNCTION NUMSPATHS)
+                         (fetch (BROWSEWIN ARGS) of WN)))    (* ; "(OR WN (SHOULDNT))")
+          (WINDOWPROP WINDOW 'BUTTONEVENTFN (FUNCTION APPLYTOSELECTEDNODE))
+          (APPLYTOSELECTEDNODE WINDOW])
+
+(STBROWSER
+  [LAMBDA (GRAPH ARGS)                                       (* DECLARATIONS%: (RECORDS BROWSEWIN))
+                                                             (* ; "Edited 25-Apr-2023 21:05 by lmm")
+                                                             (* ; "Edited 31-Mar-87 11:18 by jop")
+
+    (* ;; "puts a browser graph for the args FROMFN in a window.  If a similar graph is already a window, that window is reused;  otherwise a new window is created.")
+
+    (WINDOWADDPROP (bind TMP for W in BROWSERWINDOWS when (EQUAL (fetch (PATHSARGS DISCRIMINANT)
+                                                                    of ARGS)
+                                                                 (fetch (PATHSARGS DISCRIMINANT)
+                                                                    of (fetch (BROWSEWIN ARGS)
+                                                                          of W)))
+                      do (replace (BROWSEWIN ARGS) of W with ARGS)
+                         (replace (BROWSEWIN GRAPH) of W with GRAPH)
+                         (SHOWGRAPH GRAPH (SETQ W (fetch (BROWSEWIN WINDOW) of W))
+                                (FUNCTION BROWSER.LEFTFN)
+                                (FUNCTION BROWSER.MIDDLEFN))
+                         (RETURN W)
+                      finally (SETQ W (SHOWGRAPH GRAPH (CONCAT "PATHS"
+                                                              (COND
+                                                                 ((SETQ TMP (fetch (PATHSARGS FROM)
+                                                                               of ARGS))
+                                                                  (CONCAT (COND
+                                                                             ((CADR (CADR TMP))
+                                                                              " FROM ")
+                                                                             (T " TO "))
+                                                                         (CADDDR TMP)))
+                                                                 (T ""))
+                                                              (COND
+                                                                 ((SETQ TMP (fetch (PATHSARGS TO)
+                                                                               of ARGS))
+                                                             (* ; 
+                            "CADDDR here gets the thing that looks like it might be a function name.")
+                                                                  (CONCAT (COND
+                                                                             ((CADR (CADR TMP))
+                                                                              " FROM ")
+                                                                             (T " TO "))
+                                                                         (CADDDR TMP)))
+                                                                 (T "")))
+                                             (FUNCTION BROWSER.LEFTFN)
+                                             (FUNCTION BROWSER.MIDDLEFN)))
+                            (push BROWSERWINDOWS
+                                  (create BROWSEWIN
+                                         ARGS _ ARGS
+                                         GRAPH _ GRAPH
+                                         WINDOW _ W))
+                            (RETURN W))
+           'CLOSEFN
+           (FUNCTION (LAMBDA (WINDOW)                        (* ; 
+                          "The closing function for browser windows.  removes it from BROWSERWINDOWS")
+                       (SETQ BROWSERWINDOWS (DREMOVE (for X in BROWSERWINDOWS
+                                                        when (EQ (fetch (BROWSEWIN WINDOW)
+                                                                    of X)
+                                                                 WINDOW) do (RETURN X))
+                                                   BROWSERWINDOWS])
+)
+(DECLARE%: DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+[PUTDEF 'BROWSEHASH 'RESOURCES '(NEW (LIST (HARRAY 30]
+)
+)
+
+(/SETTOPVAL '\BROWSEHASH.GLOBALRESOURCE NIL)
+(DECLARE%: DONTCOPY 
+(DECLARE%: EVAL@COMPILE
+
+(RECORD BROWSEWIN (ARGS GRAPH WINDOW))
+
+(RECORD PATHSARGS (FROM TO . ETC)
+                  [ACCESSFNS PATHSARGS ((DISCRIMINANT (CONS (fetch (PATHSARGS FROM) of DATUM)
+                                                            (fetch (PATHSARGS TO) of DATUM])
+)
+)
+
+(RPAQ? BROWSER T)
+
+(RPAQ? BROWSERBOXING )
+
+(RPAQ? BROWSERFORMAT )
+
+(RPAQ? BROWSERWINDOWS )
+
+(RPAQ? NODESELECTIONWINDOW )
+
+(RPAQ? PFWINDOW )
+
+(RPAQ? BROWSER.DESCRIBE.WINDOW )
+
+(RPAQ? BrowserPPWindowWidth 750)
+
+(RPAQ? BROWSERMAX 10)
+
+(RPAQ? BROWSERFONT '(GACHA 8))
+
+(MOVD? 'NILL 'MODERNWINDOW)
+
+(RPAQQ BROWSER.BORDERS
+       ((NORMAL "Normal" 2 -1)
+        (GHOST "Shown elsewhere" 2 8840)
+        (RECURSIVEGHOST "End of recursive chain" 2 0 -1)
+        (MERGED "Includes other branches" 4 42405)
+        (SELFRECURSIVE "Includes self-recursive calls" 2 61375)
+        (RECURSIVE "Head of recursive chain" 4 28086)
+        (ENDOFLINE "exceeded depth limit" 6 64510)))
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS BROWSER.BORDERS BROWSERWINDOWS)
+)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(BROWSER T)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1682 28219 (MSPATHS.DISPATCH 1692 . 2166) (NUMSPATHS 2168 . 5755) (BROWSER 5757 . 6328)
+ (BROWSER.WHENFNSCHANGED 6330 . 8115) (BRPATHS1 8117 . 10768) (BROWSER.LEFTFN 10770 . 14329) (
+GET.BROWSE.PP.WINDOW 14331 . 15208) (GET.BROWSE.DESCRIBE.WINDOW 15210 . 15958) (BROWSEPP 15960 . 16834
+) (PPREPAINTFN 16836 . 19962) (PPRESHAPEFN 19964 . 20140) (DESCRIBEREPAINTFN 20142 . 20846) (
+BROWSERDESCRIBE 20848 . 21590) (BROWSER.MIDDLEFN 21592 . 22907) (DEDITPROCESSRUNNINGP 22909 . 23164) (
+REDRAWBROWSEGRAPH 23166 . 23930) (STBROWSER 23932 . 28217)))))
+STOP

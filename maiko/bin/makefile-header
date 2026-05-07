@@ -1,0 +1,36 @@
+# Default values for Maiko makefile variables
+# These get overridden by OS and hardware-specific stuff
+# in sub-makefiles
+
+SRCDIR = ../src/
+INCDIR = ../inc/
+INCLUDEDIR = ../include/
+LIBDIR = ../lib
+BINDIR = ./
+RANLIB = ranlib
+AR = ar rcv
+RM ?= rm -f
+
+# Compiler flags
+CLANG_CFLAGS = -std=gnu99 -fno-strict-aliasing
+GCC_CFLAGS = -std=gnu99 -fno-strict-aliasing
+DEVSTUDIO_CFLAGS = -std=gnu99 -fno-strict-aliasing
+
+DLPIFILES =
+
+# for files needed by X windows version
+XFILES =
+
+# for files needed by color (actually files NOT needed by X)
+COLORFILES =
+
+# Flags to include inthe linking of various S/W
+#	LDFLAGS - in emulator itself (e.g., ldesingle)
+#	LDELDFLAGS - in "lde" unix-comm forker.
+#	LDEETHERLDFLAGS - in "ldeether" ethernet kick-start
+LDFLAGS =
+LDELDFLAGS =
+LDEETHERLDFLAGS =
+
+# OSARCHDIR is the os/architecture dir, where executables all go.
+OSARCHDIR = ../$(OSARCHNAME)/

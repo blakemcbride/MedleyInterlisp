@@ -1,0 +1,49 @@
+# Options for SOlaris 2.x, INTEL x86 and X-Window
+
+
+
+#************************************************************************/
+#*									*/
+#*	(C) Copyright 1989, 1990, 1990, 1991, 1992, 1993, 1994, 1996 Venue.	*/
+#*	    All Rights Reserved.		*/
+#*	Manufactured in the United States of America.			*/
+#*									*/
+#************************************************************************/
+
+CC = clang -m32 $(CLANG_CFLAGS)
+
+XFILES = $(OBJECTDIR)xmkicon.o \
+	$(OBJECTDIR)xbbt.o \
+	$(OBJECTDIR)dspif.o \
+	$(OBJECTDIR)xinit.o \
+	$(OBJECTDIR)xscroll.o \
+	$(OBJECTDIR)xcursor.o \
+	$(OBJECTDIR)xlspwin.o \
+	$(OBJECTDIR)xrdopt.o \
+	$(OBJECTDIR)xwinman.o
+
+XFLAGS = -DXWINDOW
+
+# OPTFLAGS is normally -O2.
+OPTFLAGS =  -O2 -g
+
+# Set any debugging options in DEBUGFLAGS.  E.g., to enable stack
+# checking, use -DSTACKCHECK; to enable the fn-call-time stack
+# check, use -DFNSTKCHECK.
+
+DEBUGFLAGS = # -DSTACKCHECK -DFNSTKCHECK
+ 
+DFLAGS = $(XFLAGS) \
+	 $(DEBUGFLAGS) \
+	-DOS5 \
+	-DRELEASE=$(RELEASE)
+
+LDFLAGS = -L/usr/X11/lib -lX11 -lc -lm -lsocket -lnsl
+LDELDFLAGS = -L/usr/X11/lib -lX11  -lc -lm -lsocket -lnsl
+LDEETHERLDFLAGS = -lc -lm -lsocket -lnsl
+
+DLPIFILES = # $(OBJECTDIR)dlpi.o
+
+OBJECTDIR = ../$(RELEASENAME)/
+
+default:	../$(OSARCHNAME)/lde ../$(OSARCHNAME)/ldeether ../$(OSARCHNAME)/ldex

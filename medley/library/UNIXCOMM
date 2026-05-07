@@ -1,0 +1,326 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 5-Feb-2026 18:38:23" {WMEDLEY}<library>UNIXCOMM.;15 14717  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS FORK-UNIX)
+
+      :PREVIOUS-DATE " 2-Sep-2025 12:06:52" {WMEDLEY}<library>UNIXCOMM.;14)
+
+
+(PRETTYCOMPRINT UNIXCOMMCOMS)
+
+(RPAQQ UNIXCOMMCOMS
+       (
+        (* ;; "streams to UNIX processes & pseudo terminals")
+
+        
+        (* ;; "this stuff should really be implemented in terms of {SHELL} and {PTY} devices")
+
+        (COMS                                                (* ; "Forking stuff")
+              (FNS FORK-SHELL FORK-UNIX UNIX-KILL UNIX-WRITE CREATE-SHELL-STREAM 
+                   CREATE-PROCESS-STREAM UNIXCOMM-AROUNDEXITFN))
+        [COMS                                                (* ; "Operations on the shell device")
+              (FNS INITIALIZE-SHELL-DEVICE UNIX-GET-NEXT-BUFFER UNIX-BACKFILEPTR UNIX-STREAM-EOFP 
+                   UNIX-STREAM-OUT UNIX-STREAM-CLOSE)
+              (GLOBALVARS *SHELL-DEVICE*)
+              (DECLARE%: DONTEVAL@LOAD DOCOPY (P (INITIALIZE-SHELL-DEVICE))
+                     (ADDVARS (AROUNDEXITFNS UNIXCOMM-AROUNDEXITFN]
+        (COMS                                                (* ; 
+                                                      "Stuff for direct manipulation of Unix sockets")
+              (FNS CREATE-UNIX-SOCKET-STREAM ACCEPT-UNIX-SOCKET-STREAM))
+        (DECLARE%: EVAL@COMPILE DONTCOPY (MACROS UNIX-CHANNEL)
+               (P (CHECKIMPORTS '(FILEIO LLSUBRS)
+                         T)))
+        (PROP FILETYPE UNIXCOMM)))
+
+
+
+(* ;; "streams to UNIX processes & pseudo terminals")
+
+
+
+
+(* ;; "this stuff should really be implemented in terms of {SHELL} and {PTY} devices")
+
+
+
+
+(* ; "Forking stuff")
+
+(DEFINEQ
+
+(FORK-SHELL
+  [LAMBDA (TERMTYPE COMMAND)                                 (* ; "Edited 14-Feb-90 14:27 by bvm")
+    (if (SUBRCALL UNIX-HANDLECOMM 8)
+        then                                             (* ; 
+                                                           "Yes, lde supports this new version")
+              [SUBRCALL UNIX-HANDLECOMM 11 (if (NULL TERMTYPE)
+                                               then ""
+                                             elseif (TYPEP TERMTYPE 'ONED-ARRAY)
+                                               then TERMTYPE
+                                             else (\DTEST (LISP-TO-UNIX-TERMTYPE TERMTYPE)
+                                                             'ONED-ARRAY))
+                     (if (NULL COMMAND)
+                         then ""
+                       else (\DTEST COMMAND 'ONED-ARRAY]
+      elseif COMMAND
+        then                                             (* ; 
+                                                           "have to use a different old call")
+              (FORK-UNIX COMMAND)
+      else (SUBRCALL UNIX-HANDLECOMM 4])
+
+(FORK-UNIX
+  [LAMBDA (STR)                                              (* ; "Edited  5-Feb-2026 18:38 by rmk")
+                                                             (* ; "Edited  2-Sep-2025 12:03 by rmk")
+                                                             (* ; "Edited 29-Apr-2025 22:45 by rmk")
+                                                             (* ; "Edited 25-May-88 15:47 by drc:")
+    (SUBRCALL UNIX-HANDLECOMM 0 (MTOSYSSTRING (\DTEST STR 'ONED-ARRAY])
+
+(UNIX-KILL
+  [LAMBDA (CONN)                                             (* ; "Edited 25-May-88 16:04 by drc:")
+    (if CONN
+        then (SUBRCALL UNIX-HANDLECOMM 3 CONN 0])
+
+(UNIX-WRITE
+  [LAMBDA (CONN VAL)                                         (* ; "Edited 24-Sep-90 11:27 by jds")
+
+    (* ;; "Write a byte (VAL) to the outgoing pipe connection CONN.  If the write fails for non-fatal reasons (i.e., would block), loop unitl it succeeds.  If the write returns NIL (meaning total failure), pass that along to the caller.")
+
+    (PROG (LENGTH-WRITTEN)
+      WRITE-LOOP
+          [SETQ LENGTH-WRITTEN (SUBRCALL UNIX-HANDLECOMM 1 (\DTEST CONN 'SMALLP)
+                                      (\DTEST VAL 'SMALLP]
+          (COND
+             ((AND LENGTH-WRITTEN (IEQP 0 LENGTH-WRITTEN))
+              (BLOCK)
+              (GO WRITE-LOOP)))
+          (RETURN LENGTH-WRITTEN])
+
+(CREATE-SHELL-STREAM
+  [LAMBDA (TERMTYPE COMMAND)                                 (* ; "Edited 11-Oct-2022 09:56 by lmm")
+                                                             (* ; "Edited 21-May-90 15:39 by jrb:")
+    (LET ((CHAN (FORK-SHELL TERMTYPE COMMAND)))
+         (COND
+            (CHAN (LET ((STR (create STREAM
+                                    ACCESS _ 'BOTH
+                                    DEVICE _ *SHELL-DEVICE*)))
+                       (CL:SETF (UNIX-CHANNEL STR)
+                              CHAN)
+                       (push (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+                             STR)
+                       (STREAMPROP STR 'SENDSCREENPARAMS (FUNCTION UNIX.SENDSCREENPARAMS))
+                       (STREAMPROP STR 'SETDISPLAYTYPE (FUNCTION UNIX.SETDISPLAYTYPE))
+                       STR])
+
+(CREATE-PROCESS-STREAM
+  [LAMBDA (COMM)
+
+    (* ;; "Edited 11-Oct-2022 10:05 by lmm")
+
+    (* ;; "Edited  8-Oct-2022 16:04 by lmm")
+
+    (* ;; "Edited  3-Jul-2022 16:04 by rmk: Removed external format here, the device has the environmental defaultg")
+
+    (* ;; "Edited 21-May-90 15:39 by jrb:")
+
+    (LET ((CHAN (FORK-UNIX COMM)))
+         (if CHAN
+             then (LET ((STR (create STREAM
+                                    ACCESS _ 'BOTH
+                                    DEVICE _ *SHELL-DEVICE*
+                                    EOLCONVENTION _ LF.EOLC)))
+                       (CL:SETF (UNIX-CHANNEL STR)
+                              CHAN)
+                       (push (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+                             STR)
+                       STR])
+
+(UNIXCOMM-AROUNDEXITFN
+  [LAMBDA (EVENT)                                            (* ; "Edited 25-Oct-2022 21:20 by lmm")
+                                                             (* ; "Edited 11-Oct-2022 10:07 by lmm")
+                                                             (* ; "Edited  2-Jul-90 16:35 by jrb:")
+    (CASE EVENT
+        ((AFTERLOGOUT AFTERMAKESYS AFTERSAVEVM AFTERSYSOUT) 
+           (for STREAM in (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*) do (CLOSEF STREAM))
+           (REPLACE (FDEV DEFAULTEXTERNALFORMAT) OF *SHELL-DEVICE* WITH (SYSTEM-EXTERNALFORMAT)))
+        ((BEFORELOGOUT BEFOREMAKESYS BEFORESYSOUT) 
+
+           (* ;; 
+        "Make sure any Unix sockets get closed here, so their file system handles get closed as well")
+
+           (for STREAM in (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+              when (EQ -3 (SUBRCALL UNIX-HANDLECOMM 14 (UNIX-CHANNEL STREAM)))
+              do (CLOSEF STREAM))))])
+)
+
+
+
+(* ; "Operations on the shell device")
+
+(DEFINEQ
+
+(INITIALIZE-SHELL-DEVICE
+  [LAMBDA NIL                                                (* ; "Edited 18-Dec-2022 11:53 by rmk")
+                                                             (* ; "Edited 25-Oct-2022 21:54 by lmm")
+
+    (* ;; "only using for holding open list")
+                                                             (* ; "Edited  3-Jul-2022 16:15 by rmk")
+                                                             (* ; "Edited 14-Dec-88 10:45 by bane")
+    (SETQ *SHELL-DEVICE* (create FDEV
+                                NODIRECTORIES _ T
+                                DEVICENAME _ 'UNIX-PTY
+                                BIN _ (FUNCTION \BUFFERED.BIN)
+                                BOUT _ (FUNCTION UNIX-STREAM-OUT)
+                                PEEKBIN _ (FUNCTION \BUFFERED.PEEKBIN)
+                                CLOSEFILE _ (FUNCTION UNIX-STREAM-CLOSE)
+                                GETFILEINFO _ (FUNCTION NILL)
+                                SETFILEINFO _ (FUNCTION NILL)
+                                EOFP _ (FUNCTION UNIX-STREAM-EOFP)
+                                BACKFILEPTR _ (FUNCTION UNIX-BACKFILEPTR)
+                                GETNEXTBUFFER _ (FUNCTION UNIX-GET-NEXT-BUFFER)
+                                BLOCKIN _ (FUNCTION \BUFFERED.BINS)
+                                DEFAULTEXTERNALFORMAT _ (SYSTEM-EXTERNALFORMAT])
+
+(UNIX-GET-NEXT-BUFFER
+  [LAMBDA (STREAM WHATFOR NOERRORFLG)                        (* ; 
+                                                           "Edited 13-Jun-90 01:07 by mitani")
+    (CASE WHATFOR
+        (READ [PROG ([BUF (ffetch (STREAM CBUFPTR) of (\DTEST STREAM 'STREAM]
+                     (CONN (UNIX-CHANNEL STREAM))
+                     LEN)
+                RETRY
+                    (BLOCK)                                  (* ; 
+                           "Just so other procs get to run when someone is pounding output at Chat")
+                    (if [AND CONN (SETQ LEN (SUBRCALL UNIX-HANDLECOMM 9 (\DTEST CONN 'SMALLP)
+                                                       (OR BUF (replace (STREAM CBUFPTR)
+                                                                  of STREAM
+                                                                  with (SETQ BUF
+                                                                            (NCREATE 'VMEMPAGEP]
+                        then (if (EQ LEN T)
+                                     then                (* ; 
+                                                           " no input available, but still alive")
+                                           (if NOERRORFLG
+                                               then (RETURN NIL)
+                                             else        (* ; 
+                                                           "Called from BIN--wait and try again")
+                                                   (GO RETRY))
+                                   else (UNINTERRUPTABLY
+                                                (replace (STREAM COFFSET) of STREAM
+                                                   with 0)
+                                                (replace (STREAM CBUFSIZE) of STREAM
+                                                   with LEN))
+                                         (RETURN T))
+                      else (RETURN (AND (NOT NOERRORFLG)
+                                            (\EOF.ACTION STREAM])
+        (T (SHOULDNT)))])
+
+(UNIX-BACKFILEPTR
+  [LAMBDA (STREAM)                                          (* ; "Edited 13-Jun-90 01:07 by mitani")
+    (COND
+       ((AND (fetch (STREAM CBUFPTR) of STREAM)
+             (> (fetch (STREAM COFFSET) of STREAM)
+                0))
+        (add (fetch (STREAM COFFSET) of STREAM)
+             -1))
+       (T (ERROR "Can't back up this unix Stream" STREAM])
+
+(UNIX-STREAM-EOFP
+  [LAMBDA (STREAM)                                          (* ; "Edited 13-Jun-90 01:07 by mitani")
+
+(* ;;; "true if bsp STREAM is at end of file, i.e.  is at a mark")
+
+    (COND
+       ((AND (ffetch (STREAM CBUFPTR) of (\DTEST STREAM 'STREAM))
+             (< (ffetch (STREAM COFFSET) of STREAM)
+                (ffetch (STREAM CBUFSIZE) of STREAM)))
+        NIL)
+       (T (NOT (UNIX-GET-NEXT-BUFFER STREAM 'READ T])
+
+(UNIX-STREAM-OUT
+  [LAMBDA (STREAM CHAR)                                      (* ; "Edited 12-Jun-90 12:58 by jrb:")
+    (OR (UNIX-WRITE (UNIX-CHANNEL STREAM)
+               (\DTEST CHAR 'SMALLP))
+        (CL:ERROR 'XCL:STREAM-NOT-OPEN STREAM])
+
+(UNIX-STREAM-CLOSE
+  [LAMBDA (STREAM)                                           (* ; "Edited 12-Aug-88 13:24 by drc:")
+    (PROG1 (UNIX-KILL (UNIX-CHANNEL STREAM))
+        (CL:SETF (UNIX-CHANNEL STREAM)
+               NIL)
+        (CL:SETF (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+               (REMOVE STREAM (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*))))])
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS *SHELL-DEVICE*)
+)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(INITIALIZE-SHELL-DEVICE)
+
+
+(ADDTOVAR AROUNDEXITFNS UNIXCOMM-AROUNDEXITFN)
+)
+
+
+
+(* ; "Stuff for direct manipulation of Unix sockets")
+
+(DEFINEQ
+
+(CREATE-UNIX-SOCKET-STREAM
+  [LAMBDA (PATHNAME)                                         (* ; "Edited 11-Oct-2022 10:11 by lmm")
+                                                             (* ; "Edited 29-May-90 16:23 by jrb:")
+    (LET [(CHAN (SUBRCALL UNIX-HANDLECOMM 12 (\DTEST PATHNAME 'ONED-ARRAY]
+         (if CHAN
+             then (LET ((STR (create STREAM
+                                    ACCESS _ 'BOTH
+                                    DEVICE _ *SHELL-DEVICE*
+                                    EOLCONVENTION _ LF.EOLC)))
+                       (CL:SETF (UNIX-CHANNEL STR)
+                              CHAN)
+                       (push (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+                             STR)
+                       STR])
+
+(ACCEPT-UNIX-SOCKET-STREAM
+  [LAMBDA (SOCKSTREAM)                                       (* ; "Edited 11-Oct-2022 10:12 by lmm")
+                                                             (* ; "Edited 29-May-90 16:31 by jrb:")
+    (LET ((CHAN (UNIX-CHANNEL SOCKSTREAM))
+          NEWCHAN)
+         (SELECTQ (SETQ NEWCHAN (SUBRCALL UNIX-HANDLECOMM 13 CHAN))
+             ((-1 NIL) 
+                  NEWCHAN)
+             (LET ((NEWSTREAM (create STREAM
+                                     ACCESS _ 'BOTH
+                                     DEVICE _ *SHELL-DEVICE*
+                                     EOLCONVENTION _ LF.EOLC)))
+                  (CL:SETF (UNIX-CHANNEL NEWSTREAM)
+                         NEWCHAN)
+                  (push (fetch (FDEV OPENFILELST) of *SHELL-DEVICE*)
+                        NEWSTREAM)
+                  NEWSTREAM])
+)
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS UNIX-CHANNEL MACRO ((STR)
+                              (fetch (STREAM F1) of STR)))
+)
+
+
+(CHECKIMPORTS '(FILEIO LLSUBRS)
+       T)
+)
+
+(PUTPROPS UNIXCOMM FILETYPE COMPILE-FILE)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1821 7231 (FORK-SHELL 1831 . 3028) (FORK-UNIX 3030 . 3551) (UNIX-KILL 3553 . 3742) (
+UNIX-WRITE 3744 . 4455) (CREATE-SHELL-STREAM 4457 . 5341) (CREATE-PROCESS-STREAM 5343 . 6182) (
+UNIXCOMM-AROUNDEXITFN 6184 . 7229)) (7279 12470 (INITIALIZE-SHELL-DEVICE 7289 . 8717) (
+UNIX-GET-NEXT-BUFFER 8719 . 10919) (UNIX-BACKFILEPTR 10921 . 11333) (UNIX-STREAM-EOFP 11335 . 11816) (
+UNIX-STREAM-OUT 11818 . 12074) (UNIX-STREAM-CLOSE 12076 . 12468)) (12718 14424 (
+CREATE-UNIX-SOCKET-STREAM 12728 . 13534) (ACCEPT-UNIX-SOCKET-STREAM 13536 . 14422)))))
+STOP

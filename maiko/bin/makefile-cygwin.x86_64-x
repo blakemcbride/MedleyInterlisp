@@ -1,0 +1,9 @@
+# Options for Cygwin, Intel x86_64 and X-Window
+
+GCC_CFLAGS := -m64 $(GCC_CFLAGS)
+CLANG_CFLAGS := -m64 $(CLANG_CFLAGS)
+USE_DISPLAY=x
+USE_LIBBSD=F
+
+include linux-common.mk
+

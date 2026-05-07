@@ -1,0 +1,150 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 7-Oct-2021 14:29:56" {DSK}<Users>kaplan>Local>medley3.5>git-medley>sources>DEXEC.;4 5554   
+
+      changes to%:  (FNS SEE* COPYALLBYTES)
+
+      previous date%: "13-Aug-2020 12:36:18" 
+{DSK}<Users>kaplan>Local>medley3.5>git-medley>sources>DEXEC.;1)
+
+
+(* ; "
+Copyright (c) 1982-1986, 1990, 2018, 2020-2021 by Venue & Xerox Corporation.
+The following program was created in 1982 but has not been published
+within the meaning of the copyright law, is furnished under license,
+and may not be used, copied and/or disclosed except in accordance
+with the terms of said license.
+")
+
+(PRETTYCOMPRINT DEXECCOMS)
+
+(RPAQQ DEXECCOMS
+       [
+
+(* ;;; "Has to come after ADISPLAY and CMLEXEC.")
+
+        (COMMANDS "see" "see*" "ty" "type")
+        (INITVARS (/LAST.CONNECTED.DIRECTORY LOGINHOST/DIR))
+        (LISPXMACROS CONN DA)
+        (FNS /CNDIR COPYALLBYTES SEE SEE*)
+        (COMS (CURSORS SAVINGCURSOR SYSOUTCURSOR \PROMPTFORWORD.CURSOR))
+        (PROP FILETYPE DEXEC)
+        [DECLARE%: DONTEVAL@LOAD DOCOPY (P (MOVD 'SEE 'TY]
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS (ADDVARS (NLAMA SEE* SEE)
+                                                                             (NLAML)
+                                                                             (LAMA])
+
+
+
+(* ;;; "Has to come after ADISPLAY and CMLEXEC.")
+
+
+(DEFCOMMAND "see" (&REST ARGS) "Print the contents of a file on the screen, hiding comments"
+   (APPLY 'SEE ARGS))
+
+(DEFCOMMAND "see*" (&REST ARGS) "Print the contents of a file on the screen"
+   (APPLY 'SEE* ARGS))
+
+(DEFCOMMAND "ty" (&REST ARGS) "Print the contents of a file on the screen, hiding comments"
+   (APPLY 'SEE ARGS))
+
+(DEFCOMMAND "type" (&REST ARGS) "Print the contents of a file on the screen, hiding comments"
+   (APPLY 'SEE ARGS))
+
+(RPAQ? /LAST.CONNECTED.DIRECTORY LOGINHOST/DIR)
+
+(ADDTOVAR LISPXHISTORYMACROS (DA (PROGN (LISPXPRIN1 (DATE)
+                                                   T)
+                                            (TERPRI T))))
+
+(ADDTOVAR LISPXMACROS [CONN (/CNDIR (CAR (NLAMBDA.ARGS LISPXLINE])
+
+(ADDTOVAR LISPXCOMS CONN DA)
+(DEFINEQ
+
+(/CNDIR
+  [LAMBDA (HOST/DIR)                                    (* ; "Edited 13-Aug-2020 12:31 by rmk:")
+
+    (* ;; "RMK:  August 2020, added - ala Unix")
+
+    (AND LISPXHIST (UNDOSAVE (LIST '/CNDIR (DIRECTORYNAME T T))
+                          LISPXHIST))
+    (CL:WHEN (EQ HOST/DIR '-)
+           (SETQ HOST/DIR /LAST.CONNECTED.DIRECTORY))
+    (/SET '/LAST.CONNECTED.DIRECTORY (DIRECTORYNAME T T))
+    (CNDIR HOST/DIR])
+
+(COPYALLBYTES
+  [LAMBDA (FROMFILE TOFILE BYTESIZE FORMAT)             (* ; "Edited  7-Oct-2021 13:15 by rmk:")
+                                                             (* bvm%: "29-Jan-86 19:50")
+
+    (* ;; "RMK: Removed PFDEFAULT arg to PFCOPYBYTES.  Probably should remove BYTESIZE test")
+
+    (RESETLST
+        [PROG (INF OUTF PTR)
+              [COND
+                 (FROMFILE [RESETSAVE NIL (LIST 'CLOSEF (SETQ INF (OPENSTREAM
+                                                                   FROMFILE
+                                                                   'INPUT NIL
+                                                                   `((EXTERNALFORMAT ,FORMAT))
+                                                                   BYTESIZE]
+                        (OR (EQ (GETFILEPTR INF)
+                                0)
+                            (SETFILEPTR INF 0)))
+                 (T (SETQ INF (INPUT]                        (* close the files only if I opened 
+                                                           them)
+              [COND
+                 ((NULL TOFILE)
+                  (SETQ OUTF (OUTPUT)))
+                 ([NULL (SETQ OUTF (OPENP TOFILE 'OUTPUT]
+                  (RESETSAVE NIL (LIST 'CLOSEF (SETQ OUTF (OPENSTREAM TOFILE 'OUTPUT NIL BYTESIZE]
+              (COND
+                 ((AND (NULL BYTESIZE)
+                       (DISPLAYP OUTF))
+                  (PFCOPYBYTES INF OUTF))
+                 (T (COPYBYTES INF OUTF])])
+
+(SEE
+  (NLAMBDA LINE                                              (* lmm "14-Aug-84 19:07")
+    (SETQ LINE (NLAMBDA.ARGS LINE))
+    (COPYALLBYTES (CAR LINE)
+           (OR (CADR LINE)
+               T)
+           (CADDR LINE))))
+
+(SEE*
+  [NLAMBDA LINE                                         (* ; "Edited  7-Oct-2021 14:29 by rmk:")
+
+    (* ;; "RMK: RESETVARS because **COMMENT**FLG is global")
+
+    (SETQ LINE (NLAMBDA.ARGS LINE))
+    (RESETVARS (**COMMENT**FLG)
+               (APPLY (FUNCTION SEE)
+                      LINE])
+)
+(RPAQ SAVINGCURSOR (CURSORCREATE (QUOTE #*(16 16)@@@@FDJ@HJJ@LJJ@BNJLJJD@LJD@@@@@@JDN@KEB@KE@@JMF@JMB@JEL@@@@@@@@
+) (QUOTE NIL) 0 15))
+(RPAQ SYSOUTCURSOR (CURSORCREATE (QUOTE #*(16 16)@@@@CJDNDAE@C@HL@HHBDIABCA@L@@@@@@@@AIBNBEBDBEBDBEBDBEBDAHLD@@@@
+) (QUOTE NIL) 0 15))
+(RPAQ \PROMPTFORWORD.CURSOR (CURSORCREATE (QUOTE #*(16 16)H@@@L@@@N@CLO@FFOHFFOL@FON@LO@AHMHAHIH@@@LAH@LAH@F@@@F@@@C@@@C@@
+) (QUOTE NIL) 0 15))
+
+(PUTPROPS DEXEC FILETYPE CL:COMPILE-FILE)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(MOVD 'SEE 'TY)
+)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS 
+
+(ADDTOVAR NLAMA SEE* SEE)
+
+(ADDTOVAR NLAML )
+
+(ADDTOVAR LAMA )
+)
+(PUTPROPS DEXEC COPYRIGHT ("Venue & Xerox Corporation" T 1982 1983 1984 1985 1986 1990 2018 2020 2021)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2230 4768 (/CNDIR 2240 . 2677) (COPYALLBYTES 2679 . 4203) (SEE 4205 . 4449) (SEE* 4451
+ . 4766)))))
+STOP

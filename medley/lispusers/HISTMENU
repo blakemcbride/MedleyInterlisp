@@ -1,0 +1,191 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "19-Sep-2022 19:20:51" {DSK}<home>matt>medley>LISPUSERS>HISTMENU.;4 16184  
+
+      :CHANGES-TO (VARS HISTMENUCOMS)
+                  (FNS HistMenuOp)
+
+      :PREVIOUS-DATE "15-Sep-2022 21:50:50" {DSK}<home>matt>medley>LISPUSERS>HISTMENU.;3)
+
+
+(* ; "
+Copyright (c) 1984, 1987, 2022 by Xerox Corporation.
+")
+
+(PRETTYCOMPRINT HISTMENUCOMS)
+
+(RPAQQ HISTMENUCOMS ((VARS * HISTMENUVARS)
+                     (INITVARS HistMenuExecOnly)
+                     (FNS * HISTMENUFNS)
+                     (BITMAPS HistoryBitMap HistoryMask)
+                     (PROP (FILETYPE MAKEFILE-ENVIRONMENT)
+                           HISTMENU)))
+
+(RPAQQ HISTMENUVARS (BadHistoryItems HistDefaultSlice HistItemsShown HistMenuItemHeight HistMenuWidth
+                           HistOpMenuItems HistWindowWidth HistEventWidth UpdateOnDeleteFlg (
+                                                                                        HistRightMenu
+                                                                                             )
+                           (HistOpMenu)
+                           (HistoryWindow)
+                           (HistoryMenu)))
+
+(RPAQQ BadHistoryItems (EDIT ?= OK T NIL ^))
+
+(RPAQQ HistDefaultSlice 30)
+
+(RPAQQ HistItemsShown 51)
+
+(RPAQQ HistMenuItemHeight 15)
+
+(RPAQQ HistMenuWidth 164)
+
+(RPAQQ HistOpMenuItems
+       ((REDO 'REDO "REDO event selected")
+        (FIX 'FIX "Edit event selected")
+        (UNDO 'UNDO "UNDO event selected")
+        (?? '?? "Show event selected")
+        (Delete 'Delete "Delete event from history menu")))
+
+(RPAQQ HistWindowWidth 164)
+
+(RPAQQ HistEventWidth 60)
+
+(RPAQQ UpdateOnDeleteFlg T)
+
+(RPAQQ HistRightMenu NIL)
+
+(RPAQQ HistOpMenu NIL)
+
+(RPAQQ HistoryWindow NIL)
+
+(RPAQQ HistoryMenu NIL)
+
+(RPAQ? HistMenuExecOnly NIL)
+
+(RPAQQ HISTMENUFNS (HistEventString HistHeldFn HistMenuOp HistRightButtonFn HistoryIcon HistoryMenu 
+                          LastNEvents UpdateHistory UpdateHistoryWindow))
+(DEFINEQ
+
+(HistEventString  [LAMBDA (entry)                                            (* dgb%: "10-FEB-83 10:32")                    (* Put together a string which looks like input for menu.          Put spaces between atoms, remove <c.r.>, and make top level NIL be "()" %.          entry is a history list entry of form (event value . proplist)%.          Computed entries are cached in the propList under the property HistoryString)    (COND       ((NULL entry)        '(" "))       ((LISTGET (CDDDR entry)               'HistoryString))       (T (PROG (newLst key (event (CAR entry))                       str)                [COND                   [(AND (EQ (SETQ key (CAR event))                             'UNDO)                         (CDR event))                    (* Special form for UNDO. Show form of event that was undone.)                    (SETQ event (APPEND event '(" -- ") (CAR (LISPXFIND LISPXHISTORY (CDR event)                                                                    'ENTRY]                   ((FMEMB key BadHistoryItems)              (* Not an item to be shown in history)                    (NCONC entry (LIST 'HistoryString 'Deleted))                    (RETURN 'Deleted]                (SETQ newLst (TCONC NIL key))                (for tail item on (CDR event) do                     (* Add item to the event description to made into a string)                                                 [COND                                                    ((EQ HISTSTR0 (SETQ item (CAR tail)))                                                             (* leave out <c.r.>)                                                     (GO SKIP))                                                    ((NULL item)                                                     (SETQ item "()"))                                                    ((ATOM item)                                                             (* Put in space between atoms)                                                     (TCONC newLst '% ]                                                 (TCONC newLst item)                                                 SKIP finally (SETQ str (APPLY 'CONCAT (CAR newLst)))                     (* make a string using CONCAT, and put as property HistoryString)                                                            [COND                                                               ((IGREATERP (NCHARS str)                                                                       HistEventWidth)                                                             (* Avoid going on too long)                                                                (SETQ str                                                                 (CONCAT (SUBSTRING str 1                                                                                 HistEventWidth)                                                                        " ..."]                                                            (NCONC entry (LIST 'HistoryString str)))                (RETURN str])
+
+(HistHeldFn  [LAMBDA (item menu key)                                    (* dgb%: " 9-FEB-83 16:36")    (CLRPROMPT)    (printout PROMPTWINDOW "Will " (SELECTQ key                                       (MIDDLE "do one of UNDO, FIX, ??, or Delete on ")                                       "REDO ")           (CDR item)           T %# (PRIN3 (CAR item))           T])
+
+(HistMenuOp
+  [LAMBDA (exp menu key)                            (* ; "Edited 19-Sep-2022 19:20 by Matt Heffron")
+                                                    (* ; "Edited 15-Sep-2022 21:49 by Matt Heffron")
+    (PROG (op)
+
+     (* ;; "Stuff the appropriate text into the Exec window.")
+
+     (* ;; "Per Michele Denber: Since it actually goes into the window that has the caret, first check to see if the window with focus is an Exec window.")
+
+     (* ;; "Note the original HISTMENU did not do this.")
+
+          (COND
+             ((NULL (CDR exp))
+              (RETURN))
+             ([AND HistMenuExecOnly (NOT (FIXP (STRPOS "EXEC" (PROCESSPROP (TTY.PROCESS)
+                                                                     'NAME]
+
+              (* ;; "It turns out that this check can be too restrictive. ")
+
+              (* ;; 
+  "E.g., It wouldn't allow for using the HistMenu in a Break window unless %"under%" an Exec process")
+
+              (PROMPTPRINT "Please select an Exec window for this action.")
+              (RETURN)))
+          (SELECTQ key
+              (LEFT (SETQ op 'REDO)
+                    (GO DOIT))
+              (MIDDLE [SETQ op (MENU (OR (AND (type? MENU HistOpMenu)
+                                              HistOpMenu)
+                                         (SETQ HistOpMenu (create MENU
+                                                                 ITEMS _ HistOpMenuItems]
+                      (SELECTQ op
+                          (Delete (LISTPUT (CDDDR (LISPXFIND LISPXHISTORY (LIST (CDR exp))
+                                                         'ENTRY))
+                                         'HistoryString
+                                         'Deleted)
+                                  (RETURN (AND UpdateOnDeleteFlg (UpdateHistory menu))))
+                          (NIL                               (* ; "nothing selected")
+                               (RETURN NIL))
+                          (GO DOIT)))
+              (RETURN))
+      DOIT
+          (BKSYSBUF op)                                      (* ; 
+                                                  "Insert op space event identifier in system buffer")
+          (BKSYSBUF " ")
+          (BKSYSBUF (CDR exp))
+          (BKSYSCHARCODE (CHARCODE CR))
+      NIL])
+
+(HistRightButtonFn  [LAMBDA (WINDOW)                                           (* dgb%: "31-MAR-83 18:12")                    (* Sets up Menu, and then does usual right window stuff, augmented by           UpdateHistoryWindow)    [OR (type? MENU (EVALV 'HistRightMenu))        (SETQ HistRightMenu (create MENU                                   ITEMS _ '((Bury 'BURYW "Puts this window on the bottom.")                                             (Move 'MOVEW "Moves window by a corner.")                                             (Shrink 'SHRINKW                            "Replaces this window with its icon (or title if it doesn't have an icon."                                                    )                                             (Update 'UpdateHistoryWindow                                                     "Update the window to show all current items"]    (TOTOPW WINDOW)    (PROG (COM)          (RETURN (COND                     ((SETQ COM (MENU HistRightMenu))                      (APPLY* COM WINDOW)                      T])
+
+(HistoryIcon  [LAMBDA (N histPosition iconPosition)                      (* dgb%: "16-May-84 19:42")                    (* Used with the shrink and expand functions of windows.          Creates a history menu, and uses a labelled ScrollBitMap for an icon image)    (PROG (H (W (ICONW HistoryBitMap HistoryMask iconPosition T)))          (SETQ H (HistoryMenu N histPosition))          (RETURN (SETQ HistoryWindow (SHRINKW (WFROMMENU H)                                             W iconPosition 'UpdateHistoryWindow])
+
+(HistoryMenu
+  [LAMBDA (histMenuLength histMenuPosition)         (* ; "Edited 15-Sep-2022 21:49 by Matt Heffron")
+
+    (* ;; "Create a menu showing the last histMenuLength events of history.  If histMenuPosition is not given, then allows the user to move window")
+
+    (PROG (W wwidth wregion (wheight (ITIMES HistMenuItemHeight HistItemsShown)))
+          (OR histMenuLength (SETQ histMenuLength HistDefaultSlice))
+
+     (* ;; "Default HistorySlice is HistDefaultSlice")
+
+          (SETQ HistoryMenu (create MENU
+                                   ITEMS _ (LastNEvents histMenuLength)
+                                   ITEMHEIGHT _ HistMenuItemHeight
+                                   ITEMWIDTH _ HistMenuWidth
+                                   MENUOUTLINESIZE _ 0
+                                   WHENSELECTEDFN _ 'HistMenuOp
+                                   WHENHELDFN _ 'HistHeldFn))
+          (PROGN [PROG ((MD (fetch MENUUSERDATA of HistoryMenu)))
+                       (COND
+                          ((NULL MD)
+                           (replace MENUUSERDATA of HistoryMenu with (LIST 'HistorySlice 
+                                                                           histMenuLength)))
+                          (T (LISTPUT MD 'HistorySlice histMenuLength]
+                 histMenuLength)
+          (SETQ wwidth (WIDTHIFWINDOW (fetch (MENU IMAGEWIDTH) of HistoryMenu)))
+          (SETQ wheight (HEIGHTIFWINDOW (fetch (MENU IMAGEHEIGHT) of HistoryMenu)
+                               T))
+          [COND
+             ((NOT (type? POSITION histMenuPosition))
+              (SETQ histMenuPosition (GETBOXPOSITION wwidth wheight NIL NIL NIL 
+                                            "Position History Window"]
+          (SETQ wregion (create REGION
+                               LEFT _ (fetch XCOORD of histMenuPosition)
+                               BOTTOM _ (fetch YCOORD of histMenuPosition)
+                               WIDTH _ wwidth
+                               HEIGHT _ wheight))
+          (SETQ W (CREATEW wregion "History Window"))
+          (WINDOWPROP W 'RIGHTBUTTONFN 'HistRightButtonFn)
+          (ADDMENU HistoryMenu W (create POSITION
+                                        XCOORD _ 0
+                                        YCOORD _ 0)
+                 T))
+    HistoryMenu])
+
+(LastNEvents  [LAMBDA (N)                                                (* dgb%: "11-Sep-84 09:11")    (PROG (ev (i 1))          (RETURN (while (ILESSP i N) bind hist1 (lastN _ (ADD1 (OR (CADR LISPXHISTORY)                                                                    0)))                                           (hist _ (CAR LISPXHISTORY))                     when [PROGN (SETQ hist1 (CAR hist))                                 (SETQ hist (CDR hist))                                 (NEQ 'Deleted (SETQ ev (HistEventString hist1]                     collect (SETQ i (ADD1 i))                           (COND                              ((OR hist hist1)                               (CONS ev (ENTRY# LISPXHISTORY hist1)))                              (T '(" "])
+
+(UpdateHistory  [LAMBDA (histMenu)                                         (* dgb%: " 9-FEB-83 16:29")                    (* replace the current set of events with the most recent set)    (PROG ((historyWindow (WFROMMENU histMenu)))          [replace ITEMS of histMenu with (LastNEvents (LISTGET (fetch MENUUSERDATA of histMenu)                                                              'HistorySlice]          (UPDATE/MENU/IMAGE histMenu)          (BLTMENUIMAGE histMenu historyWindow])
+
+(UpdateHistoryWindow  [LAMBDA (window)                                           (* dgb%: " 4-JUN-82 06:55")                    (* For use with both the HISTMENU package and ICON package.          Updates a history menu on opening it from its icon)    (UpdateHistory (CAR (WINDOWPROP window 'MENU])
+)
+
+(RPAQQ HistoryBitMap #*(64 64)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@AOOOOOOOOOOOOON@AH@@@@@@@@@@@FA@C@@@@@@@@@@@@D@HB@@@@@@@@@@@@L@HB@@@@@@@@@@@@H@DB@@@@@@@@@@@@H@DB@@@@@@@@@@@@H@DB@@@@@@@@@@@@D@HC@@@@@@@@@@@@DDHA@DDA@@@@@@@@CG@AHDD@@@A@@@@@@H@@HDDG@NCLCHKBAH@@HGLAAAA@DDLJBD@@LDDA@LA@DDHBBD@@LDDA@BA@DDHADD@@DDDAAAABDDHADD@@FDDA@N@LCHH@HD@@B@@@@@@@@@@@HD@@B@@@@@@@@@@CHD@@C@@@@@@@@@@@@D@@C@@@@@@@@@@@@D@@A@@@@@@@@@@@@D@@A@@@@@@@@@@@@D@@A@@@@@@@@@@@@D@@AH@@@@@@@@@@@F@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@H@@@@@@@@@@@B@@@L@@@@@@@@@@@C@@@L@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@D@@@@@@@@@@@A@@@L@@@@@@@@@@@A@@@H@@@@@@@@@@@A@@@H@@@@@@@@@@@A@@@H@@@@@@@@@@@A@@OOOOOOOOOOOO@A@AH@@@@@@@@@@GLA@F@@@@@@@@@@@LFA@D@@@@@@@@@@AHBC@L@@@@@@@@@@A@FB@H@@@@@@@@@@A@LF@H@@@@@@@@@@AOHD@H@@@@@@@@@@AH@D@L@@@@@@@@@@@H@H@L@@@@@@@@@@@LA@@N@@@@@@@@@@@GF@@CH@@@@@@@@@@AL@@@OOOOOOOOOOOOH@@
+)
+
+(RPAQQ HistoryMask #*(64 64)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@AOOOOOOOOOOOOON@AOOOOOOOOOOOOOOHCOOOOOOOOOOOOOOHCOOOOOOOOOOOOOOLCOOOOOOOOOOOOOOLCOOOOOOOOOOOOOOLCOOOOOOOOOOOOOOLCOOOOOOOOOOOOOOLCOOOOOOOOOOOOOOLAOOOOOOOOOOOOOOHAOOOOOOOOOOOOON@@OOOOOOOOOOOOON@@OOOOOOOOOOOOOL@@OOOOOOOOOOOOOL@@OOOOOOOOOOOOOL@@GOOOOOOOOOOOOL@@GOOOOOOOOOOOOL@@COOOOOOOOOOOOL@@COOOOOOOOOOOOL@@COOOOOOOOOOOOL@@COOOOOOOOOOOOL@@AOOOOOOOOOOOOL@@AOOOOOOOOOOOOL@@AOOOOOOOOOOOOL@@AOOOOOOOOOOOON@@@OOOOOOOOOOOON@@@OOOOOOOOOOOON@@@OOOOOOOOOOOON@@@OOOOOOOOOOOON@@@OOOOOOOOOOOON@@@GOOOOOOOOOOON@@@GOOOOOOOOOOON@@@GOOOOOOOOOOON@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@GOOOOOOOOOOOO@@@OOOOOOOOOOOOO@@@OOOOOOOOOOOOO@@@OOOOOOOOOOOOO@@@OOOOOOOOOOOOO@@OOOOOOOOOOOOOO@COOOOOOOOOOOOOO@GOOOOOOOOOOOOOO@GOOOOOOOOOOOOOO@OOOOOOOOOOOOOOO@OOOOOOOOOOOOOON@OOOOOOOOOOOOOON@OOOOOOOOOOOOOOL@OOOOOOOOOOOOOOL@OOOOOOOOOOOOOOH@OOOOOOOOOOOOOO@@COOOOOOOOOOOOL@@AOOOOOOOOOOOOH@@
+)
+
+(PUTPROPS HISTMENU FILETYPE :TCOMPL)
+
+(PUTPROPS HISTMENU MAKEFILE-ENVIRONMENT (:READTABLE "INTERLISP" :PACKAGE "INTERLISP"))
+(PUTPROPS HISTMENU COPYRIGHT ("Xerox Corporation" 1984 1987 2022))
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2110 13830 (HistEventString 2120 . 5316) (HistHeldFn 5318 . 5703) (HistMenuOp 5705 . 
+8071) (HistRightButtonFn 8073 . 9172) (HistoryIcon 9174 . 9723) (HistoryMenu 9725 . 12138) (
+LastNEvents 12140 . 12957) (UpdateHistory 12959 . 13498) (UpdateHistoryWindow 13500 . 13828)))))
+STOP

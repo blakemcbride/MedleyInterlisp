@@ -1,0 +1,20 @@
+#*******************************************************************************
+#
+#  Dockerfile to build image with all the tools to build  Maiko
+#
+#  Copyright 2023 by Interlisp.org
+#
+#  Frank Halasz 2023-02-21
+#
+# ******************************************************************************
+
+FROM ubuntu:22.04
+SHELL ["/bin/bash", "-c"]
+USER root:root
+# Install build tools
+RUN apt-get update \
+    && apt-get install -y build-essential gcc pkgconf make clang cmake \
+    && apt-get install -y libx11-dev libbsd-dev libpcap-dev
+USER root
+WORKDIR /root
+ENTRYPOINT /bin/bash

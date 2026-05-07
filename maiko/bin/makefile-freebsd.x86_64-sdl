@@ -1,0 +1,24 @@
+# Options for FreeBSD, Intel x86_64 and X-Windows
+
+CC = clang -m64 $(CLANG_CFLAGS)
+
+XFILES = $(OBJECTDIR)sdl.o
+
+#
+#  For SDL version 2
+#      -DSDL=2 in SDLFLAGS and -lSDL2 in LDFLAGS
+#  For SDL version 3
+#      -DSDL=3 in SDLFLAGS and -lSDL3 in LDFLAGS
+#
+SDLFLAGS = -DSDL=2 -I/usr/local/include
+
+# OPTFLAGS is normally -O2.
+OPTFLAGS = -O2 -g
+DFLAGS = $(SDLFLAGS) -DRELEASE=$(RELEASE)
+
+LDFLAGS = -L/usr/local/lib -lSDL2 -lm
+LDELDFLAGS =
+
+OBJECTDIR = ../$(RELEASENAME)/
+
+default	: ../$(OSARCHNAME)/lde ../$(OSARCHNAME)/ldesdl

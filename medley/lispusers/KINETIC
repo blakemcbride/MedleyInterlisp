@@ -1,0 +1,55 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 1-Nov-2025 20:26:43" {DSK}<home>frank>il>medley>lispusers>KINETIC.;5 2264   
+
+      :EDIT-BY "FGH"
+
+      :CHANGES-TO (FNS KINETIC)
+
+      :PREVIOUS-DATE "23-Sep-2022 08:19:41" {DSK}<home>frank>il>medley>lispusers>KINETIC.;1)
+
+
+(PRETTYCOMPRINT KINETICCOMS)
+
+(RPAQQ KINETICCOMS ((FNS KINETIC)
+                    (VARS (CHECKSHADE 63903)
+                          (KINETICWINDOW))
+                    (ALISTS (IDLE.FUNCTIONS Kinetic))))
+(DEFINEQ
+
+(KINETIC
+  [LAMBDA (WINDOW)                                           (* ; "Edited  1-Nov-2025 20:23 by FGH")
+                                                             (* ; "Edited 22-Sep-2022 22:07 by lmm")
+                                                             (* lmm " 3-Dec-85 14:16")
+    [OR (WINDOWP WINDOW)
+        (SETQ WINDOW (OR KINETICWINDOW (SETQ KINETICWINDOW (CREATEW NIL "Kinetic Window"]
+    [OR (WINDOWPROP WINDOW 'CLOSEFN)
+        (WINDOWPROP WINDOW 'CLOSEFN (FUNCTION (LAMBDA (W)
+                                                (WINDOWPROP W 'CLOSE T]
+    [WINDOWPROP WINDOW 'CLOSEFN (FUNCTION (LAMBDA (W)
+                                            (WINDOWPROP W 'CLOSE T]
+    (PROG ((WD (WINDOWPROP WINDOW 'WIDTH))
+           (HT (WINDOWPROP WINDOW 'HEIGHT))
+           X Y)
+          (while (NEQ (WINDOWPROP WINDOW 'CLOSE)
+                      T) do (SETQ X (RAND 0 WD))
+                            (SETQ Y (RAND 0 HT))
+                            (BITBLT NIL NIL NIL WINDOW (RAND 0 (IDIFFERENCE WD X))
+                                   (RAND 0 (IDIFFERENCE HT Y))
+                                   X Y 'TEXTURE (SELECTQ (RAND 0 5)
+                                                    (0 'PAINT)
+                                                    'INVERT)
+                                   (SELECTQ (AND CHECKSHADE (RAND 0 12))
+                                       (0 CHECKSHADE)
+                                       BLACKSHADE))
+                            (BLOCK 100) finally (WINDOWPROP WINDOW 'CLOSE NIL])
+)
+
+(RPAQQ CHECKSHADE 63903)
+
+(RPAQQ KINETICWINDOW NIL)
+
+(ADDTOVAR IDLE.FUNCTIONS (Kinetic 'KINETIC))
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (534 2130 (KINETIC 544 . 2128)))))
+STOP

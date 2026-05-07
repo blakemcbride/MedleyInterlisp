@@ -1,0 +1,150 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "15-Jul-2025 10:25:11" {WMEDLEY}<lispusers>NSDISPLAYSIZES.;7 7757   
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS PURGENSFONTS)
+
+      :PREVIOUS-DATE " 9-Jun-2025 19:52:26" {WMEDLEY}<lispusers>NSDISPLAYSIZES.;6)
+
+
+(PRETTYCOMPRINT NSDISPLAYSIZESCOMS)
+
+(RPAQQ NSDISPLAYSIZESCOMS
+       [(FNS NSDISPLAYSIZE NS\FONTFILENAME NS\FONTFILENAME.OLD PURGENSFONTS)
+        (INITVARS (*SMALLSCREEN* (ILESSP SCREENWIDTH 700)))
+        [COMS                                                (* ; 
+                         "VirtualKeyboard font needs adjusting so that real Classic 12 still appears")
+              (FNS VKBD.FIX.FONT)
+              (DECLARE%: EVAL@COMPILE DONTCOPY (P (OR (RECLOOK 'KEYBOARDCONFIGURATION)
+                                                      (LOADDEF 'KEYBOARDCONFIGURATION 'RECORDS
+                                                             'VIRTUALKEYBOARDS]
+        (DECLARE%: DONTEVAL@LOAD DOCOPY (P (MOVD? '\FONTFILENAME 'OLD\FONTFILENAME)
+                                           (MOVD 'NS\FONTFILENAME '\FONTFILENAME)
+                                           (MOVD? '\FONTFILENAME.OLD 'OLD\FONTFILENAME.OLD)
+                                           (MOVD 'NS\FONTFILENAME.OLD '\FONTFILENAME.OLD)
+                                           (PURGENSFONTS)
+                                           (VKBD.FIX.FONT])
+(DEFINEQ
+
+(NSDISPLAYSIZE
+  [LAMBDA (FAMILY SIZE FACE EXTENSION)                       (* ; "Edited 10-Apr-2024 09:48 by rmk")
+                                                             (* ; "Edited  8-Apr-2024 11:47 by rmk")
+                                                             (* ; "Edited 26-Dec-2023 21:15 by rmk")
+                                                             (* ; "Edited 24-Dec-2023 13:49 by rmk")
+                                                             (* ; "Edited 14-Sep-96 09:32 by rmk:")
+                                                             (* ; "Edited 16-Nov-95 10:08 by ")
+                                                             (* ; "Edited  5-Mar-93 18:12 by kaplan")
+                                                             (* ; "Edited 15-Jan-87 15:22 by bvm:")
+
+    (* ;; "What we really want for small NS font sizes (12 or below) is the next larger existing font, not a built-in knowledge here of what exists.")
+
+    (* ;; "Returns size that we would prefer to see the font of requested family, size, face, extension.  Used to make bigger ns display fonts than you would get by default.  Don't do it for small screens, as on DOS and laptops.")
+
+    (if (NOT (FIXP SIZE))
+        then                                                 (* ; "Could be *")
+             SIZE
+      elseif (AND (CL:MEMBER EXTENSION DISPLAYFONTEXTENSIONS :TEST 'STRING-EQUAL)
+                  (COND
+                     (*SMALLSCREEN* (CL:UNLESS (CL:MEMBER FAMILY NSFONTFAMILIES :TEST 'STRING-EQUAL)
+                                                             (* ; 
+                                                             " Small screen, shrink non-NS fonts ")
+                                        (SELECTQ SIZE
+                                            (12 10)
+                                            (10 8)
+                                            (8 6)
+                                            NIL)))
+                     ((CL:MEMBER FAMILY NSFONTFAMILIES :TEST 'STRING-EQUAL)
+                                                             (* ; "Large screen, enlarge  NS fonts")
+                      (SELECTQ (U-CASE (MKATOM FAMILY))
+                          (TERMINAL                          (* ; "14 doesn't exist, oh well.")
+                                    (CL:IF (ILEQ SIZE 10)
+                                        (IPLUS SIZE 2)
+                                        SIZE))
+                          (TITAN (SELECTQ SIZE
+                                     (6 9)
+                                     (9 10)
+                                     (10 12)
+                                     (CL:IF (ILESSP SIZE 6)
+                                         6
+                                         SIZE)))
+                          (CL:IF (ILEQ SIZE 12)
+                              (IPLUS SIZE 2)
+                              SIZE)))
+                     ((AND NIL (CL:MEMBER EXTENSION INTERPRESSFONTEXTENSIONS :TEST 'STRING-EQUAL)
+                           (STRING-EQUAL FAMILY 'SYMBOL))    (* ; 
+                            "Fake NS size on Interpress printing, even tho display fonts don't exist")
+                      10)))
+      else SIZE])
+
+(NS\FONTFILENAME
+  [LAMBDA (FAMILY SIZE FACE EXTENSION CHARACTERSET)          (* ; "Edited 15-Jan-87 15:23 by bvm:")
+    (OLD\FONTFILENAME FAMILY (NSDISPLAYSIZE FAMILY SIZE FACE EXTENSION)
+           FACE EXTENSION CHARACTERSET])
+
+(NS\FONTFILENAME.OLD
+  [LAMBDA (FAMILY SIZE FACE EXTENSION CHARACTERSET)          (* ; "Edited 15-Jan-87 15:29 by bvm:")
+    (OLD\FONTFILENAME.OLD FAMILY (NSDISPLAYSIZE FAMILY SIZE FACE EXTENSION)
+           FACE EXTENSION CHARACTERSET])
+
+(PURGENSFONTS
+  [LAMBDA (TYPES)                                            (* ; "Edited 15-Jul-2025 09:47 by rmk")
+                                                             (* ; "Edited 14-Sep-96 09:27 by rmk:")
+                                                             (* ; "Edited 14-Dec-87 14:53 by bvm:")
+
+    (* ;; "Removes current NS display fonts with sizes LEQ 12.  No need to be undoable, cache entries will be recreated on demand.")
+
+    (DECLARE (GLOBALVARS \FONTSINCORE))
+    (MAPMULTI \FONTSINCORE (FUNCTION (LAMBDA (FM S FC R TAIL)
+                                       (CL:WHEN (AND (MEMB FM NSFONTFAMILIES)
+                                                     (ILEQ S 12)
+                                                     (EQ 'DISPLAY (CAR TAIL)))
+                                              (RPLACD TAIL])
+)
+
+(RPAQ? *SMALLSCREEN* (ILESSP SCREENWIDTH 700))
+
+
+
+(* ; "VirtualKeyboard font needs adjusting so that real Classic 12 still appears")
+
+(DEFINEQ
+
+(VKBD.FIX.FONT
+  [LAMBDA (NEWFONT)                                      (* ; "Edited  9-Mar-93 14:03 by rmk:")
+                                                             (* ; "Edited  1-Jul-88 16:55 by bvm")
+
+    (* ;; "Change the VirtualKeyboard's configuration definitions to use NEWFONT (default Classic 10).  The original font is Classic 12, but with NSDISPLAYSIZES loaded, that coerces to Classic 14, so we have to fool it by setting it back a notch.")
+
+    [SETQ DEFAULTKEYBOARDDISPLAYFONT (OR NEWFONT (SETQ NEWFONT '(CLASSIC 10]
+    (for X in (LISTP (EVALV 'VKBD.CONFIGURATIONS)) do (replace (KEYBOARDCONFIGURATION
+                                                                                KEYBOARDDISPLAYFONT)
+                                                                     of X with 
+                                                                           DEFAULTKEYBOARDDISPLAYFONT
+                                                                         ])
+)
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+
+(OR (RECLOOK 'KEYBOARDCONFIGURATION)
+    (LOADDEF 'KEYBOARDCONFIGURATION 'RECORDS 'VIRTUALKEYBOARDS))
+)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(MOVD? '\FONTFILENAME 'OLD\FONTFILENAME)
+
+(MOVD 'NS\FONTFILENAME '\FONTFILENAME)
+
+(MOVD? '\FONTFILENAME.OLD 'OLD\FONTFILENAME.OLD)
+
+(MOVD 'NS\FONTFILENAME.OLD '\FONTFILENAME.OLD)
+
+(PURGENSFONTS)
+
+(VKBD.FIX.FONT)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1449 6157 (NSDISPLAYSIZE 1459 . 4789) (NS\FONTFILENAME 4791 . 5032) (
+NS\FONTFILENAME.OLD 5034 . 5283) (PURGENSFONTS 5285 . 6155)) (6301 7339 (VKBD.FIX.FONT 6311 . 7337))))
+)
+STOP

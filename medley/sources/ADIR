@@ -1,0 +1,1295 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 5-Feb-2026 10:27:45" {WMEDLEY}<sources>ADIR.;67 70247  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS INTERPRET.REM.CM)
+
+      :PREVIOUS-DATE " 1-Feb-2026 13:17:10" {WMEDLEY}<sources>ADIR.;66)
+
+
+(PRETTYCOMPRINT ADIRCOMS)
+
+(RPAQQ ADIRCOMS
+       [[COMS                                                (* ; "user-level i/o routines")
+              (FNS DELFILE FULLNAME INFILE INFILEP IOFILE OPENFILE OPENSTREAM OUTFILE OUTFILEP 
+                   RENAMEFILE SIMPLE.FINDFILE VMEMSIZE \COPYSYS \FLUSHVM \LOGOUT0)
+              (CONSTANTS (MULTIPLE.STREAMS.PER.FILE.ALLOWED T))
+              (P (MOVD? 'SIMPLE.FINDFILE 'FINDFILE NIL T)
+                 (MOVD? 'EVQ 'TRUEFILENAME)
+                 (MOVD? 'EVQ 'PSEUDOFILENAME)
+                 (MOVD? 'NILL 'PSEUDOHOSTP)
+                 (MOVD? '\GETDEVICEFROMNAME 'TRUEDEVICE))
+              (DECLARE%: DONTEVAL@LOAD DOCOPY (P 
+
+                                       (* ;; "for the benefit of the call to PATHNAMEP in OPENSTREAM.  PATHNAMEP (and pathnames) get defined much later in the loadup.")
+
+                                                 (MOVD? 'NILL 'CL:PATHNAMEP]
+        [COMS (FNS UNPACKFILENAME.STRING \UPF.DIRECTORY)
+              (DECLARE%: DONTCOPY (MACROS \UPF.EXTRACT \UPF.DIRTYPE)
+                     (CONSTANTS (FILENAMECODES (CHARCODE (%: < > / %. ; ! %')))
+                            (MINFILENAMECODE (APPLY (FUNCTION IMIN)
+                                                    FILENAMECODES))
+                            (MAXFILENAMECODE (APPLY (FUNCTION IMAX)
+                                                    FILENAMECODES]
+        (COMS (FNS UNPACKFILENAME LASTCHPOS FILENAMEFIELD FILENAMEFIELD.STRING PACKFILENAME 
+                   PACKFILENAME.STRING)
+              (DECLARE%: DONTCOPY (MACROS PACKFILENAME.ASSEMBLE))
+              (VARS \FILENAME.SYNTAX)
+              (FNS FILEDIRCASEARRAY)
+              (VARS (FILEDIRCASEARRAY (FILEDIRCASEARRAY)))
+              (GLOBALVARS \FILENAME.SYNTAX))
+        (COMS                                                (* ; "saving and restoring system state")
+              (FNS LOGOUT MAKESYS SYSOUT SAVEVM HERALD INTERPRET.REM.CM \USEREVENT)
+              (ADDVARS (AROUNDEXITFNS))
+              (INITVARS (HERALDSTRING "")
+                     (\USERNAME))
+              (GLOBALVARS HERALDSTRING USERNAME \USERNAME AROUNDEXITFNS)
+              (FNS USERNAME SETUSERNAME))
+        (LOCALVARS . T)
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY (FILES (LOADCOMP)
+                                                                FILEIO))
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS (ADDVARS (NLAMA)
+                                                                             (NLAML)
+                                                                             (LAMA 
+                                                                                  PACKFILENAME.STRING
+                                                                                   PACKFILENAME])
+
+
+
+(* ; "user-level i/o routines")
+
+(DEFINEQ
+
+(DELFILE
+  [LAMBDA (FILE)                                         (* bvm%: "23-Oct-85 11:20")
+    (AND FILE (NEQ FILE T)
+         (\DELETEFILE FILE])
+
+(FULLNAME
+  [LAMBDA (X RECOG)                                      (* rmk%: "22-AUG-83 13:33")
+    (COND
+       ((type? STREAM X)
+        (fetch (STREAM FULLNAME) of X))
+       (T (SELECTQ RECOG
+              (NIL (SETQQ RECOG OLD))
+              ((OLD OLD/NEW NEW OLDEST))
+              (\ILLEGAL.ARG RECOG))
+          (\GETFILENAME X RECOG])
+
+(INFILE
+  [LAMBDA (FILE)                                             (* ; "Edited 14-Sep-2023 22:40 by rmk")
+                                                             (* rmk%: " 3-OCT-79 14:23")
+    (INPUT (OPENSTREAM FILE 'INPUT 'OLD])
+
+(INFILEP
+  [LAMBDA (FILE)                                         (* rmk%: " 9-OCT-79 22:39")
+    (\GETFILENAME FILE 'OLD])
+
+(IOFILE
+  [LAMBDA (FILE)                                             (* ; "Edited 14-Sep-2023 22:56 by rmk")
+                                                             (* rmk%: " 5-SEP-81 13:54")
+    (OPENSTREAM FILE 'BOTH 'OLD])
+
+(OPENFILE
+  [LAMBDA (FILE ACCESS RECOG PARAMETERS OPTIONAL)            (* ; "Edited 11-May-2023 21:05 by lmm")
+                                                             (* ; "Edited 23-May-91 19:12 by jds")
+    (FULLNAME (OPENSTREAM FILE ACCESS RECOG PARAMETERS OPTIONAL])
+
+(OPENSTREAM
+  [LAMBDA (FILE ACCESS RECOG PARAMETERS OBSOLETE)       (* ; "Edited 13-Jun-2021 11:25 by rmk:")
+    (PROG (REC OLDSTREAM STREAM)
+          (SELECTQ ACCESS
+              ((INPUT OUTPUT BOTH APPEND))
+              (\ILLEGAL.ARG ACCESS))
+          (SETQ REC (SELECTQ RECOG
+                        ((EXACT NEW OLD OLD/NEW OLDEST) 
+                             RECOG)
+                        (NIL (SELECTQ ACCESS
+                                 (INPUT 'OLD)
+                                 (OUTPUT 'NEW)
+                                 'OLD/NEW))
+                        (\ILLEGAL.ARG RECOG)))
+          (if (OR (LISTP OBSOLETE)
+                      (AND PARAMETERS (NLISTP PARAMETERS)))
+              then 
+
+                    (* ;; "used to have OPENFILE/OPENSTREAM with BYTESIZE and PARAMETERS.  Now it will take PARAMETERS, and generally ignore the BYTESIZE")
+
+                    (SETQ PARAMETERS (APPEND (SELECTQ PARAMETERS
+                                                 (7 '((TYPE TEXT)))
+                                                 (8 '((TYPE BINARY)))
+                                                 NIL)
+                                            OBSOLETE)))
+          (COND
+             ((OR (EQ FILE T)
+                  (NULL FILE))
+
+              (* ;; "Handle T and NIL separately, cause they can return the terminal streams, for which the search isn't necessary and the \ADDOFD shouldn't be done.")
+
+              (SETQ STREAM (\GETSTREAM FILE ACCESS))
+              (\DO.PARAMS.AT.OPEN STREAM ACCESS PARAMETERS)
+              (RETURN STREAM)))
+
+     (* ;; "Explicitly test for PATHNAMEP, as PATHNAMEP will have a NILL def early in the loadup, and the tests in \CONVERT-PATHNAME won't break anything")
+
+     (* ;; "Pavel changed a call to (PATHNAMEP FILE) into (TYPEP FILE `PATHNAME) because PATHNAMEP didn't have a NILL defn early in the loadup and TYPEP has an optimizer on it that compiles away the call to TYPEP which also has no defn early in the loadup.")
+
+     (* ;; "Pavel also added the call to MKSTRING below as a temporary hack to get around the fact that the Interlisp string functions can't yet handle Common Lisp simple-strings.")
+
+          (if (TYPEP FILE 'PATHNAME)
+              then (SETQ FILE (\CONVERT-PATHNAME FILE)))
+
+     (* ;; "We open the file before looking to see whether it is already open.  This guarantees that we acquire the opening rights at the time we lookup the name.  We then check to see if it is currently open in Lisp.  If it is, we return the previous stream, which has the file's current state.  ")
+
+     (* ;; "There are still potential problems: First, an interrupt can happen while we are doing the search which causes the file to be deleted or re-opened beneath us, BEFORE it gets added to \OPENFILES.  Second, a network device might not allow multiple openings of the file, even by the same guy with the same mode.")
+
+          (SETQ STREAM (\OPENFILE FILE ACCESS REC PARAMETERS))
+          (COND
+             [[AND (NOT MULTIPLE.STREAMS.PER.FILE.ALLOWED)
+                   (SETQ OLDSTREAM (\SEARCHOPENFILES (fetch (STREAM FULLNAME) of STREAM]
+
+              (* ;; "There is already a stream open on the file.  Check that there is no conflict.  Eventually all this registration belongs in the device, so that we can have multiple streams open per file")
+
+              (COND
+                 ((AND (EQ ACCESS 'INPUT)
+                       (EQ (fetch (STREAM ACCESS) of OLDSTREAM)
+                           'INPUT))                          (* ; 
+    "Dispose of the newly-obtained stream, This might be a noop, but a network device (LEAF) cares")
+                  (OR (EQ STREAM OLDSTREAM)
+                      (\CLOSEFILE STREAM))
+                  (\DO.PARAMS.AT.OPEN OLDSTREAM ACCESS PARAMETERS)
+                                                             (* ; "Do parameters on the old stream")
+                  (RETURN OLDSTREAM))
+                 (T (LISPERROR "FILE WON'T OPEN" FILE]
+             (T (AND (NOT MULTIPLE.STREAMS.PER.FILE.ALLOWED)
+                     (\ADDOFD STREAM))                       (* ; 
+                                                       "Parameters done on new stream by \OPENFILE")
+                (RETURN STREAM])
+
+(OUTFILE
+  [LAMBDA (FILE)                                             (* ; "Edited 13-Sep-2023 17:59 by rmk")
+                                                             (* rmk%: " 3-OCT-79 14:24")
+    (OUTPUT (OPENSTREAM FILE 'OUTPUT 'NEW])
+
+(OUTFILEP
+  [LAMBDA (FILE)                                         (* rmk%: " 9-OCT-79 22:39")
+    (\GETFILENAME FILE 'NEW])
+
+(RENAMEFILE
+  [LAMBDA (OLDFILE NEWFILE)                              (* hdj " 4-Sep-86 16:56")
+    (SETQ OLDFILE (\CONVERT-PATHNAME OLDFILE))
+    (SETQ NEWFILE (\CONVERT-PATHNAME NEWFILE))
+    (AND OLDFILE NEWFILE (NEQ OLDFILE T)
+         (NEQ NEWFILE T)
+         (\RENAMEFILE OLDFILE NEWFILE])
+
+(SIMPLE.FINDFILE
+  [LAMBDA (FILE DUMMY DIRLST)                            (* bvm%: "23-Oct-85 11:22")
+    (OR (for DIR in DIRLST when (SETQ $$VAL (INFILEP (PACKFILENAME.STRING
+                                                                      'DIRECTORY DIR 'BODY FILE)))
+           do (RETURN $$VAL))
+        (AND (NOT (MEMB NIL DIRLST))
+             (INFILEP FILE])
+
+(VMEMSIZE
+  [LAMBDA NIL                                            (* bvm%: " 1-NOV-82 16:44")
+    (fetch (IFPAGE NActivePages) of \InterfacePage])
+
+(\COPYSYS
+  [LAMBDA (FILE SYSNAME DONTSAVE)                            (* ; "Edited 18-Dec-2024 13:21 by rmk")
+                                                             (* ; "Edited 14-Sep-2023 23:19 by rmk")
+                                                             (* ; "Edited  3-Jul-2023 19:21 by rmk")
+                                                             (* ; "Edited  1-Jul-2023 12:34 by rmk")
+                                                             (* ; "Edited 29-Jun-2023 11:41 by rmk")
+                                                             (* ; "Edited 31-Oct-2022 23:49 by rmk")
+                                                           (* ; "Edited 16-Mar-2021 19:46 by larry")
+    (PROG (TEMPNAME VAL TARGETFILE TARGETHOST PSEUDOHOSTP)
+      RETRY
+          
+
+     (* ;; "RMK:  Get the full target name, including version in particular for DSK, at the outset so we know what the RENAMEFILE will do and we can return that value.")
+
+     (* ;; "We try to make the temp file on the same device, so that the RENAMEFILE (hopefully) won't do a copy. ")
+
+     (* ;; "The reason for all this fooling around is because \FLUSHVM doesn't like version numbers.")
+
+     (* ;; "")
+
+     (* ;; "Perhaps we should also check the value of RENAMEFILE to make sure it succeeded?")
+
+          (SETQ FILE (OUTFILEP (PACKFILENAME.STRING 'BODY FILE 'BODY "WORK.SYSOUT" 'BODY 
+                                      \CONNECTED.DIRECTORY)))
+          (SETQ PSEUDOHOSTP (PSEUDOHOSTP FILE))              (* ; 
+                                                   "In order to return the expected name at the end.")
+          (SETQ TARGETFILE (TRUEFILENAME FILE))
+          [SELECTQ [SETQ TARGETHOST (U-CASE (FILENAMEFIELD TARGETFILE 'HOST]
+              (DSK [SETQ TEMPNAME (PACKFILENAME.STRING 'HOST TARGETHOST 'NAME 'tmp 'EXTENSION
+                                         'SYSOUT
+                                         'BODY
+                                         (\UFS.RECOGNIZE.FILE TARGETFILE 'NON (\GETDEVICEFROMNAME
+                                                                               TARGETHOST]
+                   (SETQ VAL (\FLUSHVM TEMPNAME)))
+              (UNIX [SETQ TEMPNAME (CONCAT "{" TARGETHOST "}" (\UFS.RECOGNIZE.FILE TARGETFILE
+                                                                     'NON
+                                                                     (\GETDEVICEFROMNAME TARGETHOST]
+                                                             (* ; "\DOFLUSHVM ")
+                    (SETQ VAL (\FLUSHVM TEMPNAME)))
+              (PROGN (SETQ VAL (\FLUSHVM))
+                     (LET ((LDEDEST (UNIX-GETENV "LDEDESTSYSOUT")))
+                                                             (* ; 
+  "\FLUSHVM saves image to  Unix enviroment var  or lisp.virtualmem.  LDEDEST is assumed to be DSK??")
+                          (SETQ TEMPNAME (COPYFILE (COND
+                                                      (LDEDEST (CONCAT "{DSK}" LDEDEST))
+                                                      (T "{DSK}~/lisp.virtualmem"))
+                                                TARGETFILE]
+          (COND
+             ((NULL VAL)                                     (* ; "Continuing in the current image")
+              (CL:WHEN TARGETFILE (RENAMEFILE TEMPNAME TARGETFILE))
+              (\DAYTIME0 \LASTUSERACTION)
+              (RETURN (CL:IF PSEUDOHOSTP
+                          (PSEUDOFILENAME TARGETFILE)
+                          TARGETFILE)))
+             ((AND (SMALLP VAL)
+                   (IGREATERP 0 VAL))                        (* ; 
+                                                             "Error occurred while making sysout.")
+              (LISPERROR (IMINUS VAL)
+                     TEMPNAME)
+              (GO RETRY))
+             (T                                              (* ; "Restarting sysout")
+                (\CLEARSYSBUF T)                             (* ; "Get rid of any spurious typeahead")
+                (\RESETKEYBOARD)                             (* ; "Enable keyhandler")
+                (RETURN (LIST (OR FILE TEMPNAME])
+
+(\FLUSHVM
+  [LAMBDA (MAIKO.SYSOUTFILE)                           (* ; "Edited 16-Mar-2021 10:59 by larry")
+                                                            (* ; "Edited  6-Jan-89 19:23 by Hayata")
+
+    (* ;; 
+  "Writes out all dirty pages to vmem, making it consistent.  Returns NIL now, T  on restart")
+
+    (UNINTERRUPTABLY
+        (PROG NIL
+              (SELECTQ (\MISCAPPLY* (FUNCTION \DOFLUSHVM)
+                              MAIKO.SYSOUTFILE)
+                  (NIL (RETURN NIL))
+                  (1 (ERROR "Can not find sysout file"))
+                  (2 (ERROR "FILE-SYSTEM-RESOURCES-EXCEEDED"))
+                  (3 (ERROR "Can not open sysout file"))
+                  (4 (ERROR "Can not seek sysout file"))
+                  (5 (ERROR "Can not write sysout file"))
+                  (6 (ERROR "Connection timed out"))
+                  NIL)
+              (SETQ \DOFAULTINIT T)
+              (\CONTEXTSWITCH \FAULTFXP)
+              (for VAR in \SYSTEMCACHEVARS do (SET VAR NIL))
+              (RETURN T)))])
+
+(\LOGOUT0
+  [LAMBDA (FAST STATUS)                                   (* ; "Edited 20-Jan-2025 13:34 by briggs")
+                                                           (* ; "Edited 21-Mar-2021 21:13 by larry")
+    (OR (AND (NOT FAST)
+             (\FLUSHVM))
+        (SUBRCALL LISPFINISH FAST STATUS])
+)
+(DECLARE%: EVAL@COMPILE 
+
+(RPAQQ MULTIPLE.STREAMS.PER.FILE.ALLOWED T)
+
+
+(CONSTANTS (MULTIPLE.STREAMS.PER.FILE.ALLOWED T))
+)
+
+(MOVD? 'SIMPLE.FINDFILE 'FINDFILE NIL T)
+
+(MOVD? 'EVQ 'TRUEFILENAME)
+
+(MOVD? 'EVQ 'PSEUDOFILENAME)
+
+(MOVD? 'NILL 'PSEUDOHOSTP)
+
+(MOVD? '\GETDEVICEFROMNAME 'TRUEDEVICE)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+
+(* ;; "for the benefit of the call to PATHNAMEP in OPENSTREAM.  PATHNAMEP (and pathnames) get defined much later in the loadup.")
+
+
+(MOVD? 'NILL 'CL:PATHNAMEP)
+)
+(DEFINEQ
+
+(UNPACKFILENAME.STRING
+  [LAMBDA (FILE ONEFIELDFLG DIRFLG OSTYPE PACKFLG CLFLG)     (* ; "Edited 11-May-2024 21:23 by rmk")
+                                                             (* ; "Edited  4-May-2024 12:45 by rmk")
+                                                             (* ; "Edited  9-Mar-2024 10:23 by rmk")
+                                                             (* ; "Edited 13-Nov-2023 20:28 by rmk")
+                                                             (* ; "Edited 28-Apr-2022 11:40 by rmk")
+                                                             (* ; "Edited 24-Apr-2022 14:11 by rmk")
+
+    (* ;; "")
+
+    (* ;; 
+    "Given a string or atom  representation of a file name, unpack it into its component parts.")
+
+    (* ;; "From the front, the host and device are unmistakable:")
+
+    (* ;; "     host is marked with  { } [ ] or ( ); if no closer, then the whole thing is host")
+
+    (* ;; "     device follows host until first colon; no device if directory bracket comes first  (originally:  Only / or > could be in the device")
+
+    (* ;; "Fom the back, version and extension are unmistakable:")
+
+    (* ;; "     version is preceded by last ;  Version can't contain directory brackets  (but can contain dots??)")
+
+    (* ;; "     extension is preceded by last . (not following a version ;)")
+
+    (* ;; "Then the directory and name fight it out in the middle:")
+
+    (* ;; 
+    "     If there is < or / anywhere else but no closing / or >, then the whole thing is a name  ")
+
+    (* ;; 
+    "     If it begins with < or / but  no closing / or >, then directory is < and the rest is name")
+
+    (* ;; "")
+
+    (* ;; "     If there is at least one / or > then the last one ends the directory, anything before is possibly a relative or subdirectory.  Anything after is a name")
+
+    (* ;; "              (Rationale:  Those are not sub-directory brackets)")
+
+    (* ;; 
+    "Leading < duplicates  are discarded.  But internal  << duplicates are retained (abc<<xyz) ")
+
+    (* ;; "")
+
+    (* ;; "Strategy:")
+
+    (* ;; "Peel off the host, since that may control a later pattern.  Then 2 phases:  A single left-to-right parse of the string to find the component positions, and a separate phase to assemble the value. ")
+
+    (* ;; 
+ "The component positions include the identifying punctuation marks,  those are stripped at the end.")
+
+    (* ;; "")
+
+    (* ;; "These coercions were formerly in FILENAMEFIELD and FILENAMEFIELD.STRING.  But they presumably should work everywhere.")
+
+    (SELECTQ ONEFIELDFLG
+        (STRUCTURE (SETQ ONEFIELDFLG 'DEVICE))
+        (GENERATION (SETQ ONEFIELDFLG 'VERSION))
+        NIL)
+    (PROG NIL
+          (COND
+             ((NULL FILE)
+              (RETURN NIL))
+             ((OR (STRINGP FILE)
+                  (LITATOM FILE)))
+             ((NUMBERP FILE)                                 (* ; 
+                                                            "Extraction is simpler if string pointer")
+              (SETQ FILE (MKSTRING FILE)))
+             ((TYPEP FILE 'PATHNAME)
+              (RETURN (UNPACKPATHNAME.STRING FILE ONEFIELDFLG DIRFLG PACKFLG)))
+             [(STREAMP FILE)                                 (* ; 
+                                                 "For streams, use full name.  If anonymous, fake it")
+              (SETQ FILE (MKSTRING (OR (ffetch FULLFILENAME of FILE)
+                                       (RETURN (CL:IF ONEFIELDFLG
+                                                   (AND (EQ ONEFIELDFLG 'NAME)
+                                                        FILE)
+                                                   (LIST 'NAME FILE))]
+             (T (\ILLEGAL.ARG FILE)))
+          (CL:WHEN (EQ (NCHARS FILE)
+                       0)
+                 (RETURN NIL))
+
+     (* ;; 
+ "Parse the string to find marker positions. The format (parens mean optional, [ ] group, | disjoins")
+
+     (* ;; "           ({host})  (device :)  ( ([<|>])  (directory >) )   (name)  (. (extension))   (; (version))")
+
+     (* ;; "      where:  if the directory field begins with < or > but doesn't end later in >, directory is the < or >")
+
+     (* ;; 
+ "                      name doesn't contain <, >, or ;,    May begin with . (differs from original)")
+
+     (* ;; "                      extension doesn't contain . and version doesn't contain ")
+
+     (* ;; "")
+
+     (* ;; "NOTE: We use FILE's block coorinate system for all markers.")
+
+          (RETURN
+           (FOR C HOST HOSTSTART HOSTEND HOSTENDCHAR STARTPOS DEVICESTART DEVICEEND DIRSTART DIREND 
+                DIRBRKSTART DIRBRKEND DIRDIRTY NAMESTART NAMEEND EXTENSIONSTART EXTENSIONEND 
+                VERSIONSTART VERSIONEND INPNAME FILE
+              FIRST 
+                    (* ;; "Host: { for Medley, [ for some arpanet, ( proposed for Xerox.  If the host doesn't end its the whole string")
+
+                    (CL:WHEN [SETQ HOSTENDCHAR (CADR (ASSOC (\GETBASECHAR $$FATP $$BASE $$OFFSET)
+                                                            (CHARCODE (({ })
+                                                                       (%( %))
+                                                                       (%[ %]]
+                        (SETQ HOSTSTART $$OFFSET)
+                        [SETQ HOSTEND (FOR I CH FROM (ADD1 HOSTSTART) TO $$END
+                                         DO                  (* ; "Skip the opening bracket")
+                                            (SETQ CH (\GETBASECHAR $$FATP $$BASE I))
+                                            (IF (EQ CH HOSTENDCHAR)
+                                                THEN (RETURN I)
+                                              ELSEIF (EQ CH (CHARCODE %'))
+                                                THEN (ADD I 1)) FINALLY 
+
+                                                                      (* ;; 
+                                                               "The %"bracket%" is just past the end")
+
+                                                                      (RETURN (ADD1 $$END]
+                        (SETQ HOST (\UPF.EXTRACT (ADD1 HOSTSTART)
+                                          (SUB1 HOSTEND)))   (* ; "Needed for GETHOSTINFO")
+                        (CL:WHEN (IGEQ HOSTEND $$END)        (* ; "Only a host")
+                            (GO RETURNVALUE))
+                        (SETQ $$OFFSET (ADD1 HOSTEND))) 
+
+                    (* ;; "")
+
+                    (* ;; "STARTPOS starts after host, is updated after device for later fields")
+
+                    (SETQ STARTPOS $$OFFSET) WHEN (AND (IGEQ C MINFILENAMECODE)
+                                                       (ILEQ C MAXFILENAMECODE))
+              DO 
+                 (* ;; "Test interval because SELCHARQ doesn't compile as a dispatch.")
+
+                 COERCE
+                 (SELCHARQ C
+                      (%:                                    (* ; 
+                                             "Device ends on the first colon before any other marker")
+                          (CL:UNLESS (OR DEVICESTART DIRSTART NAMESTART EXTENSIONSTART VERSIONSTART)
+                              (SETQ DEVICESTART STARTPOS)
+                              (SETQ DEVICEEND $$OFFSET)
+                              (SETQ STARTPOS (ADD1 $$OFFSET))))
+                      (< (CL:UNLESS (OR EXTENSIONSTART VERSIONSTART)
+                                                             (* ; 
+                                 "Ordinary character if already started directory or in an extension")
+                             (IF DIRSTART
+                                 THEN 
+                                      (* ;; "DIRECTORY advances over initial duplicate brackets (but DIRSTART could be a subdirectory character instead)")
+
+                                      (SETQ C (CHARCODE >))
+                                      (GO COERCE)
+                                      (IF (EQ DIRSTART (SUB1 $$OFFSET))
+                                          THEN (CL:WHEN (FMEMB (\GETBASECHAR $$FATP $$BASE
+                                                                      (SUB1 $$OFFSET))
+                                                               (CHARCODE (> / <)))
+                                                      (SETQ DIRSTART $$OFFSET))
+                                        ELSE 
+                                             (* ;; 
+                              "< in the middle: DIRTY flushes it, alternative is (\ILLEGAL.ARG FILE)")
+
+                                             (SETQ DIRDIRTY T))
+                               ELSE (SETQ DIRSTART STARTPOS) 
+
+                                    (* ;; 
+                                "DIRSTART updates for duplicates, but NAME may want all the brackets")
+
+                                    (SETQ DIRBRKSTART STARTPOS))
+
+                             (* ;; "Borrow DIREND code below if we don't want < after the last > to show up as the first character of the name.")
+
+                             [SETQ NAMESTART (SETQ NAMEEND (SETQ EXTENSIONSTART (SETQ VERSIONSTART 
+                                                                                 NIL]))
+                      ((> /)                                 (* ; "Preceding string is for sure a directory that maybe ends here (unless we're already in an extension")
+                           (IF DIRSTART
+                               THEN 
+
+                                 (* ;; "> and / in the middle or end of a directory are essentially equivalent:  the directory is dirty unless there is exactly one >.  A sequence >//>/ reduces at output to a singleton >.  It is also dirty if a single occurence is a slash--that is also canonicalized to a single >.")
+
+                                    (* ;; "It is not clear yet whether < in the middle should be treated in the same way, or whether that should cause an error.")
+
+                                    (IF (EQ DIRSTART (SUB1 $$OFFSET))
+                                        THEN (CL:WHEN (FMEMB (\GETBASECHAR $$FATP $$BASE (SUB1 
+                                                                                             $$OFFSET
+                                                                                               ))
+                                                             (CHARCODE (> / <)))
+
+                                                 (* ;; 
+           "Advance over initial duplicate brackets (but DIRSTART could be a subdirectory character)")
+
+                                                 (SETQ DIRSTART $$OFFSET))
+                                      ELSEIF (OR (FMEMB (\GETBASECHAR $$FATP $$BASE (SUB1 $$OFFSET))
+                                                        (CHARCODE (> /)))
+                                                 (EQ C (CHARCODE /)))
+                                        THEN 
+                                             (* ;; "Either extending a sequence, or a single slash.")
+
+                                             (SETQ DIRDIRTY T))
+                             ELSE (SETQ DIRSTART STARTPOS)
+                                  (SETQ DIRBRKSTART STARTPOS))
+                           (IF DIREND
+                               THEN (CL:UNLESS (EQ DIREND (SUB1 $$OFFSET))
+                                        (CL:WHEN [OR (EQ (\GETBASECHAR $$FATP $$BASE DIREND)
+                                                         (CHARCODE /))
+                                                     (FMEMB (\GETBASECHAR $$FATP $$BASE (ADD1 DIREND)
+                                                                   )
+                                                            (CHARCODE (> /]
+
+                                            (* ;; 
+                "Previous end may have started an internal duplicate run that needs to be cleaned up")
+
+                                            (SETQ DIRDIRTY T))
+                                        (SETQ DIREND $$OFFSET))
+                             ELSE 
+                                  (* ;; 
+                 "If this is the last bracket, it will be thrown out so it doesn't matter if it is /")
+
+                                  (SETQ DIREND $$OFFSET))
+
+                           (* ;; "NAME keeps duplicates, may want all the brackets.")
+
+                           (SETQ DIRBRKEND $$OFFSET)
+
+                           (* ;; "Toss all prior guesses")
+
+                           [SETQ NAMESTART (SETQ NAMEEND (SETQ EXTENSIONSTART (SETQ VERSIONSTART NIL])
+                      (%. (CL:UNLESS NAMESTART
+                              (SETQ NAMESTART (IF DIREND
+                                                  THEN (ADD1 DIRBRKEND)
+                                                ELSE STARTPOS)))
+                          (CL:UNLESS (EQ NAMESTART $$OFFSET) (* ; 
+                                                            "Allow  . in first NAME position :  .git")
+                              (SETQ NAMEEND (SUB1 $$OFFSET))
+                              (SETQ EXTENSIONSTART $$OFFSET)
+                              (SETQ EXTENSIONEND NIL)))
+                      (; (CL:WHEN VERSIONSTART               (* ; "What about x;1;2")
+
+                             (* ;; "This gives old behavior is NAME=x, VERSION=1;2")
+
+                             (* ;; 
+        "If take this out:  NAME=x;1, VERSION=2.  I.e. move the previous version to an earlier field")
+
+                             (GO $$ITERATE))
+
+                         (* ;; "Starting a version, close up preceders")
+
+                         (CL:UNLESS NAMESTART                (* ; "We haven't seen a directory")
+                             (SETQ NAMESTART (IF DIREND
+                                                 THEN (ADD1 DIRBRKEND)
+                                               ELSE STARTPOS)))
+                         (CL:IF EXTENSIONSTART
+                             (SETQ EXTENSIONEND (SUB1 $$OFFSET))
+                             (SETQ NAMEEND (SUB1 $$OFFSET)))
+                         (SETQ VERSIONSTART $$OFFSET))
+                      (%' 
+                          (* ;; 
+           "Quote the next character (if there is one:  original returns empty string in this case).")
+
+                          (* ;; "But this is odd:  Shouldn't quotes be removed from our value, and reinserted by PACKFILENAME ? Do devices know about our quoting conventions? What about back-slash quoting?")
+
+                          (ADD $$OFFSET 1))
+                      (! 
+                         (* ;; "! is a Xerox IFS version marker, coerce to ;")
+
+                         (CL:WHEN (FMEMB OSTYPE '(T NIL))
+                             (SETQ OSTYPE (OR (GETHOSTINFO HOST 'OSTYPE)
+                                              'IFS)))
+                         (CL:WHEN (EQ OSTYPE 'IFS)
+                             (SETQ C (CHARCODE ;))
+                             (GO COERCE)))
+                      NIL)
+              FINALLY 
+
+                    (* ;; "Adjudicate directory and name.  Empty NAME uses DIRBRKSTART and DIRBRKEND, since names retain duplicate brackets.")
+
+                    (IF DIREND
+                        THEN 
+                             (* ;; 
+                             "NAME is squeezed between directory and extension, version, or end. ")
+
+                             (CL:UNLESS NAMESTART
+                                 (CL:WHEN (OR NAMEEND (ILESSP DIRBRKEND $$END))
+                                     (SETQ NAMESTART (ADD1 DIRBRKEND))))
+                      ELSEIF DIRSTART
+                        THEN                                 (* ; "DIR ran off the end")
+                             (IF (FMEMB (\GETBASECHAR $$FATP $$BASE DIRSTART)
+                                        (CHARCODE (< /)))
+                                 THEN (SETQ DIREND DIRSTART) (* ; "<aaa  -> DIR <  NAME aaa")
+                                      (CL:UNLESS (EQ DIRSTART $$END)
+                                          (SETQ NAMESTART (ADD1 DIRBRKSTART)))
+                               ELSE (SETQ NAMESTART DIRBRKSTART) 
+                                                             (* ; "aaaa<xxx --> NAME aaa<xxx")
+                                    (SETQ DIRSTART NIL))
+                      ELSEIF (ILEQ STARTPOS $$END)
+                        THEN 
+                             (* ;; "Host/device were not exhaustive")
+
+                             (SETQ NAMESTART STARTPOS)) 
+
+                    (* ;; "")
+
+                    (* ;; " DIRFLG is RETURN on calls (\UFSDirectoryNameP CL:USER-HOMEDIR-PATHNAME) where FILE is known to have no more than a directory, but the directory might not end with / or > (e.g. %"{DSK}/Users/kaplan%".  If we don't do something, %"kaplan%" would be seen as the NAME.  ")
+
+                    (CL:WHEN [AND (EQ DIRFLG 'RETURN)
+                                  (OR (ILESSP $$END $$OFFSET)
+                                      (NOT (FMEMB (\GETBASECHAR $$FATP $$BASE $$END)
+                                                  (CHARCODE (> / <]
+                        (SETQ DIRSTART STARTPOS)
+                        (SETQ DIREND (ADD1 $$END))
+                        (SETQ DIRDIRTY T)
+                        (SETQ NAMESTART (SETQ EXTENSIONSTART (SETQ VERSIONSTART NIL)))) 
+
+                    (* ;; 
+         "Construct the return value.  DIRFLG=FIELD on calls from FILENAMEFIELD, with a ONEFIELDFLG.")
+
+                    (* ;; "Fields are interrogated backwards so no need to reverse")
+
+                    RETURNVALUE
+                    (RETURN (FOR F FVAL
+                               INSIDE (OR ONEFIELDFLG
+                                          '(VERSION EXTENSION NAME RELATIVEDIRECTORY SUBDIRECTORY 
+                                                  DIRECTORY DEVICE HOST))
+                               WHEN (SETQ FVAL
+                                     (SELECTQ F
+                                         (HOST HOST)
+                                         (DEVICE (CL:WHEN DEVICESTART
+
+                                                     (* ;; 
+                                              "Unless CLFLG, include the colon so NIL: works as atom")
+
+                                                     (\UPF.EXTRACT DEVICESTART (CL:IF CLFLG
+                                                                                   (SUB1 DEVICEEND)
+                                                                                   DEVICEEND))))
+                                         (DIRECTORY 
+                                                    (* ;; "Subtypes move up to DIRECTORY if FIELD")
+
+                                                    (CL:WHEN [AND DIRSTART (OR (EQ 'DIRECTORY
+                                                                                   (\UPF.DIRTYPE
+                                                                                    DIRSTART))
+                                                                               (EQ DIRFLG
+                                                                                   'FIELD]
+                                                           (\UPF.DIRECTORY DIRSTART DIREND DIRDIRTY 
+                                                                  $$BASE $$FATP $$READONLY)))
+                                         ((SUBDIRECTORY RELATIVEDIRECTORY) 
+                                              (CL:WHEN (AND DIRSTART (EQ F (\UPF.DIRTYPE DIRSTART))
+                                                            (NEQ DIRFLG 'FIELD))
+                                                     (\UPF.DIRECTORY DIRSTART DIREND DIRDIRTY $$BASE
+                                                            $$FATP $$READONLY)))
+                                         (NAME (CL:WHEN NAMESTART
+                                                   (OR (\UPF.EXTRACT NAMESTART (OR NAMEEND $$END))
+                                                       "")))
+                                         (EXTENSION (CL:WHEN EXTENSIONSTART
+                                                        (OR (\UPF.EXTRACT (ADD1 EXTENSIONSTART)
+                                                                   (OR EXTENSIONEND $$END))
+                                                            "")))
+                                         (VERSION (CL:WHEN VERSIONSTART
+                                                      (OR (\UPF.EXTRACT (ADD1 VERSIONSTART)
+                                                                 $$END)
+                                                          "")))
+                                         NIL)) DO (CL:WHEN PACKFLG
+                                                      (SETQ FVAL (CL:UNLESS (EQ 0 (NCHARS FVAL))
+
+                                                                     (* ;; 
+                                                           "Empty string goes to NIL, not empty atom")
+
+                                                                     (MKATOM FVAL))))
+                                                  (CL:WHEN ONEFIELDFLG (RETURN FVAL))
+                                                  (PUSH $$VAL F FVAL])
+
+(\UPF.DIRECTORY
+  [LAMBDA (DIRSTART DIREND DIRDIRTY $$BASE $$FATP $$READONLY)(* ; "Edited 11-May-2024 18:55 by rmk")
+                                                             (* ; "Edited  6-May-2024 15:53 by rmk")
+                                                             (* ; "Edited  4-May-2024 16:25 by rmk")
+                                                             (* ; "Edited  8-Mar-2024 23:03 by rmk")
+                                                             (* ; "Edited 28-Apr-2022 09:15 by rmk")
+                                                             (* ; "Edited 27-Apr-2022 08:50 by rmk")
+                                                             (* ; "Edited 23-Apr-2022 17:09 by rmk")
+
+    (* ;; "Extract the directory field, producing <> for the empty (top-level) directory, normalizing / to < or >.")
+
+    (if (ILEQ DIREND DIRSTART)
+        then 
+             (* ;; "An empty directory field is interpreted as the top as per issue #1685:  <xy  >xy  /xy all map to <>")
+
+             (MKSTRING "<")
+      else (CL:WHEN (MEMB (\GETBASECHAR $$FATP $$BASE DIRSTART)
+                          (CHARCODE (< / >)))                (* ; "Skip leading brackets")
+               (ADD DIRSTART 1)) 
+
+           (* ;; 
+           "If DIRDIRTY, the string contained at least one / that has to be converted to < or >")
+
+           (IF DIRDIRTY
+               THEN (FOR DIROFF C DEST DESTBASE (DESTPOS _ -1) FROM DIRSTART TO DIREND
+                       FIRST (SETQ DEST (ALLOCSTRING (ADD1 (IDIFFERENCE DIREND DIRSTART))
+                                               NIL NIL $$FATP))
+                             (SETQ DESTBASE (FETCH (STRINGP BASE) OF DEST))
+                       DO (ADD DESTPOS 1)
+                          (SETQ C (\GETBASECHAR $$FATP $$BASE DIROFF))
+                          (SELCHARQ C
+                               ((> / <) 
+                                    (\PUTBASECHAR $$FATP DESTBASE DESTPOS (CHARCODE >))
+
+                                    (* ;; "Advance past duplicates")
+
+                                    (FIND I FROM (ADD1 DIROFF) TO DIREND
+                                       WHILE (FMEMB (\GETBASECHAR $$FATP $$BASE I)
+                                                    (CHARCODE (> / <))) FINALLY (SETQ DIROFF
+                                                                                 (SUB1 I))))
+                               (\PUTBASECHAR $$FATP DESTBASE DESTPOS C))
+                       FINALLY (REPLACE (STRINGP LENGTH) OF DEST WITH DESTPOS)
+                             (RETURN DEST))
+             ELSE (\UPF.EXTRACT DIRSTART (SUB1 DIREND])
+)
+(DECLARE%: DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS \UPF.EXTRACT MACRO ((STARTOFFSET ENDOFFSET)        (* ; "Substring in base coordinates")
+                              (CREATE STRINGP
+                                     OFFST _ STARTOFFSET
+                                     LENGTH _ (ADD1 (IDIFFERENCE ENDOFFSET STARTOFFSET))
+                                     BASE _ $$BASE
+                                     READONLY _ $$READONLY
+                                     FATSTRINGP _ $$FATP)))
+
+(PUTPROPS \UPF.DIRTYPE MACRO [(DIRSTART)                     (* ; "Edited 20-Apr-2022 20:14 by rmk")
+                              (SELCHARQ (\GETBASECHAR $$FATP $$BASE DIRSTART)
+                                   ((< > /)                  (* ; "Seems to match the old version")
+                                        'DIRECTORY)
+                                   (CL:IF (OR HOST DEVICESTART)
+                                       'RELATIVEDIRECTORY
+                                       'SUBDIRECTORY)])
+)
+
+(DECLARE%: EVAL@COMPILE 
+
+(RPAQ FILENAMECODES (CHARCODE (%: < > / %. ; ! %')))
+
+(RPAQ MINFILENAMECODE (APPLY (FUNCTION IMIN)
+                             FILENAMECODES))
+
+(RPAQ MAXFILENAMECODE (APPLY (FUNCTION IMAX)
+                             FILENAMECODES))
+
+
+(CONSTANTS (FILENAMECODES (CHARCODE (%: < > / %. ; ! %')))
+       (MINFILENAMECODE (APPLY (FUNCTION IMIN)
+                               FILENAMECODES))
+       (MAXFILENAMECODE (APPLY (FUNCTION IMAX)
+                               FILENAMECODES)))
+)
+)
+(DEFINEQ
+
+(UNPACKFILENAME
+  [LAMBDA (FILE ONEFIELDFLG OSTYPE)                      (* ; "Edited  6-Jan-88 13:13 by bvm:")
+    (UNPACKFILENAME.STRING FILE ONEFIELDFLG NIL OSTYPE T])
+
+(LASTCHPOS
+  [LAMBDA (CH STR START)                              (* ; "Edited 17-May-88 13:43 by MASINTER")
+    (PROG (RESULT NC)
+          (OR START (SETQ START 1))
+          (while (SETQ NC (NTHCHARCODE STR START)) do (COND
+                                                                 ((EQMEMB NC CH)
+                                                                  (SETQ RESULT START))
+                                                                 ((EQ NC (CHARCODE %'))
+                                                                  (add START 1)))
+                                                             (add START 1))
+          (RETURN RESULT])
+
+(FILENAMEFIELD
+  [LAMBDA (FILE FIELDNAME)                                   (* ; "Edited  9-Mar-2024 10:24 by rmk")
+                                                             (* ; "Edited  6-Mar-90 19:38 by nm")
+    (UNPACKFILENAME.STRING FILE FIELDNAME 'FIELD NIL T])
+
+(FILENAMEFIELD.STRING
+  [LAMBDA (FILE FIELDNAME)                                   (* ; "Edited  9-Mar-2024 10:24 by rmk")
+                                                             (* ; "Edited 26-Mar-2022 09:38 by rmk")
+                                                             (* ; "Edited  6-Mar-90 19:38 by nm")
+    (UNPACKFILENAME.STRING FILE FIELDNAME 'FIELD])
+
+(PACKFILENAME
+  [LAMBDA N                                              (* bvm%: " 5-Jul-85 15:40")
+    (COND
+       ((AND (EQ N 1)
+             (LISTP (ARG N 1)))                              (* ; "spread argument list")
+        (APPLY (FUNCTION PACKFILENAME)
+               (ARG N 1)))
+       (T (PACK (PACKFILENAME.ASSEMBLE])
+
+(PACKFILENAME.STRING
+  [LAMBDA N                                              (* bvm%: " 5-Jul-85 15:41")
+    (COND
+       ((AND (EQ N 1)
+             (LISTP (ARG N 1)))                              (* ; "spread argument list")
+        (APPLY (FUNCTION PACKFILENAME.STRING)
+               (ARG N 1)))
+       (T (CONCATLIST (PACKFILENAME.ASSEMBLE])
+)
+(DECLARE%: DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS PACKFILENAME.ASSEMBLE MACRO
+          [NIL
+           (PROG ((BLIP "")
+                  (I 1)
+                  HOST DEVICE STRUCTURE DIRECTORY SUBDIRECTORY RELATIVEDIRECTORY NAME EXTENSION 
+                  VERSION TEMPORARY PROTECTION ACCOUNT PACKLIST VAR VAL TEMP)
+                 (DECLARE (SPECVARS HOST DEVICE STRUCTURE DIRECTORY SUBDIRECTORY NAME EXTENSION 
+                                 VERSION TEMPORARY PROTECTION ACCOUNT))
+             LP  (COND
+                    ((<= I N)
+
+                     (* ;; "Grab the next field-name / value pair and fold it into the filename:")
+
+                     (COND
+                        ((LISTP (SETQ VAR (ARG N I)))
+                         (SETQ VAL (CDR VAR))
+                         (SETQ VAR (CAR VAR)))
+                        ((<= (SETQ I (ADD1 I))
+                             N)
+                         (SETQ VAL (ARG N I)))
+                        (T (SETQ VAL)))
+                     (OR (STRINGP VAL)
+                         (ATOM VAL)
+                         (EQ VAR 'BODY)
+                         (\ILLEGAL.ARG VAL))
+                     (SELECTQ VAR
+                         (BODY (MAP (UNPACKFILENAME.STRING (COND
+                                                              ((LISTP VAL)
+                                                               (PACKFILENAME.STRING VAL))
+                                                              (T VAL))
+                                           NIL
+                                           'OK)
+                                    [FUNCTION (LAMBDA (X)
+                                                (SELECTQ (CAR X)
+                                                    (HOST (OR HOST (SETQ HOST (OR (CADR X)
+                                                                                  BLIP))))
+                                                    (DEVICE (OR DEVICE (SETQ DEVICE
+                                                                        (OR (CADR X)
+                                                                            BLIP))))
+                                                    (DIRECTORY [OR DIRECTORY
+                                                                   (COND
+                                                                      (RELATIVEDIRECTORY (SETQ 
+                                                                                          DIRECTORY 
+                                                                                          BLIP))
+                                                                      (T (SETQ DIRECTORY
+                                                                          (OR (CADR X)
+                                                                              BLIP])
+                                                    (SUBDIRECTORY (OR SUBDIRECTORY
+                                                                      (SETQ SUBDIRECTORY
+                                                                       (OR (CADR X)
+                                                                           BLIP))))
+                                                    (RELATIVEDIRECTORY 
+                                                         [OR RELATIVEDIRECTORY
+                                                             (COND
+                                                                (DIRECTORY (SETQ RELATIVEDIRECTORY 
+                                                                            BLIP))
+                                                                (T (SETQ RELATIVEDIRECTORY
+                                                                    (OR (CADR X)
+                                                                        BLIP])
+                                                    (NAME (OR NAME (SETQ NAME (OR (CADR X)
+                                                                                  BLIP))))
+                                                    (EXTENSION (OR EXTENSION (SETQ EXTENSION
+                                                                              (OR (CADR X)
+                                                                                  BLIP))))
+                                                    (VERSION (OR VERSION (SETQ VERSION
+                                                                          (OR (CADR X)
+                                                                              BLIP))))
+                                                    (SHOULDNT]
+                                    (FUNCTION CDDR)))
+                         (HOST [OR HOST (SETQ HOST (COND
+                                                      (VAL (SELCHARQ (CHCON1 VAL)
+                                                                (({ %[ %() 
+                                                                     (SUBSTRING VAL 2
+                                                                            (SELCHARQ (NTHCHARCODE
+                                                                                       VAL -1)
+                                                                                 ((} %] %)) 
+                                                                                      -2)
+                                                                                 -1)))
+                                                                VAL))
+                                                      (T BLIP])
+                         ((PATHNAME DIRECTORY) 
+                              [COND
+                                 (VAL
+                                  (for X on (SETQ VAL (UNPACKFILENAME.STRING VAL NIL 'RETURN))
+                                     by (CDDR X)
+                                     do (SELECTQ (CAR X)
+                                            (HOST [COND
+                                                     ((NOT HOST)
+                                                      (SETQ HOST (OR (CADR X)
+                                                                     BLIP])
+                                            (DEVICE [COND
+                                                       ((NOT DEVICE)
+                                                        (SETQ DEVICE (OR (CADR X)
+                                                                         BLIP])
+                                            (SUBDIRECTORY [OR DIRECTORY
+                                                              (COND
+                                                                 (RELATIVEDIRECTORY (SETQ DIRECTORY 
+                                                                                     BLIP))
+                                                                 (T (SETQ DIRECTORY
+                                                                     (OR (CADR X)
+                                                                         BLIP])
+                                            (RELATIVEDIRECTORY 
+
+                                 (* ;; "This used to set RELATIVEDIRECTORY to BLIP if DIRECTORY was already specified.  It really should act as a subdirectory in that case?  JDS")
+
+                                                 (OR RELATIVEDIRECTORY (SETQ RELATIVEDIRECTORY
+                                                                        (OR (CADR X)
+                                                                            BLIP))))
+                                            (DIRECTORY [OR DIRECTORY (COND
+                                                                        (RELATIVEDIRECTORY
+                                                                         (SETQ DIRECTORY BLIP))
+                                                                        (T (SETQ DIRECTORY
+                                                                            (OR (CADR X)
+                                                                                BLIP])
+                                            (ERROR "Illegal field in DIRECTORY slot" VAL)))
+                                  (for X on VAL by (CDDR X)
+                                     do (SELECTQ (CAR X)
+                                            (HOST (OR DEVICE (SETQ DEVICE BLIP))
+                                                  (OR DIRECTORY (SETQ DIRECTORY BLIP)))
+                                            (DEVICE (OR DIRECTORY (SETQ DIRECTORY BLIP)))
+                                            NIL)))
+                                 (T (OR DIRECTORY (SETQ DIRECTORY BLIP])
+                         (SUBDIRECTORY (OR SUBDIRECTORY (SETQ SUBDIRECTORY (OR VAL BLIP))))
+                         (RELATIVEDIRECTORY 
+
+                                 (* ;; "This used to set RELATIVEDIRECTORY to BLIP if DIRECTORY was already specified.  It really should act as a subdirectory in that case?  JDS")
+
+                              (OR RELATIVEDIRECTORY (SETQ RELATIVEDIRECTORY (OR VAL BLIP))))
+                         (DEVICE (OR DEVICE (SETQ DEVICE (OR VAL BLIP))))
+                         (NAME (OR NAME (SETQ NAME (OR VAL BLIP))))
+                         (EXTENSION (OR EXTENSION (SETQ EXTENSION (OR VAL BLIP))))
+                         (VERSION (OR VERSION (SETQ VERSION (OR VAL BLIP))))
+                         (TEMPORARY (OR TEMPORARY (SETQ TEMPORARY (OR VAL BLIP))))
+                         (\ILLEGAL.ARG VAR))
+                     (SETQ I (ADD1 I))
+                     (GO LP)))
+                 (COND
+                    ((EQ HOST BLIP)
+                     (SETQ HOST NIL)))
+                 (COND
+                    ((EQ DEVICE BLIP)
+                     (SETQ DEVICE NIL)))
+                 (COND
+                    ((EQ DIRECTORY BLIP)
+                     (SETQ DIRECTORY NIL)))
+                 [COND
+                    ((EQ SUBDIRECTORY BLIP)
+                     (SETQ SUBDIRECTORY NIL))
+                    ((AND NIL SUBDIRECTORY)
+                     (COND
+                        ((AND (NULL DIRECTORY)
+                              (OR HOST DEVICE))
+                         (SETQ DIRECTORY SUBDIRECTORY)
+                         (SETQ SUBDIRECTORY NIL]
+                 (COND
+                    ((EQ RELATIVEDIRECTORY BLIP)
+                     (SETQ RELATIVEDIRECTORY NIL)))
+                 (RETURN (NCONC (AND HOST (LIST "{" HOST "}"))
+                                [AND DEVICE (COND
+                                               ((AND (SETQ TEMP (LASTCHPOS (CHARCODE %:)
+                                                                       DEVICE 1))
+                                                     (EQ TEMP (NCHARS DEVICE)))
+                                                (LIST DEVICE))
+                                               (T (LIST DEVICE ":"]
+                                [COND
+                                   (DIRECTORY (COND
+                                                 [[OR (STREQUAL DIRECTORY "<")
+                                                      (AND (SETQ TEMP (LASTCHPOS (CHARCODE
+                                                                                  (> /))
+                                                                             DIRECTORY 1))
+                                                           (EQ TEMP (NCHARS DIRECTORY]
+                                                  (COND
+                                                     ((EQMEMB (NTHCHARCODE DIRECTORY 1)
+                                                             (CHARCODE (< /)))
+                                                      (LIST DIRECTORY))
+                                                     (T (LIST (CL:FIRST \FILENAME.SYNTAX)
+                                                              DIRECTORY]
+                                                 (T (LIST (CL:FIRST \FILENAME.SYNTAX)
+                                                          DIRECTORY
+                                                          (CL:SECOND \FILENAME.SYNTAX]
+                                [COND
+                                   (RELATIVEDIRECTORY (COND
+                                                         ((AND (SETQ TEMP (LASTCHPOS
+                                                                           (CHARCODE (> /))
+                                                                           RELATIVEDIRECTORY 1))
+                                                               (EQ TEMP (NCHARS RELATIVEDIRECTORY)))
+                                                          (LIST RELATIVEDIRECTORY))
+                                                         (T (LIST RELATIVEDIRECTORY (CL:SECOND 
+                                                                                     \FILENAME.SYNTAX
+                                                                                           ]
+                                [COND
+                                   (SUBDIRECTORY (LIST SUBDIRECTORY (CL:SECOND \FILENAME.SYNTAX]
+                                (AND NAME (NEQ NAME BLIP)
+                                     (LIST NAME))
+                                (AND (OR (AND EXTENSION (NEQ EXTENSION BLIP))
+                                         (AND VERSION (NEQ VERSION BLIP)))
+                                     (LIST (COND
+                                              ((AND EXTENSION (EQ (CHCON1 EXTENSION)
+                                                                  (CHARCODE %.)))
+                                               BLIP)
+                                              (T '%.))
+                                           (OR EXTENSION BLIP)))
+                                (AND VERSION (NEQ VERSION BLIP)
+                                     (LIST (CL:THIRD \FILENAME.SYNTAX)
+                                           (COND
+                                              ((FIXP VERSION)
+                                               VERSION)
+                                              (T (SELCHARQ (CHCON1 VERSION)
+                                                      ((%. ! ;) 
+                                                           (SUBSTRING VERSION 2 -1))
+                                                      VERSION])
+)
+)
+
+(RPAQQ \FILENAME.SYNTAX ("<" ">" ";"))
+(DEFINEQ
+
+(FILEDIRCASEARRAY
+  [LAMBDA NIL                                                (* ; "Edited  8-Jan-2022 20:15 by rmk")
+
+    (* ;; "Returns a case array suitable for case insensitive directory matching:  <, >, and / all map together in any position.  Presumably there are other well-formedness conditions that put < and > only in their proper positions.")
+                                                             (* ; "Edited  8-Jan-2022 20:12 by rmk")
+    (for I (CA _ (CASEARRAY)) from (CHARCODE a) to (CHARCODE z)
+       do [SETCASEARRAY CA I (IDIFFERENCE I (CONSTANT (IDIFFERENCE (CHARCODE a)
+                                                             (CHARCODE A]
+       finally (SETCASEARRAY CA (CHARCODE <)
+                      (CHARCODE /))
+             (SETCASEARRAY CA (CHARCODE >)
+                    (CHARCODE /))
+             (RETURN CA])
+)
+
+(RPAQ FILEDIRCASEARRAY (FILEDIRCASEARRAY))
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS \FILENAME.SYNTAX)
+)
+
+
+
+(* ; "saving and restoring system state")
+
+(DEFINEQ
+
+(LOGOUT
+  [LAMBDA (FAST STATUS)                                   (* ; "Edited 20-Jan-2025 13:36 by briggs")
+                                                           (* ; "Edited 15-Mar-2021 11:53 by larry")
+    (\USEREVENT 'BEFORELOGOUT)
+    (OR (EQ FAST T)
+        (\FLUSHVMOK? 'LOGOUT))                               (* ; 
+                                              "Check that we have a vmem file before allowing LOGOUT")
+    (\PROCESS.BEFORE.LOGOUT)
+    (\DEVICEEVENT 'BEFORELOGOUT)
+    (\SETTOTALTIME)                                          (* ; 
+                                           "update the total time that this sysout has been running.")
+    (\LOGOUT0 FAST STATUS)
+
+    (* ;; "Must re-establish the state of devices and of previously open files that might have been modified at the EXEC.")
+
+    (\RESETKEYBOARD)
+    (\DEVICEEVENT 'AFTERLOGOUT)
+    (\OPENLINEBUF)
+    (\PROCESS.AFTER.EXIT 'AFTERLOGOUT)
+    (\USEREVENT 'AFTERLOGOUT)
+    (INTERPRET.REM.CM)
+    NIL])
+
+(MAKESYS
+  [LAMBDA (FILE NAME)
+    (DECLARE (GLOBALVARS \MISCSTATS)
+           (SPECVARS FILE NAME))                       (* ; "Edited 16-Mar-2021 19:36 by larry")
+                                                             (* ; "Edited 28-Jul-88 18:16 by drc:")
+    (\USEREVENT 'BEFOREMAKESYS)
+    (HERALD (CONCAT (OR NAME (CL:STRING-CAPITALIZE MAKESYSNAME))
+                       " "
+                       (SUBSTRING (SETQ MAKESYSDATE (DATE))
+                              1 11)
+                       " ..."))
+    (\DEVICEEVENT 'BEFOREMAKESYS)
+
+    (* ;; "RMK:  make sysout on a temp file, then rename it in order to get version numbers LMM unneded -- OUTFILEP assivvns a new version number")
+
+    (LET ((NEWFILE (\COPYSYS FILE)))
+         (COND
+            ((NLISTP NEWFILE)                                (* ; 
+                               "Coming back from doing the MAKESYS, so just set up to keep going.,")
+             (\DEVICEEVENT 'AFTERDOMAKESYS)
+             (\USEREVENT 'AFTERDOMAKESYS)
+             FILE)
+            (T                                               (* ; 
+                                       "Coming back in the MAKESYS'd sysout, so restart the world.")
+               (\DEVICEEVENT 'AFTERMAKESYS)
+               (\PROCESS.AFTER.EXIT 'AFTERMAKESYS)
+               (PRIN1 HERALDSTRING T)
+               (\USEREVENT 'AFTERMAKESYS)
+               (INTERPRET.REM.CM)                        (* ; 
+                                                           "Run the commands in the file REM.CM")
+               (RESET])
+
+(SYSOUT
+  [LAMBDA (FILE)                                       (* ; "Edited 16-Mar-2021 19:34 by larry")
+                                                             (* hdj "29-Sep-86 12:14")
+    (DECLARE (GLOBALVARS \MISCSTATS)
+           (SPECVARS FILE))                                  (* ; 
+                                           "FILE is special so that BEFORESYSOUTFORMS can alter it")
+    (\USEREVENT 'BEFORESYSOUT)
+    (\DEVICEEVENT 'BEFORESYSOUT)
+
+    (* ;; 
+  "RMK:  Fix it so that sysouts are versioned.  Temp file goes to same place as eventual sysout.")
+
+    (LET ((TOTALTIMESAVE (fetch TOTALTIME of \MISCSTATS))
+          NEWFILE)                                           (* ; 
+                    "update the total time field so that the run time in the sysout will be right.")
+         (\SETTOTALTIME)
+         (SETQ NEWFILE (\COPYSYS FILE))
+         [COND
+            ((NLISTP NEWFILE)
+
+             (* ;; "Continuing in same sysout;  reset TOTALTIME in misc stats page to not include the time before the sysout.")
+
+             (replace TOTALTIME of \MISCSTATS with TOTALTIMESAVE)
+             (\DEVICEEVENT 'AFTERDOSYSOUT)
+             (\USEREVENT 'AFTERDOSYSOUT))
+            (T                                               (* ; "restarting")
+               (\DEVICEEVENT 'AFTERSYSOUT)
+               (\PROCESS.AFTER.EXIT 'AFTERSYSOUT)
+               (INTERPRET.REM.CM)
+               (\USEREVENT 'AFTERSYSOUT]
+         NEWFILE])
+
+(SAVEVM
+  [LAMBDA NIL                                          (* ; "Edited 15-Mar-2021 12:04 by larry")
+
+    (* ;; "Save the virtual memory.  This is similar to logging out, then back in, but is much faster, since it doesn't lose any pages.  Conceptually, this is like doing a sysout to Lisp.virtualmem")
+
+    (\USEREVENT 'BEFORESAVEVM)
+    (\DEVICEEVENT 'BEFORESAVEVM)
+    (COND
+       ((\FLUSHVM)
+        (\RESETKEYBOARD)                                     (* ; 
+                                                           "Returns T when starting up fresh")
+        (\DEVICEEVENT 'AFTERSAVEVM)
+        (\PROCESS.AFTER.EXIT 'AFTERSAVEVM)
+        (\USEREVENT 'AFTERSAVEVM)
+        T)
+       (T (\DEVICEEVENT 'AFTERDOSAVEVM)
+          (\USEREVENT 'AFTERDOSAVEVM])
+
+(HERALD
+  [LAMBDA (STR)                                          (* wt%: " 2-MAY-79 15:38")
+    (AND STR (SETQ HERALDSTRING STR))
+    HERALDSTRING])
+
+(INTERPRET.REM.CM
+  [LAMBDA (RETFLG)                                           (* ; "Edited  1-Feb-2026 17:49 by rmk")
+                                                           (* ; "Edited 15-Mar-2021 12:27 by larry")
+    (DECLARE (GLOBALVARS STARTUPFORM))
+
+(* ;;; "Looks at REM.CM and evaluates the form there if the first character of the file is open paren or doublequote.  If it's a string, it will be unread,, else the form will be evaluated at the next prompt.  For use in INIT.LISP, among others.  If RETFLG is true, the expression read is simply returned")
+
+    (PROG ([FILE (INFILEP (PACKFILENAME 'HOST '{DSK} 'BODY (UNIX-GETENV "LDEREMCM"]
+           COM)
+          (OR FILE (RETURN))
+          [SETQ FILE (OPENSTREAM FILE 'INPUT 'OLD '((:EXTERNAL-FORMAT :UTF-8]
+          (COND
+             ([AND (IGREATERP (GETFILEINFO FILE 'LENGTH)
+                          0)
+                   (EQ (SKIPSEPRS FILE T)
+                       '%")
+                   (SETQ COM (CAR (NLSETQ (READ FILE T]
+              (CLOSEF FILE)
+              (CL:UNLESS RETFLG                              (* ; 
+                                                       "Save it to return; otherwise unread a string")
+                                                             (* ; 
+                                     "RMK: Replace CR and LF by space to avoid EOL convention issues")
+                  (for I from 1 to (NCHARS COM) when (FMEMB (NTHCHARCODE COM I)
+                                                            (CHARCODE (CR LF EOL)))
+                     do (RPLCHARCODE COM I (CHARCODE EOL)))
+                  (BKSYSBUF COM)))
+             (T (CLOSEF FILE)))
+          (RETURN (COND
+                     (RETFLG COM)
+                     (COM T])
+
+(\USEREVENT
+  [LAMBDA (EVENT)
+    (DECLARE (GLOBALVARS AROUNDEXITFNS))             (* bvm%: "16-Dec-83 15:27")
+    (for FN in (SELECTQ EVENT
+                           ((BEFORELOGOUT BEFORESYSOUT BEFORESAVEVM BEFOREMAKESYS) 
+                                AROUNDEXITFNS)
+                           (REVERSE AROUNDEXITFNS)) do (APPLY* FN EVENT])
+)
+
+(ADDTOVAR AROUNDEXITFNS )
+
+(RPAQ? HERALDSTRING "")
+
+(RPAQ? \USERNAME )
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS HERALDSTRING USERNAME \USERNAME AROUNDEXITFNS)
+)
+(DEFINEQ
+
+(USERNAME
+  [LAMBDA (FLG STRPTR PRESERVECASE)                      (* lmm "28-MAR-82 14:10")
+                                                             (* ; 
+                                                    "On 10, USERNAME can take a user number as arg")
+    (PROG (ADDR NAME)
+          (SETQ NAME (COND
+                        (FLG NIL)
+                        ((NEQ 0 (SETQ ADDR (fetch (IFPAGE UserNameAddr) of \InterfacePage)))
+                         (GetBcplString (\ADDBASE (EMADDRESS 0)
+                                               ADDR)
+                                (EQ STRPTR T)))
+                        (T \USERNAME)))
+          (OR PRESERVECASE (NULL NAME)
+              (SETQ NAME (U-CASE NAME)))
+          (RETURN (COND
+                     ((NULL NAME)
+                      NIL)
+                     ((STRINGP STRPTR)
+                      (SUBSTRING NAME 1 -1 STRPTR))
+                     (T NAME])
+
+(SETUSERNAME
+  [LAMBDA (NAME)                                         (* lmm "28-MAR-82 14:11")
+                                                             (* ; 
+                                                           "Changed interpretation of UserName0")
+    (COND
+       (NAME (PROG ((ADDR (fetch (IFPAGE UserNameAddr) of \InterfacePage)))
+                   (RETURN (COND
+                              ((NEQ ADDR 0)
+                               (SetBcplString (\ADDBASE (EMADDRESS 0)
+                                                     ADDR)
+                                      NAME)
+                               (SETQ USERNAME (USERNAME NIL T)))
+                              (T (SETQ \USERNAME (CONCAT NAME])
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(LOCALVARS . T)
+)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY 
+
+(FILESLOAD (LOADCOMP)
+       FILEIO)
+)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS 
+
+(ADDTOVAR NLAMA )
+
+(ADDTOVAR NLAML )
+
+(ADDTOVAR LAMA PACKFILENAME.STRING PACKFILENAME)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (3171 15998 (DELFILE 3181 . 3342) (FULLNAME 3344 . 3711) (INFILE 3713 . 3972) (INFILEP 
+3974 . 4109) (IOFILE 4111 . 4362) (OPENFILE 4364 . 4667) (OPENSTREAM 4669 . 9009) (OUTFILE 9011 . 9273
+) (OUTFILEP 9275 . 9411) (RENAMEFILE 9413 . 9719) (SIMPLE.FINDFILE 9721 . 10131) (VMEMSIZE 10133 . 
+10300) (\COPYSYS 10302 . 14593) (\FLUSHVM 14595 . 15667) (\LOGOUT0 15669 . 15996)) (16497 41157 (
+UNPACKFILENAME.STRING 16507 . 38343) (\UPF.DIRECTORY 38345 . 41155)) (42742 45048 (UNPACKFILENAME 
+42752 . 42938) (LASTCHPOS 42940 . 43634) (FILENAMEFIELD 43636 . 43930) (FILENAMEFIELD.STRING 43932 . 
+44336) (PACKFILENAME 44338 . 44681) (PACKFILENAME.STRING 44683 . 45046)) (59518 60431 (
+FILEDIRCASEARRAY 59528 . 60429)) (60598 68006 (LOGOUT 60608 . 61653) (MAKESYS 61655 . 63284) (SYSOUT 
+63286 . 64838) (SAVEVM 64840 . 65640) (HERALD 65642 . 65802) (INTERPRET.REM.CM 65804 . 67629) (
+\USEREVENT 67631 . 68004)) (68188 69915 (USERNAME 68198 . 69154) (SETUSERNAME 69156 . 69913)))))
+STOP

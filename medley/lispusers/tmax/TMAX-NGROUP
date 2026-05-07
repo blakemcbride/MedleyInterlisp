@@ -1,0 +1,835 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "28-Feb-2025 23:58:44" |{WMEDLEY}<lispusers>tmax>TMAX-NGROUP.;54| 51157  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS CHANGE.NGROUP.FORMAT CHANGE.NGROUP.FORMAT.ABBREV CHANGE.NGROUP.FORMAT.START 
+                       WRITE.TOC.ENTRY MAP.NGROUP.LOOKS GET.PREVIOUS.NGROUPS NGROUP.TOC.ENTRIES 
+                       CHANGE.NGROUP CHANGE.NGROUP.FONT CHANGE.NGROUP.FORMAT.TXTBEFORE 
+                       CHANGE.NGROUP.FORMAT.DELIMBEFORE CHANGE.NGROUP.FORMAT.DELIMAFTER 
+                       GET.NGROUP.TEMPLATE ADD.NUMBER.GROUP CHANGE.NGROUP.FORMAT.TOC 
+                       CHANGE.NGROUP.FORMAT.MANINDEX CHANGE.NGROUP.FORMAT.DISPLAY 
+                       UPDATE.NGROUP.MANINDEX GET.NGROUP.START SHOW.NGROUP.FONT NGROUP.GETFONT 
+                       NGROUP.FIXUP.RECORDS)
+
+      :PREVIOUS-DATE "24-Feb-2025 09:25:39" |{WMEDLEY}<lispusers>tmax>TMAX-NGROUP.;49|)
+
+
+(PRETTYCOMPRINT TMAX-NGROUPCOMS)
+
+(RPAQQ TMAX-NGROUPCOMS
+       (
+        (* |;;| "Developed under support from NIH grant RR-00785.")
+
+        
+        (* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+        
+
+(* |;;;| "Other unsorted functions")
+
+        (FNS INSERT.NGROUP VERIFY.NGROUP.ORDER GET.PREVIOUS.NGROUPS ADD.NUMBER.GROUP 
+             ADD.NGROUP.TO.DBASE COLLECT.NGROUPS LIST.FONT.PROPS MAP.NGROUP.LOOKS NGROUP.GETFONT 
+             CHANGE.NGROUP CHANGE.NGROUP.FONT SHOW.NGROUP.FONT CHANGE.NGROUP.FORMAT 
+             SHOW.NGROUP.FORMAT GET.NGROUP.TEMPLATE CHANGE.NGROUP.FORMAT.DELIMBEFORE 
+             CHANGE.NGROUP.FORMAT.DISPLAY CHANGE.NGROUP.FORMAT.DELIMAFTER GET.NGROUP.DELIMITER 
+             CHANGE.NGROUP.FORMAT.ABBREV CHANGE.NGROUP.FORMAT.START GET.NGROUP.START 
+             CHANGE.NGROUP.FORMAT.TOC CHANGE.NGROUP.FORMAT.MANINDEX UPDATE.NGROUP.MANINDEX 
+             NGROUP.FIXUP.RECORDS)
+        
+
+(* |;;;| "Table-of-Contents functions")
+
+        (FNS GET.NGROUP.TEXTSTRING CONVERT.TABS.TO.SPACES CREATE.TOC.FILE NGROUP.TOC.ENTRIES 
+             VIEW.TOC.FILE GET.TOC.FILE WRITE.TOC.FILE WRITE.TOC.ENTRY)))
+
+
+
+(* |;;| "Developed under support from NIH grant RR-00785.")
+
+
+
+
+(* |;;| "Written by Frank Gilmurray and Sami Shaio.")
+
+
+
+
+(* |;;;| "Other unsorted functions")
+
+(DEFINEQ
+
+(INSERT.NGROUP
+  (LAMBDA (NODE GRAPHW)                                     (* \; "Edited 22-Feb-2025 23:35 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 11:29 by rmk")
+                                                             (* |fsg| "26-Aug-87 14:37")
+
+(* |;;;| "Insert a NGroup build from the prototype definition.")
+
+    (CL:WHEN NODE
+        (LET* ((TSTREAM (WINDOWPROP GRAPHW 'TSTREAM))
+               (LABEL (|fetch| (GRAPHNODE NODEID) |of| NODE))
+               (OLDLOOKS (TEDIT.CARETLOOKS TSTREAM))
+               (NEWLOOKS (NGROUP.GETFONT LABEL TSTREAM))
+               NEWOBJ)
+              (CL:UNLESS (EQ LABEL 'NEW.NGROUP)
+                  (SETQ NEWOBJ (|with| NUMBEROBJ (CAR (GETHASH LABEL (TSP.GET.NGROUP.ARRAY TSTREAM)))
+                                      (NUMBEROBJ 'NGROUP TEMPLATE (CONCAT "[" LABEL "]")
+                                             LABEL NEWLOOKS (GET.FROMNODES LABEL TSTREAM)
+                                             ABBREV-VAL)))
+                  (TEDIT.CARETLOOKS TSTREAM NEWLOOKS)
+                  (GET.NGROUP.TEXTSTRING NEWOBJ LABEL TSTREAM)
+                  (TEDIT.INSERT.OBJECT NEWOBJ TSTREAM)
+                  (TEDIT.CARETLOOKS TSTREAM OLDLOOKS)
+                  (CL:WHEN (UPDATE? TSTREAM)
+                      (UPDATE.NUMBEROBJS TSTREAM (FUNCTION NGROUPP)))
+                  (VERIFY.NGROUP.ORDER TSTREAM NEWOBJ))))))
+
+(VERIFY.NGROUP.ORDER
+  (LAMBDA (TSTREAM NGROUP.OBJ)                              (* \; "Edited 23-Feb-2025 23:19 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:15 by rmk")
+                                                             (* |fsg| "28-Jul-87 15:59")
+
+(* |;;;| "Verify the NGroup order before inserting a new NGroup.  The order is valid if the new NGroup is a top level node or its parent Ngroup has already been inserted.")
+
+    (LET* ((MOTHER (|fetch| (NUMBEROBJ NGROUP.MOTHER) |of| (|fetch| OBJECTDATUM |of| NGROUP.OBJ)))
+           (CH# (TEDIT.SELPROP TSTREAM 'CH#)))
+          (DECLARE (SPECVARS CH#))
+          (COND
+             ((OR (EQ MOTHER 'NEW.NGROUP)
+                  (AND CH# (|for| PREV.NGROUP |in| (TSP.LIST.OF.OBJECTS TSTREAM
+                                                          (FUNCTION GET.PREVIOUS.NGROUPS)
+                                                          CH#)
+                              |thereis| (EQ MOTHER (|fetch| (NUMBEROBJ REF.TYPE)
+                                                      |of| (|fetch| OBJECTDATUM |of| (CAR PREV.NGROUP
+                                                                                          )))))))
+              (TEDIT.PROMPTCLEAR TSTREAM))
+             (T (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Warning: \"" (|fetch| (NUMBEROBJ REF.TYPE)
+                                                                    |of| (|fetch| OBJECTDATUM
+                                                                            |of| NGROUP.OBJ))
+                                                  "\" is not preceded by \"" MOTHER "\" NGroup.")
+                       T T))))))
+
+(GET.PREVIOUS.NGROUPS
+  (LAMBDA (NGROUP.OBJ CH# CHARPOS)                          (* \; "Edited 25-Feb-2025 14:31 by rmk")
+                                                            (* \; "Edited 22-Feb-2025 23:53 by rmk")
+                                                             (* |fsg| "28-Jul-87 14:01")
+
+(* |;;;| "Called from TSP.LIST.OF.OBJECTS to collect all the NGroup ImageObjs that exist before the character position CHARPOS.")
+
+    (CL:WHEN (NGROUPP NGROUP.OBJ)
+           (ILESSP CH# CHARPOS))))
+
+(ADD.NUMBER.GROUP
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 26-Feb-2025 18:07 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* \; "Edited 30-Sep-87 14:34 by fsg")
+    (|if| (NGROUPMENU.ENABLED? TSTREAM)
+      |else| (FM.CHANGESTATE (FM.GETITEM 'NGROUP.MENU NIL (TMAXPROP TSTREAM 'IMAGEOBJ.MENUW))
+                    T
+                    (TMAXPROP TSTREAM 'IMAGEOBJ.MENUW))
+            (GRAPHMENU TSTREAM))
+    (LET* ((PREV.ITEMS (COLLECT.NGROUPS TSTREAM))
+           (NEW.GROUPID (MKATOM (TSP.LEGALID (CONS 'NEW.NGROUP PREV.ITEMS)
+                                       TSTREAM)))
+           TEMPLATE DEPENDENT.CLASS NEW.NODE)
+          (CL:WHEN NEW.GROUPID
+              (SETQ DEPENDENT.CLASS (OR (MKATOM (AND PREV.ITEMS
+                                                     (MENU (|create| MENU
+                                                                  TITLE _ "Parent Group?"
+                                                                  ITEMS _ (SORT PREV.ITEMS
+                                                                                'UALPHORDER)))))
+                                        'NEW.NGROUP))
+              (CL:UNLESS TEMPLATE
+                  (SETQ TEMPLATE
+                   (|create| NGTEMPLATE
+                          NG.CHARTYPE _ '|Number|
+                          NG.DELIMBEFORE _ NIL
+                          NG.DELIMAFTER _ "."
+                          NG.START _ 1
+                          NG.ADDTOTOC _ T
+                          NG.CURRENTVAL _ NIL
+                          NG.MANUALINDEX _ NIL)))
+              (SETQ NEW.NODE (NODECREATE NEW.GROUPID NEW.GROUPID NIL NIL (LIST DEPENDENT.CLASS)))
+              (ADD.NGROUP.TO.DBASE NEW.GROUPID TEMPLATE DEPENDENT.CLASS |GP.DefaultFont| NEW.NODE 
+                     TSTREAM)
+              (ADD.NODE.TO.GRAPH NEW.NODE (TMAXPROP TSTREAM 'NGROUP.GRAPH)
+                     TSTREAM)))))
+
+(ADD.NGROUP.TO.DBASE
+  (LAMBDA (NEW.GROUPID TEMPLATE DEPENDENT.CLASS FONT NGROUP.NODE TSTREAM)
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| " 3-Aug-87 16:43")
+    (LET ((NGROUP.ARRAY (TSP.GET.NGROUP.ARRAY TSTREAM)))
+         (OR (GETHASH NEW.GROUPID NGROUP.ARRAY)
+             (PROGN (TMAXPROP TSTREAM 'REBUILD.GRAPHFLG T)
+                    (PUTHASH NEW.GROUPID
+                           (LIST (|create| NUMBEROBJ
+                                        NGROUP.MOTHER _ DEPENDENT.CLASS
+                                        FONT _ FONT
+                                        REF.TYPE _ NEW.GROUPID
+                                        TEMPLATE _ TEMPLATE)
+                                 NGROUP.NODE)
+                           (LIST NGROUP.ARRAY)))))))
+
+(COLLECT.NGROUPS
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "31-Mar-86 13:53")
+    (LET ((GRAPH (TMAXPROP TSTREAM 'NGROUP.GRAPH)))
+         (|for| NODE |in| (|fetch| (GRAPH GRAPHNODES) |of| GRAPH) |collect| (|fetch| (GRAPHNODE
+                                                                                      NODEID)
+                                                                               |of| NODE)
+            |unless| (EQ (|fetch| (GRAPHNODE NODEID) |of| NODE)
+                         'NEW.NGROUP)))))
+
+(LIST.FONT.PROPS
+  (LAMBDA (FONTDES)                                          (* |fsg| " 3-Aug-87 10:03")
+    (AND (FONTP FONTDES)
+         (LIST (FONTPROP FONTDES 'FAMILY)
+               (FONTPROP FONTDES 'SIZE)
+               (FONTPROP FONTDES 'FACE)))))
+
+(MAP.NGROUP.LOOKS
+  (LAMBDA (LABEL NEW.FONT TSTREAM NEW.TEMPLATE)             (* \; "Edited 27-Feb-2025 17:25 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 23:12 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 07:55 by rmk")
+                                                             (* |fsg| " 5-Aug-87 13:40")
+
+(* |;;;| "Here to change the font or format of an NGroup.  If NEW.TEMPLATE is non-NIL then we are changing the format, else we are changing the font.")
+
+    (CL:WHEN (OR NEW.FONT NEW.TEMPLATE)
+        (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Updating " (CL:IF NEW.TEMPLATE
+                                                           "FORMAT"
+                                                           "FONT")
+                                          " for \"" LABEL "\" Ngroups...")
+               T)
+        (TEDIT.DEFER.UPDATES TSTREAM)
+        (|for| OBJ DATUM |in| (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION (LAMBDA (OBJ CH# LABEL)
+                                                                       (NGROUPP OBJ LABEL)))
+                                     LABEL
+                                     'OBJECT) |as| NCOUNT
+           |from| (OR (AND NEW.TEMPLATE (|fetch| (NGTEMPLATE NG.START) |of| NEW.TEMPLATE))
+                      1) |do| (SETQ DATUM (|fetch| OBJECTDATUM |of| OBJ))
+                              (CL:WHEN NEW.TEMPLATE
+                                  (|replace| (NUMBEROBJ TEMPLATE) |of| DATUM |with| NEW.TEMPLATE)
+                                  (NUMBER.NUMSTRING OBJ NCOUNT))
+                              (CL:WHEN NEW.FONT
+                                  (|replace| (NUMBEROBJ FONT) |of| DATUM |with| NEW.FONT)))
+        (TEDIT.PROMPTPRINT TSTREAM "Done.")
+        'CHANGED)))
+
+(NGROUP.GETFONT
+  (LAMBDA (LABEL TSTREAM NGROUP.OBJ)                        (* \; "Edited 28-Feb-2025 00:10 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:09 by rmk")
+                                                             (* |fsg| " 4-Aug-87 15:00")
+    (|if| (AND NGROUP.OBJ (|fetch| (NUMBEROBJ FONT) |of| (|fetch| OBJECTDATUM |of| NGROUP.OBJ)))
+      |elseif| (|fetch| (NGTEMPLATE NG.FONT) |of| (|fetch| (NUMBEROBJ TEMPLATE)
+                                                     |of| (CAR (GETHASH LABEL (TSP.GET.NGROUP.ARRAY
+                                                                               TSTREAM)))))
+      |elseif| (SETQ NGROUP.OBJ (CADR (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION (LAMBDA (OBJ CH# LABEL)
+                                                                               (NGROUPP OBJ LABEL)))
+                                             LABEL
+                                             'FIRST)))
+        |then| 
+
+              (* |;;| "If the template doesn't have a font, use the font of the first object")
+
+              (|fetch| (NUMBEROBJ FONT) |of| (|fetch| OBJECTDATUM |of| NGROUP.OBJ)))))
+
+(CHANGE.NGROUP
+  (LAMBDA (NODE GRAPHW)                                     (* \; "Edited 27-Feb-2025 17:29 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 23:05 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 08:03 by rmk")
+                                                             (* |fsg| "30-Jul-87 13:52")
+
+(* |;;;| "Here when number group node is middle buttoned.  Allow user to change the font and/or format of the ngroup.")
+
+    (CL:WHEN NODE
+        (LET ((LABEL (|fetch| (GRAPHNODE NODEID) |of| NODE))
+              (TSTREAM (TEXTSTREAM (MAINWINDOW GRAPHW))))
+             (DECLARE (SPECVARS TSTREAM))
+             (RESETLST                                       (* \; 
+                                                         "Any deferred updates will be executed here")
+                 (SELECTQ LABEL
+                     (NEW.NGROUP NIL)
+                     (MENU (|create| MENU
+                                  TITLE _ LABEL
+                                  CENTERFLG _ T
+                                  ITEMS _ (EVAL NGROUP.GRAPH.MENU.ITEMS)))))))))
+
+(CHANGE.NGROUP.FONT
+  (LAMBDA (LABEL TSTREAM FONT.FIELD NGROUP.OBJ)             (* \; "Edited 27-Feb-2025 23:46 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 20:32 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 09:01 by rmk")
+                                                            (* \; "Edited 22-Feb-2025 22:58 by rmk")
+                                                             (* |fsg| " 4-Aug-87 15:09")
+
+(* |;;;| "Change a NGroup font.  If NGROUP.OBJis non-NIL then we are working on an inserted NGroup.  Else we are working on the graph prototype NGroups.")
+
+    (LET* ((NUMBEROBJ (CL:IF NGROUP.OBJ
+                          (|fetch| OBJECTDATUM |of| NGROUP.OBJ)
+                          (CAR (GETHASH LABEL (TSP.GET.NGROUP.ARRAY TSTREAM)))))
+           (TEMPLATE (|fetch| (NUMBEROBJ TEMPLATE) |of| NUMBEROBJ))
+           (OLDFONT (OR (NGROUP.GETFONT LABEL TSTREAM NGROUP.OBJ)
+                        (FONTCREATE TSTREAM)))
+           NEWFONT)
+          (SHOW.NGROUP.FONT LABEL TSTREAM NGROUP.OBJ)
+          (TEDIT.PROMPTPRINT TSTREAM (SELECTQ FONT.FIELD
+                                         (FAMILY ", change Family to...")
+                                         (SIZE ", change Size to...")
+                                         (FACE ", change Face to...")
+                                         ", change to..."))
+          (SETQ NEWFONT (FONTCREATE (GET.TSP.FONT (OR OLDFONT (FONTCREATE TSTREAM))
+                                           FONT.FIELD)))
+          (CL:UNLESS (EQ NEWFONT OLDFONT)
+              (|if| NGROUP.OBJ
+                  |then| (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Updated font for " LABEL " "
+                                                           (|fetch| (NUMBEROBJ NUMSTRING)
+                                                              |of| NUMBEROBJ))
+                                T)
+                        (|replace| (NUMBEROBJ FONT) |of| NUMBEROBJ |with| NEWFONT)
+                |else| (|replace| (NGTEMPLATE NG.FONT) |of| TEMPLATE |with| NEWFONT)
+                      (MAP.NGROUP.LOOKS LABEL NIL TSTREAM (GET.NGROUP.TEMPLATE LABEL TSTREAM)))
+              'CHANGED))))
+
+(SHOW.NGROUP.FONT
+  (LAMBDA (LABEL TSTREAM NGROUP.OBJ)                        (* \; "Edited 28-Feb-2025 00:06 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 09:02 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 16:16 by rmk")
+                                                             (* |fsg| " 4-Aug-87 14:57")
+
+    (* |;;| "Strip the parens")
+
+    (TEDIT.PROMPTPRINT TSTREAM (SUBSTRING (CONCAT (ABBREVIATE.FONT (NGROUP.GETFONT LABEL TSTREAM 
+                                                                          NGROUP.OBJ)))
+                                      2 -2)
+           T)))
+
+(CHANGE.NGROUP.FORMAT
+  (LAMBDA (LABEL TSTREAM FORMAT.FIELD NGROUP.OBJ)           (* \; "Edited 28-Feb-2025 23:55 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 23:50 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 09:02 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 14:07 by rmk")
+                                                             (* |fsg| " 1-Sep-87 15:39")
+
+(* |;;;| "If NGROUP.OBJ, change the properties of that instance of the NGroup, and also other properties that apply to the format as a whole.  If no object is provided, then just work on the format for all of them")
+
+    (LET* ((OLDTEMPLATE (COPY (GET.NGROUP.TEMPLATE LABEL TSTREAM)))
+           (TEMPLATE (|fetch| (NUMBEROBJ TEMPLATE) |of| (CL:IF NGROUP.OBJ
+                                                            (IMAGEOBJPROP NGROUP.OBJ 'DATUM)
+                                                            (CAR (GETHASH LABEL (TSP.GET.NGROUP.ARRAY
+                                                                                 TSTREAM)))))))
+          (|for| FIELD OBJCHANGED LABEL
+             |inside| (OR FORMAT.FIELD (CL:IF NGROUP.OBJ
+                                           '(DELIMBEFORE DELIMAFTER DISPLAY ABBREVVAL AFTER#TXT 
+                                                   BEFORE#TXT)
+                                           '(DELIMBEFORE DELIMAFTER DISPLAY ABBREVVAL START TOC 
+                                                   MANINDEX)))
+             |do| (SELECTQ FIELD
+                      (DELIMBEFORE (CHANGE.NGROUP.FORMAT.DELIMBEFORE LABEL TSTREAM TEMPLATE))
+                      (DISPLAY (CHANGE.NGROUP.FORMAT.DISPLAY LABEL TSTREAM TEMPLATE))
+                      (DELIMAFTER (CHANGE.NGROUP.FORMAT.DELIMAFTER LABEL TSTREAM TEMPLATE))
+                      (ABBREVVAL (CL:WHEN (CHANGE.NGROUP.FORMAT.ABBREV LABEL TSTREAM NGROUP.OBJ)
+                                        (SETQ OBJCHANGED T)))
+                      (START (CHANGE.NGROUP.FORMAT.START LABEL TSTREAM TEMPLATE))
+                      (TOC (CHANGE.NGROUP.FORMAT.TOC LABEL TSTREAM TEMPLATE))
+                      (MANINDEX (CHANGE.NGROUP.FORMAT.MANINDEX LABEL TSTREAM NGROUP.OBJ))
+                      (BEFORE#TXT (CL:WHEN (CHANGE.NGROUP.FORMAT.#TEXT TSTREAM NGROUP.OBJ
+                                                  'BEFORE)
+                                         (SETQ OBJCHANGED T)))
+                      (AFTER#TXT (CL:WHEN (CHANGE.NGROUP.FORMAT.#TEXT TSTREAM NGROUP.OBJ 'AFTER)
+                                        (SETQ OBJCHANGED T)))
+                      (ERROR "Unknown NGroup Format field" FIELD))
+             |finally| (RETURN (|if| (NOT (EQUAL OLDTEMPLATE (GET.NGROUP.TEMPLATE LABEL TSTREAM)))
+                                   |then| (MAP.NGROUP.LOOKS LABEL NIL TSTREAM (GET.NGROUP.TEMPLATE
+                                                                               LABEL TSTREAM))
+                                         'CHANGED
+                                 |elseif| (AND NGROUP.OBJ OBJCHANGED)
+                                   |then| 'CHANGED))))))
+
+(SHOW.NGROUP.FORMAT
+  (LAMBDA (LABEL TSTREAM)                                   (* \; "Edited 24-Feb-2025 09:00 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 11:40 by rmk")
+                                                             (* |fsg| "26-Aug-87 12:02")
+
+(* |;;;| "Show this NGroup's format specification.")
+
+    (LET (TEMPLATESTRING)
+         (SETQ TEMPLATESTRING (GET.NGROUP.TEMPLATE LABEL TSTREAM T))
+         (TEDIT.PROMPTPRINT TSTREAM TEMPLATESTRING T)
+         TEMPLATESTRING)))
+
+(GET.NGROUP.TEMPLATE
+  (LAMBDA (LABEL TSTREAM STRING)                            (* \; "Edited 26-Feb-2025 17:24 by rmk")
+
+    (* |;;| "The CAR is to get the first LABEL object, its TEMPLATE is the prototype shared with all of the others.")
+
+    (LET* ((NUMOBJ (CAR (GETHASH LABEL (TSP.GET.NGROUP.ARRAY TSTREAM))))
+           (TEMPLATE (|fetch| (NUMBEROBJ TEMPLATE) |of| NUMOBJ)))
+          (|if| STRING
+              |then| (|with| NGTEMPLATE TEMPLATE (CONCAT LABEL ": Display=" "\"" (OR NG.DELIMBEFORE 
+                                                                                     "")
+                                                        "[" NG.CHARTYPE "]" (OR NG.DELIMAFTER "")
+                                                        "\"" " Start=" NG.START " TOC="
+                                                        (CL:IF NG.ADDTOTOC
+                                                            "Yes"
+                                                            "No")
+                                                        (CL:IF (MANUALINDEX.ENABLED? TSTREAM)
+                                                            (CL:IF NG.MANUALINDEX
+                                                                " ManIndex=Yes"
+                                                                " ManIndex=No")
+                                                            "")))
+            |else| TEMPLATE))))
+
+(CHANGE.NGROUP.FORMAT.DELIMBEFORE
+  (LAMBDA (LABEL TSTREAM TEMPLATE)                          (* \; "Edited 26-Feb-2025 12:18 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 12:42 by rmk")
+                                                             (* |fsg| " 5-Aug-87 10:11")
+
+(* |;;;| "Show and possibly reset the delimiter preceding this NGroup.  Return NIL if nothing changed else return the new delimiter. ")
+
+    (LET (NEW.DELIMITER)
+         (|with| NGTEMPLATE TEMPLATE (CL:WHEN (AND (SETQ NEW.DELIMITER (GET.NGROUP.DELIMITER
+                                                                        TSTREAM LABEL NG.DELIMBEFORE
+                                                                        'BEFORE))
+                                                   (NOT (STREQUAL NEW.DELIMITER NG.DELIMBEFORE)))
+                                            (SETQ NG.DELIMBEFORE NEW.DELIMITER))))))
+
+(CHANGE.NGROUP.FORMAT.DISPLAY
+  (LAMBDA (LABEL TSTREAM TEMPLATE)                          (* \; "Edited 26-Feb-2025 17:21 by rmk")
+                                                            (* \; "Edited 24-Feb-2025 23:04 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 12:52 by rmk")
+                                                             (* |fsg| " 5-Aug-87 10:12")
+    (TEDIT.PROMPTPRINT TSTREAM (CONCAT "\"" LABEL "\" displayed as " (|fetch| (NGTEMPLATE NG.CHARTYPE
+                                                                                     ) |of| TEMPLATE)
+                                      ", change to...")
+           T)
+
+(* |;;;| "Show and possibly reset how this NGroup is displayed.  Return NIL if nothing changed else returm the new display type.  If NGROUP.OBJ is non-NIL then we are working on an inserted NGroup.  Else we're working on the graph prototype.")
+
+    (LET ((NEW.DISPLAY (MENU (|create| MENU
+                                    TITLE _ "NGroup Displays"
+                                    CENTERFLG _ T
+                                    ITEMS _ '(|Number| |Null String| UPPERCASE\ LETTER 
+                                                    |lowercase letter| UPPERCASE\ ROMAN 
+                                                    |lowercase roman|)))))
+         (TEDIT.PROMPTCLEAR TSTREAM)
+         (CL:WHEN (AND NEW.DISPLAY (NEQ NEW.DISPLAY (|fetch| (NGTEMPLATE NG.CHARTYPE) |of| TEMPLATE))
+                       )
+             (|replace| (NGTEMPLATE NG.CHARTYPE) |of| TEMPLATE |with| NEW.DISPLAY)
+             'CHANGED))))
+
+(CHANGE.NGROUP.FORMAT.DELIMAFTER
+  (LAMBDA (LABEL TSTREAM TEMPLATE)                          (* \; "Edited 26-Feb-2025 12:18 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 15:43 by rmk")
+                                                             (* |fsg| " 5-Aug-87 10:12")
+
+(* |;;;| "Show and possibly reset the delimiter following this NGroup.  Return NIL if nothing changed else return the new delimiter.  ")
+
+    (LET (NEW.DELIMITER)
+         (|with| NGTEMPLATE TEMPLATE (CL:WHEN (AND (SETQ NEW.DELIMITER (GET.NGROUP.DELIMITER
+                                                                        TSTREAM LABEL NG.DELIMAFTER
+                                                                        'AFTER))
+                                                   (NOT (STREQUAL NEW.DELIMITER NG.DELIMAFTER)))
+                                            (SETQ NG.DELIMAFTER NEW.DELIMITER))))))
+
+(GET.NGROUP.DELIMITER
+  (LAMBDA (TSTREAM LABEL DELIMITER BEFORE/AFTER)            (* \; "Edited 21-Feb-2025 12:44 by rmk")
+                                                             (* |fsg| "17-Aug-87 15:12")
+
+(* |;;;| "Show and possibly reset the delimiter before/after this NGroup.  Return NIL if nothing changed else return the new delimiter.")
+
+    (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Delimiter " (SELECTQ BEFORE/AFTER
+                                                        (BEFORE "preceding ")
+                                                        "following ")
+                                      LABEL "\" is " (COND
+                                                        (DELIMITER (CONCAT "\"" DELIMITER "\""))
+                                                        (T '|Unspecified|))
+                                      ", change to...")
+           T)
+    (PROG1 (MENU (|create| MENU
+                        TITLE _ "NGroup Delimiters"
+                        CENTERFLG _ T
+                        ITEMS _ '((|Period| ".")
+                                  (|Colon| ":")
+                                  (|Dash| "-")
+                                  (|Null String| "")
+                                  (|Other| (TEDIT.GETINPUT TSTREAM (CONCAT "Specify delimiter "
+                                                                          (SELECTQ BEFORE/AFTER
+                                                                              (BEFORE "preceding ")
+                                                                              "following ")
+                                                                          LABEL ":"))))))
+           (TEDIT.PROMPTCLEAR TSTREAM))))
+
+(CHANGE.NGROUP.FORMAT.ABBREV
+  (LAMBDA (LABEL TSTREAM NGROUP.OBJ)                        (* \; "Edited 28-Feb-2025 23:56 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 14:08 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 16:25 by rmk")
+                                                             (* |fsg| "26-Aug-87 11:48")
+
+(* |;;;| "Change the display level of a NGroup.  Let the user decide how far up the parent tree to go wrt printing values.  This allows user to number things as 2.a, b, c, etc.  Thanks to Michael Wescoat at Xerox for suggesting this.")
+
+    (* |;;| "THIS DOESN'T CHANGE ANYTHING??")
+
+    (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| NGROUP.OBJ)
+           (LET ((PARENTS (LIST.ANCESTORS LABEL NIL TSTREAM))
+                 NEW.ABREV)
+                (COND
+                   (PARENTS (TEDIT.PROMPTPRINT TSTREAM (CONCAT LABEL (CL:IF ABBREV-VAL
+                                                                         (CONCAT 
+                                                                           " abbreviation starts at "
+                                                                                ABBREV-VAL)
+                                                                         " not abbreviated")
+                                                              ". Select starting level.")
+                                   T)
+                          (SETQ NEW.ABREV (MENU (|create| MENU
+                                                       TITLE _ (CONCAT LABEL " Levels")
+                                                       ITEMS _ (APPEND PARENTS (LIST LABEL))
+                                                       CENTERFLG _ T)))
+                          (CL:WHEN (AND NEW.ABREV (NEQ NEW.ABREV ABBREV-VAL))
+                              (CL:IF (EQ NEW.ABREV (CAR PARENTS))
+                                  NIL
+                                  'CHANGED)))
+                   (T (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Cannot abbreviate top level NGroup \"" 
+                                                        LABEL "\"")
+                             T)
+                      NIL))))))
+
+(CHANGE.NGROUP.FORMAT.START
+  (LAMBDA (LABEL TEMPLATE TSTREAM)                          (* \; "Edited 28-Feb-2025 23:58 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 18:04 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 14:04 by rmk")
+                                                             (* |fsg| " 9-Jul-87 15:45")
+
+(* |;;;| "Show and possibly reset this NGroup's starting value.  Return NIL if nothing changed else return the new starting value.")
+
+    (LET (NEWSTART)
+         (CL:WHEN (AND (SETQ NEWSTART (GET.NGROUP.START LABEL TEMPLATE TSTREAM))
+                       (NEQ NEWSTART (|fetch| (NGTEMPLATE NG.START) |of| TEMPLATE)))
+             (|replace| (NGTEMPLATE NG.START) |of| TEMPLATE |with| NEWSTART)))))
+
+(GET.NGROUP.START
+  (LAMBDA (LABEL TEMPLATE TSTREAM)                          (* \; "Edited 26-Feb-2025 18:03 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 14:04 by rmk")
+                                                             (* |fsg| "23-Jul-87 14:38")
+
+(* |;;;| "Get the starting value for this NGroup.  Any value is ok for a Number display but Letter/Roman numeral values must be greater than zero.")
+
+    (LET ((NEWSTART (MKATOM (TEDIT.GETINPUT TSTREAM (CONCAT "Starting value of " LABEL " is "
+                                                           (|fetch| (NGTEMPLATE NG.START)
+                                                              |of| TEMPLATE)
+                                                           ".  New starting value:")))))
+         (|if| (FIXP NEWSTART)
+             |then| (SELECTQ NEWSTART
+                        ((|Number| |Null String|) 
+                             T)
+                        (|if| (IGEQ NEWSTART 1)
+                            |then| NEWSTART
+                          |else| (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Start (=" NEWSTART 
+                                                                   ") must be > 0 for \""
+                                                                   (|fetch| (NGTEMPLATE NG.CHARTYPE)
+                                                                      |of| TEMPLATE)
+                                                                   "\"")
+                                        T)
+                                NIL))
+           |elseif| NEWSTART
+             |then| (TEDIT.PROMPTPRINT TSTREAM (CONCAT NEWSTART " is not an integer")
+                           T)
+                   NIL))))
+
+(CHANGE.NGROUP.FORMAT.TOC
+  (LAMBDA (LABEL TSTREAM TEMPLATE)                          (* \; "Edited 26-Feb-2025 12:21 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 14:05 by rmk")
+                                                            (* \; "Edited 31-Dec-2024 11:36 by rmk")
+                                                             (* |fsg| " 7-Jul-87 09:12")
+
+(* |;;;| "Show and possibly reset whether this NGroup is included in the Table-Of-Contents.  Return NIL if no change else return T.")
+
+    (LET (NEW.ADDTOTOC)
+         (|with| NGTEMPLATE TEMPLATE (TEDIT.PROMPTPRINT TSTREAM (CONCAT "\"" LABEL "\" is "
+                                                                       (COND
+                                                                          (NG.ADDTOTOC "")
+                                                                          (T "NOT "))
+                                                                       
+                                                      "included in the TOC. Do you want it included?"
+                                                                       )
+                                            T)
+                (SETQ NEW.ADDTOTOC (MENU (|create| MENU
+                                                TITLE _ "In TOC?"
+                                                CENTERFLG _ T
+                                                ITEMS _ '((YES T)
+                                                          (NO NIL))
+                                                WHENSELECTEDFN _ (FUNCTION (LAMBDA (ITEM)
+                                                                             ITEM)))))
+                (TEDIT.PROMPTCLEAR TSTREAM)
+                (CL:WHEN (AND NEW.ADDTOTOC (NEQ (CADR NEW.ADDTOTOC)
+                                                NG.ADDTOTOC))
+                    (SETQ NG.ADDTOTOC (CADR NEW.ADDTOTOC))
+                    T)))))
+
+(CHANGE.NGROUP.FORMAT.MANINDEX
+  (LAMBDA (LABEL TSTREAM TEMPLATE)                          (* \; "Edited 26-Feb-2025 12:23 by rmk")
+                                                            (* \; "Edited 23-Feb-2025 13:08 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 14:06 by rmk")
+                                                             (* |fsg| " 1-Sep-87 15:39")
+
+(* |;;;| "Show and possibly reset whether this NGroup is included in the manual index.  Return NIL if no change else return T.")
+
+    (LET (NEW.MANUALINDEX)
+         (CL:WHEN (MANUALINDEX.ENABLED? TSTREAM)
+             (|with| NGTEMPLATE TEMPLATE (TEDIT.PROMPTPRINT TSTREAM (CONCAT "\"" LABEL "\" is "
+                                                                           (CL:IF NG.MANUALINDEX
+                                                                               ""
+                                                                               "NOT")
+                                                                           
+                                            " included in the Manual Index. Do you want it included?"
+                                                                           )
+                                                T)
+                    (SETQ NEW.MANUALINDEX (MENU (|create| MENU
+                                                       TITLE _ "Manual Index?"
+                                                       CENTERFLG _ T
+                                                       ITEMS _ '((YES T)
+                                                                 (NO NIL))
+                                                       WHENSELECTEDFN _ (FUNCTION (LAMBDA (ITEM)
+                                                                                    ITEM)))))
+                    (TEDIT.PROMPTCLEAR TSTREAM)
+                    (CL:WHEN (AND NEW.MANUALINDEX (NEQ (CADR NEW.MANUALINDEX)
+                                                       NG.MANUALINDEX))
+                        (CL:IF (CADR NEW.MANUALINDEX)
+                            (TMAXADDPROP TSTREAM 'MANUALGROUPS LABEL)
+                            (TMAXPROP TSTREAM 'MANUALGROUPS (REMOVE LABEL (TMAXPROP TSTREAM
+                                                                                 'MANUALGROUPS))))
+                        T))))))
+
+(UPDATE.NGROUP.MANINDEX
+  (LAMBDA (NUMBEROBJ TSTREAM)                               (* \; "Edited 26-Feb-2025 15:12 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 11:40 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:22")
+
+(* |;;;| "Update the NGroup template list wrt the current NGroup level.  Note that when a new NGroup is seen, all it's children become undefined.  Furthermore we know the NGroups are in order since the order is verified when the NGroup is inserted.")
+
+    (CL:WHEN (MANUALINDEX.ENABLED? TSTREAM)
+        (LET* ((MAN.GROUPS (TMAXPROP TSTREAM 'MANUALGROUPS))
+               (LABEL.GROUPS (MEMB (|fetch| (NUMBEROBJ REF.TYPE) |of| NUMBEROBJ)
+                                   MAN.GROUPS)))
+              (CL:WHEN LABEL.GROUPS
+                  (LET* ((LABEL.OFFSET (ADD1 (IDIFFERENCE (LENGTH MAN.GROUPS)
+                                                    (LENGTH LABEL.GROUPS))))
+                         (MAN.TEMPLATES (TMAXPROP TSTREAM 'MANUALTEMPLATES))
+                         (TEMPLATE.SUBLIST (NTH MAN.TEMPLATES LABEL.OFFSET)))
+                        (CL:IF TEMPLATE.SUBLIST
+                            (RPLNODE TEMPLATE.SUBLIST (|fetch| (NUMBEROBJ TEMPLATE) |of| NUMBEROBJ))
+                            (TMAXADDPROP TSTREAM 'MANUALTEMPLATES (|fetch| (NUMBEROBJ TEMPLATE)
+                                                                     |of| NUMBEROBJ)))))))))
+
+(NGROUP.FIXUP.RECORDS
+  (LAMBDA (NGROUP.RECORD COPYFLG)                           (* \; "Edited 28-Feb-2025 15:48 by rmk")
+                                                            (* \; "Edited 26-Feb-2025 10:27 by rmk")
+                                                             (* |fsg| " 3-Sep-87 15:35")
+
+(* |;;;| "Function to 'fix up' the NGroup record.  This allows us to expand the NGroup record and still maintain backwatd compatability.  If COPYFLG is non-NIL, we are doing a COPY.  In this case un-update the record;  Copied NGroups are always unupdated.")
+
+    (LET ((TEMPLATE (|fetch| (NUMBEROBJ TEMPLATE) |of| NGROUP.RECORD)))
+         (|create| NUMBEROBJ
+                REF.TYPE _ (|fetch| (NUMBEROBJ REF.TYPE) |of| NGROUP.RECORD)
+                NUMSTRING _ (|if| COPYFLG
+                                |then| (SELECTQ (|fetch| (NUMBEROBJ USE) |of| NGROUP.RECORD)
+                                           (NGROUP (CONCAT "[" (|fetch| (NUMBEROBJ REF.TYPE)
+                                                                  |of| NGROUP.RECORD)
+                                                          "]"))
+                                           (NOTE "Note#")
+                                           NIL)
+                              |else| (|fetch| (NUMBEROBJ NUMSTRING) |of| NGROUP.RECORD))
+                USE _ (|fetch| (NUMBEROBJ USE) |of| NGROUP.RECORD)
+                NGROUP.MOTHER _ (|fetch| (NUMBEROBJ NGROUP.MOTHER) |of| NGROUP.RECORD)
+                TEMPLATE _ (|create| NGTEMPLATE
+                                  NG.CHARTYPE _ (|fetch| (NGTEMPLATE NG.CHARTYPE) |of| TEMPLATE)
+                                  NG.DELIMBEFORE _ (|fetch| (NGTEMPLATE NG.DELIMBEFORE) |of| TEMPLATE
+                                                          )
+                                  NG.DELIMAFTER _ (|fetch| (NGTEMPLATE NG.DELIMAFTER) |of| TEMPLATE)
+                                  NG.START _ (|fetch| (NGTEMPLATE NG.START) |of| TEMPLATE)
+                                  NG.ADDTOTOC _ (|fetch| (NGTEMPLATE NG.ADDTOTOC) |of| TEMPLATE)
+                                  NG.CURRENTVAL _ (CL:IF COPYFLG
+                                                      NIL
+                                                      (|fetch| (NGTEMPLATE NG.CURRENTVAL)
+                                                         |of| TEMPLATE))
+                                  NG.MANUALINDEX _ (|fetch| (NGTEMPLATE NG.MANUALINDEX) |of| TEMPLATE
+                                                          ))
+                UPDATED.OBJ _ (CL:IF COPYFLG
+                                  NIL
+                                  (|fetch| (NUMBEROBJ UPDATED.OBJ) |of| NGROUP.RECORD))
+                TEXT.AFTER# _ (|fetch| (NUMBEROBJ TEXT.AFTER#) |of| NGROUP.RECORD)
+                PAGE.NUMBER _ (|fetch| (NUMBEROBJ PAGE.NUMBER) |of| NGROUP.RECORD)
+                FONT _ (|fetch| (NUMBEROBJ FONT) |of| NGROUP.RECORD)
+                TEXT.BEFORE# _ (|fetch| (NUMBEROBJ TEXT.BEFORE#) |of| NGROUP.RECORD)
+                ABBREV-VAL _ (|fetch| (NUMBEROBJ ABBREV-VAL) |of| NGROUP.RECORD)))))
+)
+
+
+
+(* |;;;| "Table-of-Contents functions")
+
+(DEFINEQ
+
+(GET.NGROUP.TEXTSTRING
+  (LAMBDA (NBROBJ LABEL TSTREAM)                            (* \; "Edited 21-Feb-2025 10:12 by rmk")
+                                                             (* |fsg| " 5-Aug-87 10:36")
+
+(* |;;;| "Get the Table-Of-Contents before/after text string for this NGroup.  Because the WRITE.TOC.FILE function uses a tab to align the page numbers, any tabs in the TOC strings are converted to spaces.")
+
+    (CL:WHEN (TEXTBEFORE.ENABLED? TSTREAM)
+        (LET ((TOC.STRING (TEDIT.GETINPUT TSTREAM (CONCAT "Text before " LABEL ":")
+                                 (MKSTRING LABEL))))
+             (AND TOC.STRING (|replace| (NUMBEROBJ TEXT.BEFORE#) |of| (|fetch| OBJECTDATUM
+                                                                         |of| NBROBJ)
+                                |with| (CONCAT (CONVERT.TABS.TO.SPACES TOC.STRING)
+                                              " ")))))
+    (CL:WHEN (TEXTAFTER.ENABLED? TSTREAM)
+        (LET ((TOC.STRING (TEDIT.GETINPUT TSTREAM (CONCAT "Text after " LABEL ":"))))
+             (AND TOC.STRING (|replace| (NUMBEROBJ TEXT.AFTER#) |of| (|fetch| OBJECTDATUM
+                                                                        |of| NBROBJ)
+                                |with| (CONCAT " " (CONVERT.TABS.TO.SPACES TOC.STRING))))))))
+
+(CONVERT.TABS.TO.SPACES
+  (LAMBDA (STRING)                                           (* \; "Edited 25-Jan-97 11:49 by rmk:")
+                                                             (* |fsg| "10-Mar-87 11:01")
+
+    (* |;;| "Returns a string with all tabs and CR's converted to spaces.  We do this because some features like the Table-Of-Contents use a tab to align the page numbers.")
+
+    (AND (STRINGP STRING)
+         (CONCATLIST (FOR CHAR IN (CHCON STRING) COLLECT (CHARACTER (SELCHARQ CHAR
+                                                                         ((CR TAB LF) 
+                                                                              (CHARCODE SPACE))
+                                                                         CHAR)))))))
+
+(CREATE.TOC.FILE
+  (LAMBDA (TSTREAM TOC.FILE)                                (* \; "Edited 23-Feb-2025 11:49 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| "16-Jul-87 11:46")
+
+(* |;;;| "Here to print the Table Of Contents.  Each Line of the TOC consists of the NGroup, the corresponding text, followed by the current listing page number.")
+
+    (SETQ TOC.FILE (OR (OUTFILEP (OR TOC.FILE (GET.INDEX.FILE (TMAXPROP TSTREAM 'IMAGEOBJ.MENUW))))
+                       (ERROR (CONCAT "Can't open " TOC.FILE " as a index file"))))
+    (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Writing table of contents on " TOC.FILE)
+           T)
+    (LET ((IMAGESTREAM (OPENIMAGESTREAM '{NULL}))
+          (TOC.LIST (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION NGROUP.TOC.ENTRIES)))
+          (TOC.TABSTOP `(PARALOOKS (TABS ((,(FIXR (TIMES 72.27 6.125)) . DOTTEDLEFT)))))
+          TOC.STREAM)
+
+         (* |;;| 
+         "Make sure we have the page numbers, written in the image stream.  Why not in TSTREAM?")
+
+         (TEDIT.FORMAT.HARDCOPY TSTREAM IMAGESTREAM NIL NIL NIL NIL NIL NIL NIL NIL T)
+         (COND
+            ((AND TOC.LIST TOC.FILE)
+             (SETQ TOC.STREAM (OPENTEXTSTREAM NIL NIL NIL NIL TOC.TABSTOP))
+             (WRITE.TOC.FILE TOC.STREAM TOC.LIST TSTREAM)
+             (SETQ TOC.FILE (TEDIT.PUT TOC.STREAM TOC.FILE NIL NIL NIL T))
+             (CLOSEF? TOC.FILE)
+             (SETQ TOC.FILE (FULLNAME TOC.FILE))
+             TOC.FILE)
+            (TOC.LIST (TEDIT.PROMPTPRINT TSTREAM 
+                             "Please specify a file name for the table of contents" T)
+                   NIL)
+            (T (TEDIT.PROMPTPRINT TSTREAM "There are no NGroups included in the Table-Of-Contents." T
+                      )
+               NIL)))))
+
+(NGROUP.TOC.ENTRIES
+  (LAMBDA (NBROBJ)                                          (* \; "Edited 25-Feb-2025 14:35 by rmk")
+                                                            (* \; "Edited 22-Feb-2025 15:23 by rmk")
+                                                             (* |fsg| "16-Jul-87 11:20")
+
+(* |;;;| "Check if NBROBJ is a NGroup ImageObject and its NG.ADDTOTOC flag is on.")
+
+    (CL:WHEN (NGROUPP NBROBJ)
+        (|fetch| (NGTEMPLATE NG.ADDTOTOC) |of| (|fetch| (NUMBEROBJ TEMPLATE)
+                                                  |of| (|fetch| OBJECTDATUM |of| NBROBJ))))))
+
+(VIEW.TOC.FILE
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 23-Feb-2025 11:54 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| "12-Aug-87 16:36")
+
+(* |;;;| 
+"Writes out the TOC file and then opens another TEdit window where this new file is displayed.")
+
+    (LET ((TOC.FILE (CREATE.TOC.FILE TSTREAM)))
+         (CL:WHEN TOC.FILE
+             (TMAXPROP TSTREAM 'TOC.REGION (WINDOWREGION (WFROMDS (TEXTSTREAM
+                                                                   (TEDIT TOC.FILE
+                                                                          (TMAXPROP TSTREAM
+                                                                                 'TOC.REGION)))))))
+         TOC.FILE)))
+
+(GET.TOC.FILE
+  (LAMBDA (MENUW)                                           (* \; "Edited 22-Feb-2025 16:05 by rmk")
+                                                             (* \; "Edited 29-Sep-87 15:17 by fsg")
+
+(* |;;;| "Return the user specified Table-Of-Contents file name.")
+
+    (LET ((FILENAME (FM.ITEMPROP (FM.GETITEM 'TOC.FILE NIL MENUW)
+                           'LABEL)))
+         (CL:UNLESS (ZEROP (NCHARS FILENAME))
+                (MKATOM FILENAME)))))
+
+(WRITE.TOC.FILE
+  (LAMBDA (TOC.STREAM TOC.LIST TSTREAM)                     (* \; "Edited 21-Feb-2025 00:55 by rmk")
+                                                             (* |fsg| "26-Aug-87 15:37")
+
+(* |;;;| "Here to speficy the order of the Table-Of-Contents.  The TOC is ordered by the top-level sister nodes.")
+
+    (DSPFONT (FONTCREATE '(HELVETICA 14 BRR))
+           TOC.STREAM)
+    (PRINTOUT TOC.STREAM "Table of Contents" T)
+    (|for| TOC.MOTHER |in| (TOPLEVEL.SISTERS TSTREAM)
+       |do| (DSPFONT |GP.DefaultFont| TOC.STREAM)
+            (PRINTOUT TOC.STREAM T)
+            (|for| TOC.ITEM |in| TOC.LIST |when| (|with| NUMBEROBJ (|fetch| OBJECTDATUM
+                                                                      |of| (CAR TOC.ITEM))
+                                                        (EQ (GET.NGROUP.MOTHER REF.TYPE TSTREAM)
+                                                            TOC.MOTHER))
+               |do| (WRITE.TOC.ENTRY TOC.ITEM TOC.STREAM TSTREAM)))))
+
+(WRITE.TOC.ENTRY
+  (LAMBDA (TOC.ITEM TOC.STREAM TSTREAM)                     (* \; "Edited 25-Feb-2025 10:35 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:55 by rmk")
+                                                             (* |fsg| "27-Jul-87 14:55")
+
+(* |;;;| "Write one line to the Table-Of-Contents file.")
+
+    (LET* ((DATUM (|fetch| OBJECTDATUM |of| (CAR TOC.ITEM)))
+           (ITEM.LEVEL (LENGTH (LIST.ANCESTORS (|fetch| (NUMBEROBJ REF.TYPE) |of| DATUM)
+                                      NIL TSTREAM))))
+          (DSPFONT |GP.DefaultFont| TOC.STREAM)
+          (COND
+             ((ZEROP ITEM.LEVEL)
+              (PRINTOUT TOC.STREAM T))
+             (T (RPTQ ITEM.LEVEL (PRINTOUT TOC.STREAM "   "))))
+          (DSPFONT (|fetch| (NUMBEROBJ FONT) |of| DATUM)
+                 TOC.STREAM)
+          (PRINTOUT TOC.STREAM (|fetch| (NUMBEROBJ NUMSTRING) |of| DATUM))
+          (DSPFONT |GP.DefaultFont| TOC.STREAM)
+          (PRINTOUT TOC.STREAM (CHARACTER (CHARCODE TAB))
+                 (|fetch| (NUMBEROBJ PAGE.NUMBER) |of| DATUM)
+                 T))))
+)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (2291 42669 (INSERT.NGROUP 2301 . 3781) (VERIFY.NGROUP.ORDER 3783 . 5571) (
+GET.PREVIOUS.NGROUPS 5573 . 6114) (ADD.NUMBER.GROUP 6116 . 8217) (ADD.NGROUP.TO.DBASE 8219 . 9128) (
+COLLECT.NGROUPS 9130 . 9830) (LIST.FONT.PROPS 9832 . 10096) (MAP.NGROUP.LOOKS 10098 . 12009) (
+NGROUP.GETFONT 12011 . 13286) (CHANGE.NGROUP 13288 . 14515) (CHANGE.NGROUP.FONT 14517 . 16876) (
+SHOW.NGROUP.FONT 16878 . 17607) (CHANGE.NGROUP.FORMAT 17609 . 20941) (SHOW.NGROUP.FORMAT 20943 . 21516
+) (GET.NGROUP.TEMPLATE 21518 . 22978) (CHANGE.NGROUP.FORMAT.DELIMBEFORE 22980 . 23962) (
+CHANGE.NGROUP.FORMAT.DISPLAY 23964 . 25654) (CHANGE.NGROUP.FORMAT.DELIMAFTER 25656 . 26634) (
+GET.NGROUP.DELIMITER 26636 . 28370) (CHANGE.NGROUP.FORMAT.ABBREV 28372 . 30663) (
+CHANGE.NGROUP.FORMAT.START 30665 . 31546) (GET.NGROUP.START 31548 . 33364) (CHANGE.NGROUP.FORMAT.TOC 
+33366 . 35382) (CHANGE.NGROUP.FORMAT.MANINDEX 35384 . 37819) (UPDATE.NGROUP.MANINDEX 37821 . 39359) (
+NGROUP.FIXUP.RECORDS 39361 . 42667)) (42718 51134 (GET.NGROUP.TEXTSTRING 42728 . 44110) (
+CONVERT.TABS.TO.SPACES 44112 . 44910) (CREATE.TOC.FILE 44912 . 46827) (NGROUP.TOC.ENTRIES 46829 . 
+47478) (VIEW.TOC.FILE 47480 . 48379) (GET.TOC.FILE 48381 . 48875) (WRITE.TOC.FILE 48877 . 49939) (
+WRITE.TOC.ENTRY 49941 . 51132)))))
+STOP

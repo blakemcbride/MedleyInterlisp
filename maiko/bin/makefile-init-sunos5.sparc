@@ -1,0 +1,64 @@
+#************************************************************************/
+#*									*/
+#*	Makefile for MAKEINIT processing.				*/
+#*									*/
+#* $Id: makefile-init.sparc,v 1.4 2001/12/26 22:17:08 sybalsky Exp $ */
+#*									*/
+#************************************************************************/
+
+
+
+
+#************************************************************************/
+#*									*/
+#*	(C) Copyright 1991,8 Venue. All Rights Reserved.		*/
+#*	Manufactured in the United States of America.			*/
+#*									*/
+#************************************************************************/
+
+# Options for SPARC under Solaris-2 operating system, X windows.
+
+CC = cc -m32 $(DEVSTUDIO_CFLAGS)
+
+XFILES = $(OBJECTDIR)xmkicon.o \
+	$(OBJECTDIR)xbbt.o \
+	$(OBJECTDIR)dspif.o \
+	$(OBJECTDIR)xinit.o \
+	$(OBJECTDIR)xscroll.o \
+	$(OBJECTDIR)xcursor.o \
+	$(OBJECTDIR)xlspwin.o \
+	$(OBJECTDIR)xrdopt.o \
+	$(OBJECTDIR)xwinman.o
+
+XFLAGS = -DXWINDOW
+
+# OPTFLAGS is normally -g for MAKEINIT, as it needs debugging often.
+OPTFLAGS = -g3 -O0
+
+# Set any debugging options in DEBUGFLAGS.  E.g., to enable stack
+# checking, use -DSTACKCHECK; to enable the fn-call-time stack
+# check, use -DFNSTKCHECK.
+
+DEBUGFLAGS = # -DSTACKCHECK -DFNSTKCHECK
+
+MACHINEFLAGS = -DOS5 -DUSE_DLPI
+
+# The LDEINIT wants to have NOVERSION set, so we don't hang up on
+# any change-over in versions.
+
+DFLAGS = -DINIT \
+	 $(XFLAGS) \
+	 $(DEBUGFLAGS) \
+	 $(MACHINEFLAGS) \
+	 -DNOVERSION -DRELEASE=$(RELEASE) 
+
+
+LDFLAGS = -lX11 -lc -lm -lsocket -lnsl
+LDELDFLAGS = -lX11  -lc -lm -lsocket -lnsl
+LDEETHERLDFLAGS = -lc -lm -lsocket -lnsl
+
+DLPIFILES = $(OBJECTDIR)dlpi.o
+
+OBJECTDIR = ../$(RELEASENAME)/
+
+default	: ../$(OSARCHNAME)/ldeinit

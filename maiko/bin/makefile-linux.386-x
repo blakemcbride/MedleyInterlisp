@@ -1,0 +1,8 @@
+# Options for Linux, Intel 386/486 and X-Window
+
+GCC_CFLAGS := -m32 $(GCC_CFLAGS)
+CLANG_CFLAGS := -m32 $(CLANG_CFLAGS)
+USE_DISPLAY=x
+USE_LIBBSD=T
+
+include linux-common.mk

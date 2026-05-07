@@ -1,0 +1,290 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 1-Feb-2025 08:25:02" {WMEDLEY}<lispusers>document.;27 16813  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS Document.FileComments Document.Functions Document.Variables Document.Things 
+                       Document.Create Document.Information Document.Format Document.Begin 
+                       Document.Title Document.RunningHead Document.SectionHead 
+                       Document.FunctionCommentedP)
+
+      :PREVIOUS-DATE "30-Jan-2025 11:55:23" {WMEDLEY}<lispusers>document.;19)
+
+
+(PRETTYCOMPRINT DOCUMENTCOMS)
+
+(RPAQQ DOCUMENTCOMS (
+
+(* ;;; "This program creates documentation for any Lisp package in the style of the Lisp Users documentation.  It requires that the code for the package be loaded.  It does not completely format the document, but it minimizes the amount of work that the documenter must do.  To make most effective use of these functions, each function in the package being documented must have a comment as the first expression in the function after the timestamp.  Similarly, the COMS variable of the file should contain a comment (like this one) as the first item in the list.  This package was documented using itself.")
+
+                     (FNS Document.Create Document.Begin Document.FileComments Document.Functions 
+                          Document.Variables Document.Things Document.RunningHead Document.Title 
+                          Document.Information Document.SectionHead Document.Format 
+                          Document.FunctionCommentedP Document.Insert.Comment)))
+
+
+
+(* ;;; 
+"This program creates documentation for any Lisp package in the style of the Lisp Users documentation.  It requires that the code for the package be loaded.  It does not completely format the document, but it minimizes the amount of work that the documenter must do.  To make most effective use of these functions, each function in the package being documented must have a comment as the first expression in the function after the timestamp.  Similarly, the COMS variable of the file should contain a comment (like this one) as the first item in the list.  This package was documented using itself."
+)
+
+(DEFINEQ
+
+(Document.Create
+  [LAMBDA (FileName)                                         (* ; "Edited 31-Jan-2025 15:06 by rmk")
+                                                             (* ; "Edited 10-Jan-2025 11:19 by rmk")
+                                                             (* Newman "29-Aug-86 10:07")
+
+(* ;;; "This function builds a document for a loaded file.  The document is in the style of the Lisp Library package documentation.  The function collects comments from the COMS variable of the file and from the functions in the file.  It also collects some information from the Interlisp-D file package.  This is the top-level function in the DOCUMENT package.")
+
+    (if (MEMBER FileName FILELST)
+        then (RESETLST
+                 [LET ([Stream (OPENTEXTSTREAM NIL NIL '(HISTORY OFF FONT (MODERN 10 MRR]
+                       Pointer)
+                      (SETQ Pointer (Document.Begin FileName Stream))
+                      (Document.FileComments FileName Stream)
+                      (Document.Functions FileName Stream)
+                      (Document.Variables FileName Stream)
+                      (Document.Things FileName Stream 'MACROS 'Macro)
+                      (Document.Things FileName Stream 'RECORDS 'Record)
+                      (Document.Format Stream Pointer)
+                      (TEDIT.SETSEL Stream 1 0 'LEFT)
+                      (TEXTSTREAM (TEDIT Stream NIL NIL '(HISTORY ON])
+      else (ERROR FileName " not a loaded file."])
+
+(Document.Begin
+  [LAMBDA (FileName Stream)                                  (* ; "Edited 31-Jan-2025 14:56 by rmk")
+                                                             (* Newman "29-Aug-86 10:23")
+
+    (* ;; "This function initializes the begining of the document stream.")
+
+    (Document.RunningHead FileName Stream)
+    (Document.Title FileName Stream (ADD1 (GETEOFPTR Stream)))
+    (Document.Information FileName Stream (ADD1 (GETEOFPTR Stream])
+
+(Document.FileComments
+  [LAMBDA (FileName Stream)                                  (* ; "Edited  1-Feb-2025 08:24 by rmk")
+                                                             (* ; "Edited  8-Jan-2025 23:49 by rmk")
+                                                             (* Newman "29-Aug-86 10:17")
+
+    (* ;; "This function places all comments found in the COMS variable of FileName into Stream.  It is intended for use in documenting a Lisp code file.  Ideally, these commends would be distributed through the documentation as they are distributed through the COMS variable.")
+
+    (Document.SectionHead Stream "INTRODUCTION")
+    (for Comment in (FILECOMSLST FileName '*) do (Document.Insert.Comment Stream Comment])
+
+(Document.Functions
+  [LAMBDA (FileName Stream)                                  (* ; "Edited  1-Feb-2025 08:24 by rmk")
+                                                             (* ; "Edited  8-Jan-2025 14:16 by rmk")
+                                                             (* ; "Edited  6-Jan-2025 12:15 by rmk")
+                                                             (* Newman "29-Aug-86 10:25")
+
+(* ;;; "This function documents the Functions on FileName into Stream.  It does this by obtaining the function names from the file package, using the ARGLIST function to obtain the argument list, and obtainin the initial comment in the function if it exists.")
+
+    (Document.SectionHead Stream "FUNCTIONS")
+    (for Function in (FILEFNSLST FileName) do (PRINTOUT Stream .FONT '(MODERN 10 MRR)
+                                                     "(" Function " " .FONT '(MODERN 10 ITALIC)
+                                                     (SUBSTRING (MKSTRING (SMARTARGLIST Function T))
+                                                            2 -2)
+                                                     .FONT
+                                                     '(MODERN 10 MRR)
+                                                     ")"
+                                                     (CHARACTER 9)
+                                                     "[Function]" T)
+                                              (Document.Insert.Comment Stream (
+                                                                          Document.FunctionCommentedP
+                                                                               Function])
+
+(Document.Variables
+  [LAMBDA (FileName Stream)                                  (* ; "Edited  1-Feb-2025 08:24 by rmk")
+                                                             (* ; "Edited  9-Jan-2025 11:49 by rmk")
+                                                             (* Newman "29-Aug-86 10:28")
+
+    (* ;; "This function is intended for use while documenting Lisp code.  It collects a list of the variables from FileName, and places them in Stream in the format of the Lisp Library Documentation.")
+
+    (Document.SectionHead Stream "VARIABLES")
+    (DSPFONT '(MODERN 10 MRR)
+           Stream)
+    (for Variable in (FILECOMSLST FileName 'VARS)
+       do (PRINTOUT Stream Variable " " (CHARACTER 9)
+                 "["
+                 (if (MEMB Variable (FILECOMSLST FileName 'GLOBALVARS))
+                     then "GlobalVar"
+                   elseif (MEMB Variable (FILECOMSLST FileName 'SPECVARS))
+                     then "SpecialVar"
+                   else "Variable")
+                 "]" T])
+
+(Document.Things
+  [LAMBDA (FileName Stream FilePkgType TypeName)             (* ; "Edited  1-Feb-2025 08:24 by rmk")
+                                                             (* ; "Edited  9-Jan-2025 11:50 by rmk")
+                                                             (* Newman "29-Aug-86 10:32")
+
+    (* ;; "This function is intended for use while documenting Lisp code.  It collects a list of items of type TypeName, that are written using the FilePkgType file package command, from FileName, and places them in Stream in the format of the Lisp Library Documentation.")
+
+    (if (AND FilePkgType (MEMBER FilePkgType FILEPKGTYPES))
+        then (if (FILECOMSLST FileName FilePkgType)
+                 then (CL:UNLESS TypeName (SETQ TypeName FilePkgType))
+                      (Document.SectionHead Stream (CONCAT (U-CASE TypeName)
+                                                          "S"))
+                      (DSPFONT '(MODERN 10 MRR)
+                             Stream)
+                      (for Thing in (FILECOMSLST FileName FilePkgType)
+                         do (PRINTOUT Stream Thing " " (CHARACTER 9)
+                                   "[" TypeName "]" T)))
+      else (ERROR FilePkgType "Bad file package type: "])
+
+(Document.RunningHead
+  [LAMBDA (FileName Stream)                                  (* ; "Edited 31-Jan-2025 10:41 by rmk")
+                                                             (* ; "Edited  9-Jan-2025 16:58 by rmk")
+                                                             (* Newman "28-Aug-86 15:57")
+
+    (* ;; "This function creates the running header for the document.")
+
+    (PRINTOUT Stream .FONT '(TIMESROMAN 36 BOLD)
+           "Medley " .FONT '(MODERN 10)
+           (CHARACTER 9)
+           FileName T T)
+    (TEDIT.INSERT.OBJECT (HRULE.CREATE '2)
+           Stream
+           (GETEOFPTR Stream))
+    (TEDIT.PARALOOKS Stream '(TYPE PAGEHEADING SUBTYPE RUNNINGHEAD RIGHTMARGIN 456 LEFTMARGIN 0 TABS
+                                   (NIL (456 . RIGHT))
+                                   QUAD JUSTIFIED)
+           0
+           (TEDIT.NCHARS Stream])
+
+(Document.Title
+  [LAMBDA (FileName Stream Pointer)                          (* ; "Edited 31-Jan-2025 14:44 by rmk")
+                                                             (* Newman "29-Aug-86 11:35")
+
+(* ;;; "This function creates the title area of the document consisting of the name of the package being documented in between two lines.")
+
+    (TERPRI Stream)
+
+    (* ;; "This TERPRI is here because otherwise the first HRULE in the title becomes a part of the running header.  This happens for no apparent reason, and is a mystery to me.")
+
+    (TEDIT.INSERT.OBJECT (HRULE.CREATE '(5 4 1))
+           Stream
+           (ADD1 (TEDIT.NCHARS Stream)))
+    (SETFILEPTR Stream -1)
+    (PRINTOUT Stream .FONT '(MODERN 12 BRR)
+           T FileName T T)
+    (TEDIT.INSERT.OBJECT (HRULE.CREATE '(1 4 5))
+           Stream
+           (GETEOFPTR Stream))
+    (TEDIT.PARALOOKS Stream
+           '(TYPE NIL PARALEADING 6 LINELEADING 4 RIGHTMARGIN 312 LEFTMARGIN 138 1STLEFTMARGIN 138 
+                  QUAD CENTERED)
+           Pointer
+           (TEDIT.NCHARS Stream])
+
+(Document.Information
+  [LAMBDA (FileName Stream)                                  (* ; "Edited 31-Jan-2025 15:10 by rmk")
+                                                             (* Newman "29-Aug-86 10:37")
+
+(* ;;; "This function creates the information at the top of the document, including the form for the author's name and a list of other packages necessary to run this package.")
+
+    (LET [(Pointer (ADD1 (TEDIT.NCHARS Stream]
+         (PRINTOUT Stream .FONT '(MODERN 10)
+                " By: >>Author's Name<< (>>Net Address<<)" T "Documentation created "
+                (DATE (DATEFORMAT NO.TIME YEAR.LONG SPACES NO.LEADING.SPACES))
+                T)
+
+         (* ;; "LEN of TEDIT.NCHARS is certainly long enough")
+
+         (TEDIT.PARALOOKS Stream '(RIGHTMARGIN 456 LEFTMARGIN 0 1STLEFTMARGIN 0 QUAD CENTERED 
+                                         PARALEADING 17)
+                Pointer
+                (TEDIT.NCHARS Stream))
+         (SETQ Pointer (ADD1 (TEDIT.NCHARS Stream)))
+         (CL:WHEN (FILECOMSLST FileName 'FILES)
+             (PRINTOUT Stream "The following files are loaded by " FileName ": "
+                    (SUBSTRING (MKSTRING (FILECOMSLST FileName 'FILES))
+                           2 -2)
+                    T)
+             (TEDIT.PARALOOKS Stream '(QUAD LEFT PARALEADING 12)
+                    Pointer
+                    (TEDIT.NCHARS Stream)))
+         (ADD1 (TEDIT.NCHARS Stream])
+
+(Document.SectionHead
+  [LAMBDA (Stream String)                                    (* ; "Edited 31-Jan-2025 10:52 by rmk")
+                                                             (* Newman "29-Aug-86 10:39")
+
+(* ;;; "This function is intended to create the bold section headings in Stream that are needed for the Lisp Users document style.")
+
+    (PRINTOUT Stream .FONT '(MODERN 10 BRR)
+           String T .FONT '(MODERN 10])
+
+(Document.Format
+  [LAMBDA (Stream Pointer)                                   (* ; "Edited 31-Jan-2025 12:24 by rmk")
+                                                             (* Newman "29-Aug-86 10:54")
+
+(* ;;; "This function formats the document.  It sets the page layout, font looks, and paragraph formatting for the non-heading part of the stream.")
+
+    (TEDIT.PARALOOKS Stream '(TABS (NIL (0 . RIGHT)
+                                        (456 . RIGHT))
+                                   LINELEADING 4 PARALEADING 11 RIGHTMARGIN 456 LEFTMARGIN 0 
+                                   1STLEFTMARGIN 0 QUAD JUSTIFIED)
+           (ADD1 Pointer)
+           (SUB1 (DIFFERENCE (TEDIT.NCHARS Stream)
+                        Pointer)))
+    (TEDIT.PAGEFORMAT Stream (TEDIT.COMPOUND.PAGEFORMAT (TEDIT.SINGLE.PAGEFORMAT
+                                                         T 26.5 3.0 '(MODERN 10)
+                                                         'CENTERED 7.0 6.0 8.0 8.0 1 38.0 0
+                                                         '((RUNNINGHEAD 7.0 62.0))
+                                                         'PICAS
+                                                         '(STARTINGPAGE# 1)
+                                                         'LETTER)
+                                    (TEDIT.SINGLE.PAGEFORMAT T 26.5 3.5 '(MODERN 10)
+                                           'CENTERED 7.0 6.0 8.0 8.0 1 38.0 0
+                                           '((RUNNINGHEAD 7.0 62.0))
+                                           'PICAS
+                                           '(STARTINGPAGE# 1)
+                                           'LETTER)
+                                    (TEDIT.SINGLE.PAGEFORMAT T 26.5 3.0 '(MODERN 10)
+                                           'CENTERED 7.0 6.0 8.0 8.0 1 38.0 0
+                                           '((RUNNINGHEAD 7.0 62.0))
+                                           'PICAS
+                                           '(STARTINGPAGE# 1)
+                                           'LETTER])
+
+(Document.FunctionCommentedP
+  [LAMBDA (Function)                                         (* ; "Edited 31-Jan-2025 11:08 by rmk")
+                                                             (* ; "Edited  8-Jan-2025 21:06 by rmk")
+                                                             (* Newman "29-Aug-86 10:42")
+
+    (* ;; "Finds first comment in a function, skipping old and new format dates.")
+
+    (for X in [CDDR (GETDEF Function NIL NIL '(NOERROR]
+       unless [OR (EDITDATE? X)
+                  (AND (EQ '* (CAR X))
+                       (IDATE (CADDR X] do (RETURN (CL:IF (EQ '* (CAR X))
+                                                          X])
+
+(Document.Insert.Comment
+  [LAMBDA (Stream Comment)                                   (* ; "Edited  9-Jan-2025 16:56 by rmk")
+    (CL:WHEN (EQ '* (CAR (LISTP Comment)))
+        (DSPFONT '(MODERN 10 MRR)
+               Stream)
+        [if (AND (MEMB (CADR Comment)
+                       '(; ;; ;;;))
+                 (STRINGP (CADDR Comment)))
+            then (PRIN3 (CADDR Comment)
+                        Stream)
+          else [SETQ Comment (find TAIL on Comment suchthat (NEQ (CAR TAIL)
+                                                                 '*]
+               (for TAIL on Comment do (PRIN3 (CAR TAIL)
+                                              Stream)
+                                       (CL:WHEN (CDR TAIL)
+                                              (PRIN3 " " Stream]
+        (TERPRI Stream))])
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2235 16790 (Document.Create 2245 . 3791) (Document.Begin 3793 . 4283) (
+Document.FileComments 4285 . 5068) (Document.Functions 5070 . 6798) (Document.Variables 6800 . 7885) (
+Document.Things 7887 . 9199) (Document.RunningHead 9201 . 10101) (Document.Title 10103 . 11195) (
+Document.Information 11197 . 12653) (Document.SectionHead 12655 . 13106) (Document.Format 13108 . 
+15202) (Document.FunctionCommentedP 15204 . 15916) (Document.Insert.Comment 15918 . 16788)))))
+STOP

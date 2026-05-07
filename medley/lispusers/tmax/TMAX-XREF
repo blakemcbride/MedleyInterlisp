@@ -1,0 +1,503 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "12-Aug-2025 09:08:07" 
+|{DSK}<Users>kaplan>Local>medley3.5>working-medley>lispusers>tmax>TMAX-XREF.;25| 25155  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS UPDATE.XREFS)
+
+      :PREVIOUS-DATE "28-Feb-2025 23:36:07" 
+|{DSK}<Users>kaplan>Local>medley3.5>working-medley>lispusers>tmax>TMAX-XREF.;24|)
+
+
+(PRETTYCOMPRINT TMAX-XREFCOMS)
+
+(RPAQQ TMAX-XREFCOMS
+       (                                                     (* \; 
+                                                   "Developed under support from NIH grant RR-00785.")
+                                                             (* \; 
+                                                         "Written by Frank Gilmurray and Sami Shaio.")
+        
+        (* |;;| "An XREF is a general-purpose cross-referencing imageobject.  In order to create an instance of an XREF one simply calls the function XREF with a TAG that is supposed to link it with some imageobject that it is referencing.  In order to add to the class of imageobjects that can be referenced with XREF one uses the function XREF.ADD.DISPLAYFN with the type of the imageobject and a function that operates on it to return some string that XREF will then display in the document.")
+
+        
+
+(* |;;;| "TMAX-XREFNIL Image Object functions")
+
+        (FNS XREF XREFP XREF.DISPLAYFN XREF.IMAGEBOXFN XREF.PUTFN XREF.GETFN XREF.COPYFN 
+             XREF.BUTTONEVENTINFN XREF.WHENDELETEDFN XREF.TEDIT-TO-TEX-FN)
+        (FNS XREF.GET.DISPLAY.TEXT XREF.GET.TOOBJ TSPOBJ.GETTYPE)
+        (FNS UPDATE.XREFS INSERT.REF GET.REF GET.REFERENCE.BY TSP.LIST.REFS TSP.GET.INCODE 
+             TSP.GETCODEVAL TSP.PUTCODE)
+        
+
+(* |;;;| "Functions for adding and retrieving the method for a gven imageobject.")
+
+        (FNS XREF.ADD.DISPLAYFN XREF.GET.DISPLAYFN)
+        
+
+(* |;;;| "Examples of some XREF display methods.")
+
+        (FNS NGROUP.XREF.DISPLAYFN NGROUP.XREF.DISPLAY.TEXT NOTE.XREF.DISPLAYFN)
+        (INITVARS (\\XREFOBJ.IMAGEFNS (IMAGEFNSCREATE (FUNCTION XREF.DISPLAYFN)
+                                             (FUNCTION XREF.IMAGEBOXFN)
+                                             (FUNCTION XREF.PUTFN)
+                                             (FUNCTION XREF.GETFN)
+                                             (FUNCTION XREF.COPYFN)
+                                             (FUNCTION XREF.BUTTONEVENTINFN)
+                                             (FUNCTION NILL)
+                                             (FUNCTION NILL)
+                                             (FUNCTION NILL)
+                                             (FUNCTION NILL)
+                                             (FUNCTION NILL)
+                                             (FUNCTION NILL)
+                                             (FUNCTION XREF.GET.DISPLAY.TEXT))))
+        (UGLYVARS XREF.DISPLAY.METHODS)
+        (FILES (COMPILED SYSLOAD)
+               TMAX)))
+
+
+
+(* \; "Developed under support from NIH grant RR-00785.")
+
+
+
+
+(* \; "Written by Frank Gilmurray and Sami Shaio.")
+
+
+
+
+(* |;;| 
+"An XREF is a general-purpose cross-referencing imageobject.  In order to create an instance of an XREF one simply calls the function XREF with a TAG that is supposed to link it with some imageobject that it is referencing.  In order to add to the class of imageobjects that can be referenced with XREF one uses the function XREF.ADD.DISPLAYFN with the type of the imageobject and a function that operates on it to return some string that XREF will then display in the document."
+)
+
+
+
+
+(* |;;;| "TMAX-XREFNIL Image Object functions")
+
+(DEFINEQ
+
+(XREF
+  (LAMBDA (TAG)                                              (* |fsg| "23-Jul-87 13:33")
+
+         (* |Returns| \a |new| XREF |imageobject.|
+       |The| TAG |argument| |is| |obligatory| |and| |should| |be| |the| |tag| |that| 
+       |is| |used| |to| |reference| |the| |object| |that| |this| XREF |object| |is| 
+       |referencing.|)
+
+    (LET ((NEWOBJ (IMAGEOBJCREATE TAG \\XREFOBJ.IMAGEFNS)))
+         (IMAGEOBJPROP NEWOBJ 'TYPE 'XREF)
+         (IMAGEOBJPROP NEWOBJ 'TEDIT-TO-TEX-FN (FUNCTION XREF.TEDIT-TO-TEX-FN))
+         NEWOBJ)))
+
+(xrefp
+  (lambda (obj)                                              (* |ss:| "27-Jun-87 16:39")
+                                                             (* |Test| |whether| |something| |is| 
+                                                             |an| xref |imageobject.|)
+    (and (imageobjp obj)
+         (eq (imageobjprop obj 'type)
+             'xref))))
+
+(XREF.DISPLAYFN
+  (LAMBDA (OBJ STREAM)                                      (* \; "Edited 28-Feb-2025 15:21 by rmk")
+                                                             (* |fsg| "17-Sep-87 11:19")
+
+(* |;;;| "General purpose display function for an XREF imageobject.  Relies on XREF.GET.DISPLAY.TEXT to get the actual text that must be displayed.")
+
+    (TMAX.SHADEOBJ OBJ STREAM)
+    (PRIN3 (XREF.GET.DISPLAY.TEXT OBJ)
+           STREAM)))
+
+(XREF.IMAGEBOXFN
+  (LAMBDA (OBJ STREAM)                                      (* \; "Edited 25-May-2024 20:34 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:39")
+
+    (* |;;| "Returns the size of an XREF imageobject based on the string that will be used to display it which is found using XREF.GET.DISPLAY.TEXT.")
+
+    (|create| IMAGEBOX
+           XSIZE _ (TEDIT.STRINGWIDTH (XREF.GET.DISPLAY.TEXT OBJ)
+                          STREAM)
+           YSIZE _ (FONTPROP STREAM 'HEIGHT)
+           YDESC _ (FONTPROP STREAM 'DESCENT)
+           XKERN _ 0)))
+
+(xref.putfn
+  (lambda (obj stream)                                       (* |fsg| "29-Jul-87 09:08")
+    (prin2 (list 'xref (|fetch| objectdatum |of| obj)
+                 (imageobjprop obj 'reference.by))
+           stream)))
+
+(XREF.GETFN
+  (LAMBDA (STREAM COPY.OBJECT)                              (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:49 by rmk")
+                                                             (* |fsg| "20-Aug-87 14:59")
+    (DECLARE (USEDFREE TSTREAM))
+    (TSP.SETUP.FMMENU (\\TEDIT.PRIMARYPANE TSTREAM))
+    (LET* ((XREF.ARGS (OR COPY.OBJECT (CDR (READ STREAM))))
+           (XREF.OBJ (XREF (CAR XREF.ARGS))))
+          (IMAGEOBJPROP XREF.OBJ 'REFERENCE.BY (OR (CADR XREF.ARGS)
+                                                   '|Value|))
+          XREF.OBJ)))
+
+(XREF.COPYFN
+  (LAMBDA (IMAGE.OBJ SOURCE.STREAM TARGET.STREAM)           (* \; "Edited 21-Feb-2025 10:07 by rmk")
+                                                             (* |fsg| "12-Aug-87 11:07")
+
+(* |;;;| "Here to COPY an XREF Image Object.")
+
+    (SELECTQ (IMAGESTREAMTYPE TARGET.STREAM)
+        (TEXT (APPLY* (IMAGEOBJPROP IMAGE.OBJ 'GETFN)
+                     TARGET.STREAM
+                     (LIST (|fetch| OBJECTDATUM |of| IMAGE.OBJ)
+                           (IMAGEOBJPROP IMAGE.OBJ 'REFERENCE.BY))))
+        (ERROR "Unknown TARGET stream type" (IMAGESTREAMTYPE TARGET.STREAM)))))
+
+(XREF.BUTTONEVENTINFN
+  (LAMBDA (XREFOBJ STREAM SELECTION RELX RELY WINDOW TSTREAM BUTTON)
+                                                            (* \; "Edited 28-Feb-2025 23:34 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 14:38 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:08 by rmk")
+                                                            (* \; "Edited 20-Apr-2024 12:56 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:55 by rmk")
+                                                            (* \; "Edited 26-Dec-2023 11:56 by rmk")
+                                                             (* \; "Edited  9-Nov-97 08:09 by rmk:")
+                                                             (* |fsg| "29-Jul-87 16:43")
+
+(* |;;;| "Show what TAG is being referenced and how it is referenced.")
+
+    (LET ((XREF.TAG (|fetch| OBJECTDATUM |of| XREFOBJ))
+          (XREF.DISPLAY (IMAGEOBJPROP XREFOBJ 'REFERENCE.BY)))
+         (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Reference to \"" XREF.TAG "\" by " XREF.DISPLAY)
+                T)
+         (CL:WHEN (MOUSESTATE MIDDLE)
+             (SELECTQ (MENU (|create| MENU
+                                   TITLE _ (CONCAT XREF.TAG " Menu")
+                                   ITEMS _ '(|Find Definition| |Change Reference| |Change Display|)
+                                   CENTERFLG _ T))
+                 (|Find Definition| 
+                      (LET ((CHNOS (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION (LAMBDA (OBJ CHNO TAG)
+                                                                            (AND
+                                                                             (NUMBEROBJP OBJ)
+                                                                             (EQ TAG
+                                                                                 (IMAGEOBJPROP
+                                                                                  OBJ
+                                                                                  'TAG)))))
+                                          XREF.TAG
+                                          'CH#)))
+                           (IF CHNOS
+                               THEN (CL:WHEN (CDR CHNOS)
+                                           (TEDIT.PROMPTPRINT TSTREAM 
+                                                  "NOTE:  Reference has multipled definitions!!" T))
+                                    (TEDIT.SELPROP SELECTION 'CH# (CAR CHNOS)) 
+                                                             (* \; "SELECTION is the NEWSEL")
+                                    (TEDIT.SELPROP SELECTION 'LENGTH 1)
+                                    (TEDIT.SELPROP SELECTION 'SHADE BLACKSHADE) 
+                                                             (* \; "Inverted")
+                                    (\\TEDIT.FIXSEL SELECTION TSTREAM)
+                                    (TEDIT.SELPROP SELECTION 'SHADEHEIGHT 16384)
+                                    (RESETSAVE NIL `(TEDIT.NORMALIZECARET ,TSTREAM))
+                                    T
+                             ELSE (TEDIT.PROMPTPRINT TSTREAM (CONCAT XREF.TAG 
+                                                                    " reference has no definition!")
+                                         T T))
+                           NIL))
+                 (|Change Reference| 
+                      (LET ((NEW.REFERENCE (GET.REF TSTREAM)))
+                           (CL:WHEN NEW.REFERENCE
+                               (|replace| OBJECTDATUM |of| XREFOBJ |with| NEW.REFERENCE)
+                               'CHANGED)))
+                 (|Change Display| 
+                      (IMAGEOBJPROP XREFOBJ 'REFERENCE.BY (GET.REFERENCE.BY TSTREAM T))
+                      (TEDIT.PROMPTCLEAR TSTREAM)
+                      'CHANGED)
+                 NIL)))))
+
+(XREF.WHENDELETEDFN
+  (LAMBDA (IMOBJ TSTREAM)                                   (* \; "Edited 22-Feb-2025 23:00 by rmk")
+                                                            (* \; "Edited 15-Jul-2023 10:48 by rmk")
+                                                             (* |fsg| "29-Jul-87 16:35")
+
+    (* |;;| "Note that this function is NOT called when a Reference is deleted.  It is called when a NGroup or Endnote is deleted.")
+
+    (TSP.PUTCODE (IMAGEOBJPROP IMOBJ 'TAG)
+           NIL TSTREAM)
+    (CL:WHEN (UPDATE? TSTREAM)
+           (UPDATE.XREFS TSTREAM))))
+
+(XREF.TEDIT-TO-TEX-FN
+  (LAMBDA (OBJ STREAM)
+    (LET ((TOOBJ (XREF.GET.TOOBJ (IMAGEOBJPROP OBJ 'OBJECTDATUM)))
+          DATUM)
+         (CL:WHEN (AND (SETQ DATUM (IMAGEOBJPROP TOOBJ 'OBJECTDATUM))
+                       TOOBJ)
+             (PRIN3 "\\exref{" STREAM)
+             (PRIN3 (CAR DATUM)
+                    STREAM)
+             (PRIN3 (CADR DATUM)
+                    STREAM)
+             (PRIN3 "}" STREAM)
+             T))))
+)
+(DEFINEQ
+
+(XREF.GET.DISPLAY.TEXT
+  (LAMBDA (OBJ)                                             (* \; "Edited 28-Feb-2025 15:20 by rmk")
+                                                             (* |fsg| "29-Jul-87 09:30")
+
+    (* |;;| "This function will first lookup a 'TOOBJ' , in other words, the imageobject that the XREF object OBJ is referencing.  Then, if there is such an object, a suitable XREF display method is found using XREF.GET.DISPLAYFN.  If such a function is found, then it is applied to TOOBJ and a string to be displayed is returned.")
+
+    (LET ((TOOBJ (XREF.GET.TOOBJ (|fetch| OBJECTDATUM |of| OBJ)))
+          (REFERENCE.BY (IMAGEOBJPROP OBJ 'REFERENCE.BY))
+          SPECIFIC.DISPLAYFN)
+         (COND
+            (TOOBJ (COND
+                      ((SETQ SPECIFIC.DISPLAYFN (XREF.GET.DISPLAYFN TOOBJ))
+                       (APPLY* SPECIFIC.DISPLAYFN TOOBJ REFERENCE.BY))
+                      (T (RINGBELLS)
+                         (ERROR "Unknown XREF display method" (TSPOBJ.GETTYPE TOOBJ))
+                         "<Unknown Reference>")))
+            (T (CONCAT "<Reference " (|fetch| OBJECTDATUM |of| OBJ)
+                      "/" REFERENCE.BY ">"))))))
+
+(XREF.GET.TOOBJ
+  (LAMBDA (TAG)                                             (* \; "Edited 22-Feb-2025 22:38 by rmk")
+                                                            (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:49 by rmk")
+                                                             (* |fsg| "13-Jul-87 11:13")
+    (DECLARE (USEDFREE TSTREAM))
+
+    (* |;;| "This function is called in a specific context where a reference must be displayed.  It is called by an XREF object and should return the IMAGEOBJECT that the XREF object is referencing.")
+
+    (GETHASH TAG (TMAXPROP TSTREAM 'TSP.CODE.ARRAY))))
+
+(tspobj.gettype
+  (lambda (obj)                                              (* |ss:| "27-Jun-87 16:36")
+    (imageobjprop obj 'type)))
+)
+(DEFINEQ
+
+(UPDATE.XREFS
+  (LAMBDA (TSTREAM UNUPDATING?)                             (* \; "Edited 12-Aug-2025 09:07 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:29 by rmk")
+                                                             (* |fsg| "25-Sep-87 14:18")
+
+(* |;;;| "Update all the XREF objects in the window.")
+
+    (LET ((REF.LIST (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION XREFP))))
+         (CL:WHEN REF.LIST
+             (TEDIT.PROMPTPRINT TSTREAM (CONCAT (COND
+                                                   (UNUPDATING? "Undoing Update of")
+                                                   (T "Updating"))
+                                               " References...")
+                    T)
+             (|for| REF |in| REF.LIST
+                |do| (LET ((REF.TAG (|fetch| OBJECTDATUM |of| REF)))
+                          (COND
+                             ((OR UNUPDATING? (XREF.GET.TOOBJ REF.TAG))
+                              (TEDIT.OBJECT.CHANGED TSTREAM (CAR REF)))
+                             (T (PRINTOUT PROMPTWINDOW T (CONCAT "Undefined Reference to \"" REF.TAG
+                                                                "\", delete it or just continte?")
+                                       T)
+                                (FLASHWINDOW PROMPTWINDOW)
+                                (SELECTQ (MENU (|create| MENU
+                                                      TITLE _ '|Undefined Ref|
+                                                      ITEMS _ '(|Delete| |Continue|)
+                                                      CENTERFLG _ T))
+                                    (|Delete| (TEDIT.DELETE TSTREAM (CADR REF)
+                                                     1))
+                                    NIL)))))))))
+
+(INSERT.REF
+  (LAMBDA (TSTREAM DISPLAY.PREV)                            (* \; "Edited 22-Feb-2025 16:32 by rmk")
+                                                             (* |fsg| "25-Sep-87 10:24")
+    (LET* ((CODE (GET.REF TSTREAM DISPLAY.PREV))
+           (REF (AND CODE (XREF CODE))))
+          (CL:WHEN REF
+              (IMAGEOBJPROP REF 'REFERENCE.BY (GET.REFERENCE.BY TSTREAM))
+              (TEDIT.INSERT.OBJECT REF TSTREAM)))))
+
+(GET.REF
+  (LAMBDA (TSTREAM DISPLAY.PREV)                            (* \; "Edited 22-Feb-2025 16:30 by rmk")
+                                                             (* |fsg| " 2-Sep-87 11:24")
+
+(* |;;;| "If DISPLAY.PREV is non-NIL then get the Reference TAG from a menu.  Else prompt the user for the TAG name.")
+
+    (COND
+       (DISPLAY.PREV (LET ((PREVREFS (TSP.LIST.REFS TSTREAM)))
+                          (COND
+                             (PREVREFS (TEDIT.PROMPTPRINT TSTREAM "" T)
+                                    (MENU (|create| MENU
+                                                 TITLE _ '|Reference Tags|
+                                                 ITEMS _ (SORT PREVREFS 'UALPHORDER)
+                                                 MENUCOLUMNS _ (FIX (SQRT (LENGTH PREVREFS)))
+                                                 CENTERFLG _ T)))
+                             (T (TEDIT.PROMPTPRINT TSTREAM 
+                                       "There are no References in this document." T)))))
+       (T (MKATOM (TEDIT.GETINPUT TSTREAM "Reference to:"))))))
+
+(GET.REFERENCE.BY
+  (LAMBDA (TSTREAM ASK?)                                    (* \; "Edited 22-Feb-2025 16:31 by rmk")
+                                                             (* \; "Edited 29-Sep-87 15:24 by fsg")
+
+(* |;;;| "Get the 'Reference By' value from the FreeMenu.  If ASK?  is T or the FreeMenu value is 'Ask' then pop up a menu to get Value or Number.")
+
+    (LET ((REFERENCE.BY (CL:IF ASK?
+                            '|Ask|
+                            (FM.ITEMPROP (FM.GETITEM 'DEFAULTREF NIL (TMAXPROP TSTREAM 
+                                                                            'IMAGEOBJ.MENUW))
+                                   'LABEL))))
+         (SELECTQ REFERENCE.BY
+             (|Ask| (OR (MENU (|create| MENU
+                                     TITLE _ '|Reference By|
+                                     CENTERFLG _ T
+                                     ITEMS _ '(|Value| |Page|)))
+                        '|Value|))
+             REFERENCE.BY))))
+
+(TSP.LIST.REFS
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 22-Feb-2025 16:30 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:36")
+
+(* |;;;| "Used to collect index references here but now use INDEX.LIST.REFS instead.")
+
+    (LET ((REFLIST NIL))
+         (MAPHASH (TMAXPROP TSTREAM 'TSP.CODE.ARRAY)
+                (FUNCTION (LAMBDA (VAL KY)
+                            (SETQ REFLIST (CONS KY REFLIST)))))
+         REFLIST)))
+
+(tsp.get.incode
+  (lambda (stream)                                           (* |fsg| " 4-Aug-87 16:13")
+          (* * |Get| \a |new| |Tag| id |and| |make| |sure| |it's| |not| |already| 
+          |defined.|)
+
+    (let ((tag.id (mkatom (tedit.getinput stream "Tag name:"))))
+         (|while| (and tag.id (tsp.getcodeval tag.id (\\tedit.mainw stream)))
+            |do| (setq tag.id (mkatom (tedit.getinput stream (concat tag.id 
+                                                                    " already exists...Tag name:"))))
+                )
+         (or tag.id (tedit.promptprint stream "" t))
+         tag.id)))
+
+(TSP.GETCODEVAL
+  (LAMBDA (CODE TSTREAM)                                    (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:35")
+    (LET ((TSP.CODE.ARRAY (TMAXPROP TSTREAM 'TSP.CODE.ARRAY)))
+         (GETHASH CODE TSP.CODE.ARRAY))))
+
+(TSP.PUTCODE
+  (LAMBDA (CODE VALUE TSTREAM)                              (* \; "Edited 28-Feb-2025 00:42 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "27-Jun-87 16:36")
+    (PUTHASH CODE VALUE (TMAXPROP TSTREAM 'TSP.CODE.ARRAY))))
+)
+
+
+
+(* |;;;| "Functions for adding and retrieving the method for a gven imageobject.")
+
+(DEFINEQ
+
+(XREF.ADD.DISPLAYFN
+  (LAMBDA (OBJTYPE NAME.OF.FUNCTION)                        (* \; "Edited 22-Feb-2025 23:41 by rmk")
+                                                             (* |edited:| "22-Jan-87 21:08")
+
+    (* |;;| "Adds an XREF display method for an imageobject of the given type.  This means that the function NAME.OF.FUNCTION will be used to display text when an XREF object references an imageobject of type OBJTYPE.")
+
+    (PUTHASH OBJTYPE NAME.OF.FUNCTION XREF.DISPLAY.METHODS)))
+
+(XREF.GET.DISPLAYFN
+  (LAMBDA (OBJ)                                             (* \; "Edited 28-Feb-2025 15:17 by rmk")
+                                                             (* |edited:| "22-Jan-87 21:11")
+                                                             (* \; 
+                                            "Returns the XREF display method for an imageobject OBJ.")
+    (GETHASH (|fetch| USE |of| (|fetch| OBJECTDATUM |of| OBJ))
+           XREF.DISPLAY.METHODS)))
+)
+
+
+
+(* |;;;| "Examples of some XREF display methods.")
+
+(DEFINEQ
+
+(ngroup.xref.displayfn
+  (lambda (ngroup.obj reference.by)                          (* |fsg| "29-Jul-87 10:25")
+          (* * |The| xref |display| |method| |for| ngroup |objects.|
+          i\f |the| |NGroup| |has| |been| |updated| |and| |it| |has| \a |trailing| 
+          |delimiter,| |the| |delimiter| |is| |stripped| |off.|)
+
+    (|with| numberobj (|fetch| objectdatum |of| ngroup.obj)
+           (cond
+              (updated.obj (cond
+                              ((eq reference.by '|Page|)
+                               (cond
+                                  (page.number (mkstring page.number))
+                                  (t (concat "<" (ngroup.xref.display.text template numstring)
+                                            "/" reference.by ">"))))
+                              (t (ngroup.xref.display.text template numstring))))
+              (t (concat "<" ref.type "/" reference.by ">"))))))
+
+(NGROUP.XREF.DISPLAY.TEXT
+  (LAMBDA (TEMPLATE NUMSTRING)                              (* \; "Edited 26-Feb-2025 10:28 by rmk")
+                                                             (* |fsg| "29-Jul-87 10:24")
+
+(* |;;;| "Return the display text value for an updated NGroup reference.")
+
+    (|with| NGTEMPLATE TEMPLATE (CL:IF NG.DELIMAFTER
+                                    (SUBSTRING NUMSTRING 1 (MINUS (ADD1 (NCHARS NG.DELIMAFTER))))
+                                    NUMSTRING))))
+
+(note.xref.displayfn
+  (lambda (note.obj reference.by)                            (* |fsg| "29-Jul-87 10:35")
+          (* * |The| xref |display| |method| |for| |Endnote| |objects.|
+          i\f |the| |ImageObj| |has| |not| |been| |updated| |yet,| |we| |enclose| |it| 
+          |in| |angle| |brackets.|)
+
+    (|with| numberobj (|fetch| objectdatum |of| note.obj)
+           (cond
+              ((and updated.obj (or (neq reference.by '|Page|)
+                                    page.number))
+               (cond
+                  ((eq reference.by '|Page|)
+                   (mkstring page.number))
+                  (t (mkstring numstring))))
+              (t (concat "<" numstring "/" reference.by ">"))))))
+)
+
+(RPAQ? \\XREFOBJ.IMAGEFNS
+       (IMAGEFNSCREATE (FUNCTION XREF.DISPLAYFN)
+              (FUNCTION XREF.IMAGEBOXFN)
+              (FUNCTION XREF.PUTFN)
+              (FUNCTION XREF.GETFN)
+              (FUNCTION XREF.COPYFN)
+              (FUNCTION XREF.BUTTONEVENTINFN)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION XREF.GET.DISPLAY.TEXT)))
+
+(READVARS-FROM-STRINGS '(XREF.DISPLAY.METHODS)
+       "({H(24 ERROR) 2 NGROUP.XREF.DISPLAYFN NGROUP NOTE.XREF.DISPLAYFN NOTE })
+")
+
+(FILESLOAD (COMPILED SYSLOAD)
+       TMAX)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (3695 12492 (XREF 3705 . 4272) (XREFP 4274 . 4661) (XREF.DISPLAYFN 4663 . 5135) (
+XREF.IMAGEBOXFN 5137 . 5762) (XREF.PUTFN 5764 . 6010) (XREF.GETFN 6012 . 6690) (XREF.COPYFN 6692 . 
+7318) (XREF.BUTTONEVENTINFN 7320 . 11423) (XREF.WHENDELETEDFN 11425 . 12041) (XREF.TEDIT-TO-TEX-FN 
+12043 . 12490)) (12493 14620 (XREF.GET.DISPLAY.TEXT 12503 . 13729) (XREF.GET.TOOBJ 13731 . 14469) (
+TSPOBJ.GETTYPE 14471 . 14618)) (14621 21003 (UPDATE.XREFS 14631 . 16503) (INSERT.REF 16505 . 16973) (
+GET.REF 16975 . 18090) (GET.REFERENCE.BY 18092 . 19106) (TSP.LIST.REFS 19108 . 19626) (TSP.GET.INCODE 
+19628 . 20282) (TSP.GETCODEVAL 20284 . 20610) (TSP.PUTCODE 20612 . 21001)) (21095 22148 (
+XREF.ADD.DISPLAYFN 21105 . 21622) (XREF.GET.DISPLAYFN 21624 . 22146)) (22208 24451 (
+NGROUP.XREF.DISPLAYFN 22218 . 23178) (NGROUP.XREF.DISPLAY.TEXT 23180 . 23697) (NOTE.XREF.DISPLAYFN 
+23699 . 24449)))))
+STOP

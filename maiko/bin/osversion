@@ -1,0 +1,21 @@
+#!/bin/sh
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+os=${LDEARCH:-`$SCRIPTPATH/config.guess`}
+case "$os" in
+        m68k-*-amigaos)		echo amigaos ;;
+        sparc-sun-sunos*)	echo sunos4 ;;
+        sparc-sun-solaris1*)	echo sunos4 ;;
+        *-*-solaris2*)	        echo sunos5 ;;
+        alpha-dec-osf1)		echo osf1 ;;
+	*-apple-darwin*)	echo darwin ;;
+        *-*-linux*)
+           if [ -n "${WSL_DISTRO_NAME}" ] && [ -z "${WSL_INTEROP}" ];
+           then echo wsl1; else echo linux; fi ;;
+        *-*-openbsd*)		echo openbsd ;;
+        *-*-freebsd*)		echo freebsd ;;
+	*-*-cygwin*)            echo cygwin ;;
+	*-*-haiku*)             echo haiku ;;
+        *-microsoft-wsl1)       echo wsl1 ;;
+esac
+### Don't leave the variable set.
+unset os

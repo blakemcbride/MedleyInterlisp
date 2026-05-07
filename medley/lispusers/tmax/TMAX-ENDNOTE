@@ -1,0 +1,489 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "28-Feb-2025 23:37:36" |{WMEDLEY}<lispusers>tmax>TMAX-ENDNOTE.;21| 25304  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS NOTE.WHENSELECTEDFN INSERT.ENDNOTES.TEXT ENDNOTEP MAP.ENDNOTE.LOOKS 
+                       DELETE.ENDNOTES)
+
+      :PREVIOUS-DATE "23-Feb-2025 00:27:40" |{WMEDLEY}<lispusers>tmax>TMAX-ENDNOTE.;19|)
+
+
+(PRETTYCOMPRINT TMAX-ENDNOTECOMS)
+
+(RPAQQ TMAX-ENDNOTECOMS
+       ((* |Developed| |under| |support| |from| NIH |grant| RR-00785.)
+        (* |Written| |by| |Frank| |Gilmurray| |and| |Sami| |Shaio.|)
+        (FNS ADD.ENDNOTE INSERT.ENDNOTES INSERT.ENDNOTES.TEXT DELETE.ENDNOTES NOTESREGIONP 
+             SET.ENDNOTE.STYLE MAP.ENDNOTE.LOOKS GET.ENDNOTE.FONTS)
+        (FNS ENDNOTEP NOTE.PUTFN NOTE.GETFN NOTE.BUTTONEVENTINFN NOTE.WHENSELECTEDFN)
+        (VARS ENDNOTE.NOTAG.ITEMS ENDNOTE.TAG.ITEMS)
+        (DECLARE\: EVAL@COMPILE DONTCOPY (RECORDS ENDNOTEFONTS))
+        (* * |Allow| |user| |to| |edit| |Endnote| |text| |in| |another| |TEdit| |window.|)
+        (FNS AUX.TEDIT AUX.TEDIT.AFTERQUITFN AUX.TEDIT.TITLEMENUFN)
+        (* * |Delimit| |text| |between| |two| |markers| |known| |as| REGION MARKERS.)
+        (FNS REGMARKOBJ REGMARKOBJP REGMARK.DISPLAYFN REGMARK.IMAGEBOXFN REGMARK.PUTFN REGMARK.GETFN
+             REGMARK.COPYFN REGMARK.BUTTONEVENTINFN)
+        (INITVARS (\\REGMARKOBJ.IMAGEFNS (IMAGEFNSCREATE (FUNCTION REGMARK.DISPLAYFN)
+                                                (FUNCTION REGMARK.IMAGEBOXFN)
+                                                (FUNCTION REGMARK.PUTFN)
+                                                (FUNCTION REGMARK.GETFN)
+                                                (FUNCTION REGMARK.COPYFN)
+                                                (FUNCTION REGMARK.BUTTONEVENTINFN)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL)
+                                                (FUNCTION NILL))))
+        (DECLARE\: EVAL@COMPILE DONTCOPY (RECORDS REGMARKOBJ))))
+
+
+
+(* |Developed| |under| |support| |from| NIH |grant| RR-00785.)
+
+
+
+
+(* |Written| |by| |Frank| |Gilmurray| |and| |Sami| |Shaio.|)
+
+(DEFINEQ
+
+(ADD.ENDNOTE
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 00:35 by rmk")
+                                                             (* |fsg| "13-Jul-87 10:44")
+
+(* |;;;| "Insert an ENDNOTE ImageObject as a superscript.  Displayed as a number when updated.")
+
+    (LET ((NOTEOBJ (NUMBEROBJ 'NOTE)))
+         (TEDIT.INSERT.OBJECT NOTEOBJ TSTREAM)
+         (|replace| (NUMBEROBJ TEXT.AFTER#) |of| (|fetch| OBJECTDATUM |of| NOTEOBJ)
+            |with| (OR (TEDIT.GETINPUT TSTREAM "Endnote text:")
+                       ""))
+         (TEDIT.PROMPTPRINT TSTREAM "" T)
+         (AND (UPDATE? TSTREAM)
+              (UPDATE.NUMBEROBJS TSTREAM 'ENDNOTEP)))))
+
+(INSERT.ENDNOTES
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 09:55 by rmk")
+                                                             (* |fsg| "25-Sep-87 10:23")
+
+(* |;;;| "Inserts text of endnotes at the end of the TEdit document.  The text is inserted between two Region marking imageobjs.")
+
+    (LET ((LIST.OF.ENDNOTES (TSP.LIST.OF.OBJECTS TSTREAM 'ENDNOTEP))
+          (TEXTLEN (TEDIT.NCHARS TSTREAM)))
+         (CL:WHEN LIST.OF.ENDNOTES
+             (LET ((CARETPOSITION (TEDIT.SELPROP TSTREAM 'CH#)))
+                  (TEDIT.PROMPTPRINT TSTREAM (CONCAT (COND
+                                                        ((DELETE.ENDNOTES TSTREAM)
+                                                         "Rei")
+                                                        (T "I"))
+                                                    "nserting Endnotes...")
+                         T)
+                  (TEDIT.INSERT.OBJECT (REGMARKOBJ 'ENDNOTES '|Endnotes-START|)
+                         TSTREAM
+                         (ADD1 TEXTLEN))
+                  (TEDIT.LOOKS TSTREAM '(PROTECTED ON)
+                         TEXTLEN 1)
+                  (TEDIT.INSERT TSTREAM (CONCAT (CHARACTER (CHARCODE EOL))
+                                               "Notes"
+                                               (CHARACTER (CHARCODE EOL)))
+                         (ADD1 TEXTLEN)
+                         (|fetch| (ENDNOTEFONTS TITLE.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM))
+                         T)
+                  (INSERT.ENDNOTES.TEXT TSTREAM LIST.OF.ENDNOTES)
+                  (TEDIT.INSERT.OBJECT (REGMARKOBJ 'ENDNOTES '|Endnotes-END|)
+                         TSTREAM
+                         (ADD1 TEXTLEN))
+                  (TEDIT.LOOKS TSTREAM '(PROTECTED ON)
+                         TEXTLEN 1)
+                  (TEDIT.PROMPTPRINT TSTREAM "done")
+                  (TEDIT.NORMALIZECARET TSTREAM (TEDIT.SETSEL TSTREAM CARETPOSITION 1)))))))
+
+(INSERT.ENDNOTES.TEXT
+  (LAMBDA (TSTREAM WINDOW LIST.OF.ENDNOTES)                 (* \; "Edited 25-Feb-2025 12:12 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 00:40 by rmk")
+                                                             (* |fsg| "18-Jun-87 13:17")
+
+(* |;;;| "Here to print the text of each endnote.")
+
+    (LET ((TEXTLOOKS (|fetch| (ENDNOTEFONTS TEXT.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM)))
+          (NUMBLOOKS (|fetch| (ENDNOTEFONTS NUMBER.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM))))
+         (|for| ENDNOTEOBJ |in| LIST.OF.ENDNOTES
+            |do| (LET ((DISPLAYSTRING (NUMBER.DISPLAYSTRING ENDNOTEOBJ))
+                       (TEXT (|fetch| (NUMBEROBJ TEXT.AFTER#) |of| (|fetch| OBJECTDATUM |of| 
+                                                                                           ENDNOTEOBJ
+                                                                          ))))
+                      (TEDIT.INSERT TSTREAM DISPLAYSTRING (ADD1 (TEDIT.NCHARS TSTREAM))
+                             NUMBLOOKS T)
+                      (TEDIT.INSERT TSTREAM (CONCAT "  " TEXT (CHARACTER (CHARCODE EOL)))
+                             (ADD1 (TEDIT.NCHARS TSTREAM))
+                             TEXTLOOKS T))))))
+
+(DELETE.ENDNOTES
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 25-Feb-2025 14:24 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 09:56 by rmk")
+                                                             (* |fsg| "25-Sep-87 10:12")
+
+(* |;;;| "Delete the Endnotes, i.e.  delete the start/end REGMARK ImageObjects and all the text between them.")
+
+    (LET* ((NOTEMARKER.LIST (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION NOTESREGIONP)
+                                   NIL
+                                   'CH#))
+           (NOTES.START (CAR NOTEMARKER.LIST))
+           (NOTES.END (CADR NOTEMARKER.LIST)))
+          (CL:WHEN (AND NOTES.START NOTES.END)
+              (TEDIT.PROMPTPRINT TSTREAM "Deleting Endnotes..." T)
+              (TEDIT.DELETE TSTREAM NOTES.START (IDIFFERENCE (ADD1 NOTES.END)
+                                                       NOTES.START))
+              (TEDIT.PROMPTPRINT TSTREAM "done")
+              T))))
+
+(notesregionp
+  (lambda (imobj)                                            (* |ss:| "27-Jun-87 15:29")
+    (and (regmarkobjp imobj)
+         (eq (|fetch| region.use |of| (|fetch| objectdatum |of| imobj))
+             'endnotes))))
+
+(SET.ENDNOTE.STYLE
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 00:49 by rmk")
+                                                             (* |fsg| "18-Aug-87 14:13")
+
+(* |;;;| "Set the font of the ENDNOTE number, title, or text.")
+
+    (LET ((NOTE.FONTS (GET.ENDNOTE.FONTS TSTREAM))
+          (NOTE.TYPE (MENU (|create| MENU
+                                  TITLE _ "Endnote Fonts"
+                                  CENTERFLG _ T
+                                  ITEMS _ '(|Number| |Title| |Text|))))
+          OLD.FONT NEW.FONT)
+         (AND NOTE.TYPE (PROGN (SETQ OLD.FONT (SELECTQ NOTE.TYPE
+                                                  (|Number| (|fetch| (ENDNOTEFONTS NUMBER.FONT)
+                                                               |of| NOTE.FONTS))
+                                                  (|Title| (|fetch| (ENDNOTEFONTS TITLE.FONT)
+                                                              |of| NOTE.FONTS))
+                                                  (|Text| (|fetch| (ENDNOTEFONTS TEXT.FONT)
+                                                             |of| NOTE.FONTS))
+                                                  NIL))
+                               (TEDIT.PROMPTPRINT TSTREAM (CONCAT "Change Endnote " NOTE.TYPE 
+                                                                 " font " (ABBREVIATE.FONT OLD.FONT)
+                                                                 " to...")
+                                      T)
+                               (SETQ NEW.FONT (FONTCREATE (GET.TSP.FONT OLD.FONT)))
+                               (COND
+                                  ((NEQ OLD.FONT NEW.FONT)
+                                   (SELECTQ NOTE.TYPE
+                                       (|Number| (|replace| (ENDNOTEFONTS NUMBER.FONT) |of| 
+                                                                                           NOTE.FONTS
+                                                    |with| NEW.FONT))
+                                       (|Title| (|replace| (ENDNOTEFONTS TITLE.FONT) |of| NOTE.FONTS
+                                                   |with| NEW.FONT))
+                                       (|Text| (|replace| (ENDNOTEFONTS TEXT.FONT) |of| NOTE.FONTS
+                                                  |with| NEW.FONT))
+                                       NIL)
+                                   (AND (EQ NOTE.TYPE '|Number|)
+                                        (MAP.ENDNOTE.LOOKS TSTREAM NEW.FONT)))
+                                  (T NIL))
+                               (TEDIT.PROMPTPRINT TSTREAM "" T))))))
+
+(MAP.ENDNOTE.LOOKS
+  (LAMBDA (TSTREAM NUMBERFONT)                              (* \; "Edited 25-Feb-2025 14:24 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 09:56 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:26")
+
+(* |;;;| "Here to update the ENDNOTE looks.  Only the ENDNOTE superscript numbers are updated.")
+
+    (LET ((LIST.OF.NOTES (TSP.LIST.OF.OBJECTS TSTREAM (FUNCTION ENDNOTEP)
+                                NIL
+                                'CH#)))
+         (CL:WHEN LIST.OF.NOTES
+             (TEDIT.PROMPTPRINT TSTREAM "Updating ENDNOTE Number looks..." T)
+             (|for| NOTE/CH# |in| LIST.OF.NOTES |do| (TEDIT.LOOKS TSTREAM NUMBERFONT NOTE/CH# 1))
+             (TEDIT.PROMPTPRINT TSTREAM "done")))))
+
+(GET.ENDNOTE.FONTS
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:24")
+
+(* |;;;| "Setup the default ENDNOTE fonts for number, title, and text.")
+
+    (OR (TMAXPROP TSTREAM 'ENDNOTE.FONTS)
+        (PROGN (TMAXPROP TSTREAM 'ENDNOTE.FONTS
+                      (|create| ENDNOTEFONTS
+                             NUMBER.FONT _ |GP.DefaultFont|
+                             TITLE.FONT _ |GP.DefaultFont|
+                             TEXT.FONT _ |GP.DefaultFont|))
+               (TMAXPROP TSTREAM 'ENDNOTE.FONTS)))))
+)
+(DEFINEQ
+
+(ENDNOTEP
+  (LAMBDA (IMOBJ)                                           (* \; "Edited 25-Feb-2025 14:26 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:23")
+
+(* |;;;| "Like NUMBEROBJP but also checks for NOTE ImageObject.")
+
+    (CL:WHEN (NUMBEROBJP IMOBJ)
+        (EQ 'NOTE (|fetch| (NUMBEROBJ USE) |of| (|fetch| OBJECTDATUM |of| IMOBJ))))))
+
+(NOTE.PUTFN
+  (LAMBDA (NUMBEROBJ STREAM TSTREAM)                        (* \; "Edited 22-Feb-2025 17:44 by rmk")
+                                                             (* |fsg| "11-Aug-87 10:04")
+
+(* |;;;| "Used to put a numberobj that is functioning as an endnote.")
+
+    (|with| NUMBEROBJ (|fetch| OBJECTDATUM |of| NUMBEROBJ)
+           (SETQ FONT (|for| NOTEFONT |in| (GET.ENDNOTE.FONTS TSTREAM) |collect| (LIST.FONT.PROPS
+                                                                                  NOTEFONT))))
+    (PRIN4 (LIST '|Endnote| NIL (IMAGEOBJPROP NUMBEROBJ 'TAG)
+                 (|fetch| OBJECTDATUM |of| NUMBEROBJ))
+           STREAM)))
+
+(NOTE.GETFN
+  (LAMBDA (NEWOBJ NOTE.DATUM TSTREAM)                       (* \; "Edited 21-Feb-2025 10:17 by rmk")
+                                                             (* |fsg| "16-Jul-87 10:49")
+
+(* |;;;| "Used to get a numberobj that is functioning as an endnote.")
+
+    (TMAXPROP TSTREAM 'ENDNOTE.FONTS (|for| NOTEFONT |in| (|fetch| (NUMBEROBJ FONT) |of| NOTE.DATUM)
+                                        |collect| (FONTCREATE NOTEFONT)))
+    (|replace| (NUMBEROBJ FONT) |of| NOTE.DATUM |with| NIL)
+    (|replace| OBJECTDATUM |of| NEWOBJ |with| NOTE.DATUM)
+    NEWOBJ))
+
+(NOTE.BUTTONEVENTINFN
+  (LAMBDA (OBJ STREAM WINDOW)                               (* \; "Edited 21-Feb-2025 16:08 by rmk")
+                                                             (* |fsg| " 5-Aug-87 09:31")
+
+(* |;;;| "Allow user to edit Endnote text, specify a TAG, delete the TAG, or change the TAG.")
+
+    (LET* ((TAG (IMAGEOBJPROP OBJ 'TAG))
+           (NMENU (|create| MENU
+                         TITLE _ '|Endnote Menu|
+                         ITEMS _ (CL:IF TAG
+                                     ENDNOTE.TAG.ITEMS
+                                     ENDNOTE.NOTAG.ITEMS)
+                         CENTERFLG _ T
+                         WHENSELECTEDFN _ (FUNCTION NOTE.WHENSELECTEDFN))))
+          (PUTMENUPROP NMENU 'NOTE.OBJ OBJ)
+          (PUTMENUPROP NMENU 'NOTE.WINDOW WINDOW)
+          (MENU NMENU))))
+
+(NOTE.WHENSELECTEDFN
+  (LAMBDA (ITEM MENU MB)                                    (* \; "Edited 28-Feb-2025 23:37 by rmk")
+                                                            (* \; "Edited 25-Feb-2025 10:49 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 16:10 by rmk")
+                                                             (* |fsg| "10-Aug-87 13:48")
+    (LET* ((WINDOW (GETMENUPROP MENU 'NOTE.WINDOW))
+           (OBJ (GETMENUPROP MENU 'NOTE.OBJ))
+           (TSTREAM (TEXTSTREAM WINDOW)))
+          (SELECTQ (CADR ITEM)
+              ((|Change Tag| |Define Tag|) 
+                   (LET ((OLD.TAG (IMAGEOBJPROP OBJ 'TAG))
+                         (NEW.TAG (TSP.GET.INCODE TSTREAM)))
+                        (CL:WHEN (AND NEW.TAG (NEQ NEW.TAG OLD.TAG))
+                            (NUMBER.DELETE.TAG WINDOW OBJ)
+                            (TSP.PUTCODE NEW.TAG OBJ WINDOW)
+                            (IMAGEOBJPROP OBJ 'TAG NEW.TAG)
+                            'CHANGED)))
+              (|Delete Tag| (NUMBER.DELETE.TAG WINDOW OBJ))
+              (|Show Tag| (TEDIT.PROMPTPRINT TSTREAM (CONCAT "EndNote Tag=\"" (IMAGEOBJPROP
+                                                                               OBJ
+                                                                               'TAG)
+                                                            "\"")
+                                 T))
+              (|Edit Text| (AUX.TEDIT OBJ (CONCAT "Endnote #" (NUMBER.DISPLAYSTRING OBJ))
+                                  TSTREAM))
+              (ERROR "Undefined EndNote menu item" ITEM))
+          NIL)))
+)
+
+(RPAQQ ENDNOTE.NOTAG.ITEMS ((|Edit Text| |Edit Text| "Edit the text associated with this EndNote.")
+                            (|Define Tag| |Define Tag| "Define a TAG for this EndNote.")))
+
+(RPAQQ ENDNOTE.TAG.ITEMS ((|Edit Text| |Edit Text| "Edit the text associated with this EndNote.")
+                          (|Change Tag| |Change Tag| "Change this EndNote's TAG.")
+                          (|Delete Tag| |Delete Tag| "Delete this EndNote's TAG.")
+                          (|Show Tag| |Show Tag| "Show this EndNote's TAG.")))
+(DECLARE\: EVAL@COMPILE DONTCOPY 
+(DECLARE\: EVAL@COMPILE
+
+(RECORD ENDNOTEFONTS (NUMBER.FONT TITLE.FONT TEXT.FONT))
+)
+)
+(* * |Allow| |user| |to| |edit| |Endnote| |text| |in| |another| |TEdit| |window.|)
+
+(DEFINEQ
+
+(AUX.TEDIT
+  (LAMBDA (IMOBJ TITLE TSTREAM)                             (* \; "Edited 23-Feb-2025 00:27 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:22")
+
+(* |;;;| "Open a TEdit window where the user can view/edit the text of the selected Endnote.")
+
+    (LET (AUXTSTREAM)
+         (SETQ AUXTSTREAM (TEXTSTREAM (TEDIT NIL (CREATEW (TMAXPROP TSTREAM 'AUXW.REGION)
+                                                        TITLE)
+                                             NIL
+                                             '(AFTERQUITFN AUX.TEDIT.AFTERQUITFN TITLEMENUFN 
+                                                     AUX.TEDIT.TITLEMENUFN))))
+         (TMAXPROP AUXTSTREAM 'MAINTSTREAM TSTREAM)
+         (TMAXPROP AUXTSTREAM 'NOTE.IMAGEOBJ IMOBJ)
+         (TEDIT.INSERT AUXTSTREAM (MKSTRING (|fetch| (NUMBEROBJ TEXT.AFTER#)
+                                               |of| (|fetch| OBJECTDATUM |of| IMOBJ)))
+                NIL
+                (|fetch| (ENDNOTEFONTS TEXT.FONT) |of| (GET.ENDNOTE.FONTS TSTREAM))))))
+
+(AUX.TEDIT.AFTERQUITFN
+  (LAMBDA (AUXWINDOW)                                       (* \; "Edited 22-Feb-2025 22:40 by rmk")
+                                                            (* \; "Edited 21-Feb-2025 09:57 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:22")
+
+(* |;;;| "Here AFTER user finished with Endnote TEdit process.")
+
+    (LET ((MAINWINDOW (WINDOWPROP AUXWINDOW 'MAIN.WINDOW)))
+         (CL:WHEN (AND MAINWINDOW (TEXTSTREAM MAINWINDOW T))
+             (WINDOWPROP MAINWINDOW 'AUXW.REGION (WINDOWPROP AUXWINDOW 'REGION))
+             (GIVE.TTY.PROCESS MAINWINDOW)
+             (TEDIT.NORMALIZECARET (TEXTSTREAM MAINWINDOW))))))
+
+(AUX.TEDIT.TITLEMENUFN
+  (LAMBDA (AUXWINDOW)                                       (* \; "Edited 23-Feb-2025 00:26 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:23")
+
+(* |;;;| "Here when left or middle button hit in title bar of the aux (e.g. endnote) window.")
+
+    (LET ((AUXTSTREAM (TEXTSTREAM AUXWINDOW)))
+         (CL:WHEN (GETTEXTPROP AUXTSTREAM 'DIRTY)
+             (SELECTQ (MENU (|create| MENU
+                                   CENTERFLG _ T
+                                   ITEMS _ '(|Save Changes| |Abort Changes|)))
+                 (|Save Changes|                             (* \; 
+           "Don't need to update the main looks if the object (e.g. endnote) doesn't show its string")
+                      (|replace| (NUMBEROBJ TEXT.AFTER#) |of| (|fetch| OBJECTDATUM
+                                                                 |of| (TMAXPROP AUXTSTREAM
+                                                                             'NOTE.IMAGEOBJ))
+                         |with| (COERCETEXTOBJ AUXTSTREAM 'STRINGP))
+                      (PUTTEXTPROP (TMAXPROP AUXTSTREAM 'MAINTSTREAM)
+                             'DIRTY T))
+                 NIL)
+             (TEDIT.QUIT AUXTSTREAM)))))
+)
+(* * |Delimit| |text| |between| |two| |markers| |known| |as| REGION MARKERS.)
+
+(DEFINEQ
+
+(regmarkobj
+  (lambda (use marking)                                      (* |fsg| "10-Jul-87 15:58")
+    (let ((newobj (imageobjcreate (|create| regmarkobj
+                                         region.use _ use
+                                         marking _ marking)
+                         \\regmarkobj.imagefns)))
+         (imageobjprop newobj 'type 'regmarkobj)
+         newobj)))
+
+(regmarkobjp
+  (lambda (imobj)                                            (* |ss:| "27-Jun-87 15:31")
+    (and imobj (eq (imageobjprop imobj 'type)
+                   'regmarkobj))))
+
+(regmark.displayfn
+  (lambda (obj stream)                                       (* |fsg| "18-Feb-87 09:18")
+          (* * regmark |is| |just| \a |marker,| |it| |doesn't| |actually| |display| 
+          |anything.|)
+
+    nil))
+
+(regmark.imageboxfn
+  (lambda (obj stream currentx rightmargin)                  (* |fsg| "17-Feb-87 10:22")
+          (* * regmark |is| |just| \a |marker,| |it| |doesn't| |actually| |display| 
+          |anything.|)
+
+    (|create| imagebox
+           xsize _ 0
+           ysize _ 0
+           ydesc _ 0
+           xkern _ 0)))
+
+(REGMARK.PUTFN
+  (LAMBDA (MARKOBJ STREAM)                                  (* \; "Edited 26-Jun-2022 18:12 by rmk")
+                                                             (* |fsg| "23-Jul-87 14:02")
+    (PRIN2 (LIST '|Region| (|fetch| (REGMARKOBJ REGION.USE) |of| (|fetch| OBJECTDATUM |of| MARKOBJ))
+                 (|fetch| (REGMARKOBJ MARKING) |of| (|fetch| OBJECTDATUM |of| MARKOBJ)))
+           STREAM)))
+
+(REGMARK.GETFN
+  (LAMBDA (STREAM COPY.OBJECT)                              (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:45 by rmk")
+                                                             (* |fsg| "20-Aug-87 14:58")
+    (DECLARE (USEDFREE TSTREAM))
+    (TSP.SETUP.FMMENU (\\TEDIT.PRIMARYPANE TSTREAM))
+    (APPLY (FUNCTION REGMARKOBJ)
+           (OR COPY.OBJECT (CDR (READ STREAM))))))
+
+(REGMARK.COPYFN
+  (LAMBDA (IMAGE.OBJ SOURCE.STREAM TARGET.STREAM)           (* \; "Edited 21-Feb-2025 09:58 by rmk")
+                                                             (* |fsg| "23-Jul-87 14:09")
+
+(* |;;;| "Here to COPY a RegMark Image Object.")
+
+    (SELECTQ (IMAGESTREAMTYPE TARGET.STREAM)
+        (TEXT (APPLY* (IMAGEOBJPROP IMAGE.OBJ 'GETFN)
+                     TARGET.STREAM
+                     (|fetch| OBJECTDATUM |of| IMAGE.OBJ)))
+        (ERROR "Unknown TARGET stream type" (IMAGESTREAMTYPE TARGET.STREAM)))))
+
+(REGMARK.BUTTONEVENTINFN
+  (LAMBDA (MARKOBJ STREAM)                                  (* \; "Edited 26-Jun-2022 18:13 by rmk")
+                                                             (* |fsg| "18-Feb-87 10:07")
+
+         (* * |This| |function| |is| |never| |called| |because| |the| REGMARK 
+         |ImageObjects| |are| |protected| |after| |they| |are| |inserted| |and| |anything| 
+         |protected| |can't| |be| |selected.|)
+
+    (AND (MOUSESTATE MIDDLE)
+         (LET ((MARKDATUM (|fetch| OBJECTDATUM |of| MARKOBJ)))
+              (TEDIT.PROMPTPRINT STREAM (CONCAT "Region used for " (|fetch| (REGMARKOBJ REGION.USE)
+                                                                      |of| MARKDATUM)
+                                               (COND
+                                                  ((|fetch| (REGMARKOBJ MARKING) |of| MARKDATUM)
+                                                   (CONCAT ", Marker is " (|fetch| (REGMARKOBJ 
+                                                                                          MARKING)
+                                                                             |of| MARKDATUM)))
+                                                  (T "")))
+                     T)))))
+)
+
+(RPAQ? \\REGMARKOBJ.IMAGEFNS
+       (IMAGEFNSCREATE (FUNCTION REGMARK.DISPLAYFN)
+              (FUNCTION REGMARK.IMAGEBOXFN)
+              (FUNCTION REGMARK.PUTFN)
+              (FUNCTION REGMARK.GETFN)
+              (FUNCTION REGMARK.COPYFN)
+              (FUNCTION REGMARK.BUTTONEVENTINFN)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)
+              (FUNCTION NILL)))
+(DECLARE\: EVAL@COMPILE DONTCOPY 
+(DECLARE\: EVAL@COMPILE
+
+(RECORD REGMARKOBJ (REGION.USE MARKING))
+)
+)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (2497 12236 (ADD.ENDNOTE 2507 . 3240) (INSERT.ENDNOTES 3242 . 5284) (
+INSERT.ENDNOTES.TEXT 5286 . 6638) (DELETE.ENDNOTES 6640 . 7675) (NOTESREGIONP 7677 . 7939) (
+SET.ENDNOTE.STYLE 7941 . 10698) (MAP.ENDNOTE.LOOKS 10700 . 11558) (GET.ENDNOTE.FONTS 11560 . 12234)) (
+12237 16593 (ENDNOTEP 12247 . 12668) (NOTE.PUTFN 12670 . 13390) (NOTE.GETFN 13392 . 14036) (
+NOTE.BUTTONEVENTINFN 14038 . 14885) (NOTE.WHENSELECTEDFN 14887 . 16591)) (17351 20512 (AUX.TEDIT 17361
+ . 18479) (AUX.TEDIT.AFTERQUITFN 18481 . 19198) (AUX.TEDIT.TITLEMENUFN 19200 . 20510)) (20597 24664 (
+REGMARKOBJ 20607 . 21014) (REGMARKOBJP 21016 . 21210) (REGMARK.DISPLAYFN 21212 . 21458) (
+REGMARK.IMAGEBOXFN 21460 . 21811) (REGMARK.PUTFN 21813 . 22284) (REGMARK.GETFN 22286 . 22789) (
+REGMARK.COPYFN 22791 . 23349) (REGMARK.BUTTONEVENTINFN 23351 . 24662)))))
+STOP

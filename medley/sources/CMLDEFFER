@@ -1,0 +1,950 @@
+(DEFINE-FILE-INFO PACKAGE "XEROX-COMMON-LISP" READTABLE "XCL" BASE 10)
+
+(IL:FILECREATED " 6-Mar-2022 22:19:48" 
+IL:|{DSK}<Users>kaplan>Local>medley3.5>my-medley>sources>CMLDEFFER.;2| 49976  
+
+      :PREVIOUS-DATE " 4-Jun-90 15:11:57" 
+IL:|{DSK}<Users>kaplan>Local>medley3.5>my-medley>sources>CMLDEFFER.;1|)
+
+
+; Copyright (c) 1986, 1900, 1987-1988, 1990 by Venue & Xerox Corporation.
+
+(IL:PRETTYCOMPRINT IL:CMLDEFFERCOMS)
+
+(IL:RPAQQ IL:CMLDEFFERCOMS
+          (
+
+(IL:* IL:|;;;| 
+"DEF-DEFINE-TYPE and DEFDEFINER -- Your One-Stop Providers of Customized File Manager Facilities.")
+
+           
+           (IL:* IL:|;;| "BE VERY CAREFUL CHANGING ANYTHING IN THIS FILE!!!  It is heavily self-referential and thick with bootstrapping problems.  All but the most trivial changes (and some of those) are very tricky to make without blowing yourself out of the water...  You have been warned.")
+
+           
+
+(IL:* IL:|;;;| "Also see the file deffer-runtime for stuff that must be defined before fasl files may be loaded into the init")
+
+           (IL:COMS                                          (IL:* IL:\; "Filepkg interface")
+                  (IL:FUNCTIONS REMOVE-COMMENTS PPRINT-DEFINER PPRINT-DEFINER-FITP 
+                         PPRINT-DEFINER-RECURSE)
+                  (IL:VARIABLES IL:*REMOVE-INTERLISP-COMMENTS*)
+                                                             (IL:* IL:\; "Share with xcl?")
+                  (IL:FUNCTIONS %DEFINE-TYPE-DELDEF %DEFINE-TYPE-GETDEF %DEFINE-TYPE-FILE-DEFINITIONS
+                         %DEFINE-TYPE-FILEGETDEF %DEFINE-TYPE-SAVE-DEFN %DEFINE-TYPE-PUTDEF))
+           (IL:COMS                                          (IL:* IL:\; 
+                                                             "Compatibility with old cmldeffer")
+                  (IL:DECLARE\: IL:DOCOPY IL:DONTEVAL@LOAD (IL:P (IL:MOVD '%DEFINE-TYPE-DELDEF
+                                                                        'IL:\\DEFINE-TYPE-DELDEF)
+                                                                 (IL:MOVD '%DEFINE-TYPE-GETDEF
+                                                                        'IL:\\DEFINE-TYPE-GETDEF)
+                                                                 (IL:MOVD 
+                                                                        '
+                                                                        %DEFINE-TYPE-FILE-DEFINITIONS
+                                                                        
+                                                                        '
+                                                                    IL:\\DEFINE-TYPE-FILE-DEFINITIONS
+                                                                        )
+                                                                 (IL:MOVD '%DEFINE-TYPE-FILEGETDEF
+                                                                        'IL:\\DEFINE-TYPE-FILEGETDEF)
+                                                                 (IL:MOVD '%DEFINE-TYPE-SAVE-DEFN
+                                                                        'IL:\\DEFINE-TYPE-SAVE-DEFN)
+                                                                 (IL:MOVD '%DEFINE-TYPE-PUTDEF
+                                                                        'IL:\\DEFINE-TYPE-PUTDEF)
+                                                                 (IL:MOVD 'PPRINT-DEFINER
+                                                                        'IL:PPRINT-DEFINER))))
+           (IL:DECLARE\: IL:DOCOPY IL:DONTEVAL@LOAD
+                  (IL:P 
+                        (IL:* IL:|;;| "Set up fake definer prototype stuff for FNS")
+
+                        (ADD-PROTOTYPE-FN 'IL:FNS 'IL:NLAMBDA
+                               #'(LAMBDA (NAME)
+                                        (AND (SYMBOLP NAME)
+                                             `(IL:DEFINEQ (,NAME (IL:NLAMBDA ,@(
+                                                                             %MAKE-FUNCTION-PROTOTYPE
+                                                                                )))))))
+                        (ADD-PROTOTYPE-FN 'IL:FNS 'IL:LAMBDA
+                               #'(LAMBDA (NAME)
+                                        (AND (SYMBOLP NAME)
+                                             `(IL:DEFINEQ (,NAME (IL:LAMBDA ,@(
+                                                                             %MAKE-FUNCTION-PROTOTYPE
+                                                                               )))))))))
+           (IL:COMS                                          (IL:* IL:\; 
+                                                             "The groundwork for bootstrapping ")
+                  (IL:DEFINE-TYPES IL:DEFINE-TYPES IL:FUNCTIONS IL:VARIABLES)
+                                                             (IL:* IL:\; 
+                                                             "DefDefiner itself and friends")
+                  (IL:FUNCTIONS SI::EXPANSION-FUNCTION SI::MACRO-FUNCALL WITHOUT-FILEPKG))
+           (IL:COMS                                          (IL:* IL:\; 
+                                                             "Compatibility with old cmldeffer")
+                  (IL:FUNCTIONS IL:WITHOUT-FILEPKG))
+           (IL:COMS                                          (IL:* IL:\; "Some special forms")
+                  (IL:FUNCTIONS DEFINER NAMED-PROGN))
+           (IL:COMS                                          (IL:* IL:\; "Auxiliary functions")
+                  (IL:FUNCTIONS GET-DEFINER-NAME %DELETE-DEFINER)
+                  (IL:FUNCTIONS DEF-DEFINE-TYPE DEFDEFINER)
+                  (IL:FUNCTIONS %EXPAND-DEFINER %DEFINER-NAME))
+           (IL:COMS                                          (IL:* IL:\; 
+                                                             "The most commonly-used definers")
+                  (IL:FUNCTIONS DEFUN DEFINLINE DEFMACRO)
+                  (IL:FUNCTIONS DEFVAR DEFPARAMETER DEFCONSTANT DEFGLOBALVAR DEFGLOBALPARAMETER))
+           (IL:COMS                                          (IL:* IL:\; 
+                  "Here so that the evaluator can be in the init without definers being in the init.")
+                  (IL:DEFINE-TYPES IL:SPECIAL-FORMS)
+                  (IL:FUNCTIONS %REMOVE-SPECIAL-FORM)
+                  (IL:FUNCTIONS DEFINE-SPECIAL-FORM)
+                                                             (IL:* IL:\; 
+                                                    "Form for defining interpreters of special forms")
+                  )
+           (IL:COMS                                          (IL:* IL:\; 
+                                                   "Don't note changes to these properties/variables")
+                  (IL:PROP IL:PROPTYPE IL:MACRO-FN :UNDEFINERS IL:UNDEFINERS :DEFINER-FOR 
+                         IL:DEFINER-FOR :DEFINED-BY IL:DEFINED-BY :DEFINITION-NAME IL:DEFINITION-NAME
+                         )
+                                                             (IL:* IL:\; 
+            "Templates for definers not defined here.  These should really be where they're defined.")
+                  (IL:PROP :DEFINITION-PRINT-TEMPLATE DEFCOMMAND DEFINE-CONDITION DEFINE-MODIFY-MACRO
+                         DEFINE-SETF-METHOD DEFSETF DEFSTRUCT DEFTYPE))
+           
+           (IL:* IL:|;;| "Arrange for the correct compiler to be used.")
+
+           (IL:PROP (IL:FILETYPE IL:MAKEFILE-ENVIRONMENT)
+                  IL:CMLDEFFER)))
+
+
+
+(IL:* IL:|;;;| 
+"DEF-DEFINE-TYPE and DEFDEFINER -- Your One-Stop Providers of Customized File Manager Facilities.")
+
+
+
+
+(IL:* IL:|;;| 
+"BE VERY CAREFUL CHANGING ANYTHING IN THIS FILE!!!  It is heavily self-referential and thick with bootstrapping problems.  All but the most trivial changes (and some of those) are very tricky to make without blowing yourself out of the water...  You have been warned."
+)
+
+
+
+
+(IL:* IL:|;;;| 
+"Also see the file deffer-runtime for stuff that must be defined before fasl files may be loaded into the init"
+)
+
+
+
+
+(IL:* IL:\; "Filepkg interface")
+
+
+(DEFUN REMOVE-COMMENTS (X)
+
+(IL:* IL:|;;;| "Removes SEdit-style comments from the given list structure.")
+
+   (COND
+      ((NOT (CONSP X))
+       X)
+      ((AND (CONSP (CAR X))
+            (EQ (CAAR X)
+                'IL:*)
+            (CONSP (CDAR X))
+            (OR (MEMBER (CADAR X)
+                       '(IL:\; IL:|;;| IL:|;;;| IL:|;;;;| IL:\|)
+                       :TEST
+                       #'EQ)                                 (IL:* IL:\; "a sedit comment")
+                (EQ IL:*REMOVE-INTERLISP-COMMENTS* T)        (IL:* IL:\; "always strip")
+                (PROGN (IF (EQ IL:*REMOVE-INTERLISP-COMMENTS* ':WARN)
+                           (WARN "Possible comment not stripped ~S" (CAR X)))
+                       NIL)))
+       (REMOVE-COMMENTS (CDR X)))
+      (T (LET ((A (REMOVE-COMMENTS (CAR X)))
+               (D (REMOVE-COMMENTS (CDR X))))
+              (IF (AND (EQ A (CAR X))
+                       (EQ D (CDR X)))
+                  X
+                  (CONS A D))))))
+
+(DEFUN PPRINT-DEFINER (DEFINE-EXPRESSION)
+   (DECLARE (SPECIAL IL:FORMFLG IL:SPACEWIDTH))              (IL:* IL:\; "Bound in prettyprinter")
+   (COND
+      ((OR (NULL IL:FORMFLG)
+           (ATOM (CDR DEFINE-EXPRESSION)))                   (IL:* IL:\; 
+                      "Degenerate cases or printing as a quoted form--punt to default prettyprinting")
+       DEFINE-EXPRESSION)
+      (T
+       (LET ((IL:TAIL DEFINE-EXPRESSION)
+             (IL:LEFT (IL:DSPXPOSITION))
+             TEMPLATE TOP-LEVEL-P NEXT TYPE FORM NEWLINEP)
+            (DECLARE (SPECIAL IL:TAIL IL:LEFT))              (IL:* IL:\; "For comment printer")
+            (SETQ TOP-LEVEL-P (EQ IL:LEFT (IL:DSPLEFTMARGIN)))
+                                                             (IL:* IL:\; 
+                                                             "Printing definition to file, etc.")
+            (SETQ IL:LEFT (+ IL:LEFT (* 3 IL:SPACEWIDTH)))   (IL:* IL:\; "Place we will indent body")
+            (IL:PRIN1 "(")
+            (IL:PRIN2 (CAR IL:TAIL))
+            (SETQ TEMPLATE (OR (GET (POP IL:TAIL)
+                                    :DEFINITION-PRINT-TEMPLATE)
+                               '(:NAME)))
+
+            (IL:* IL:|;;| "This code should, and doesn't, pay attention to the NAME function to determine where the name is to decide what should and shouldn't be bold. Right now, it always bolds the second thing. Fortunately, we currently don't have any definers that don't have either the second or CAR of the second as the definition name.")
+
+            (IL:* IL:|;;| "Also, this code should be careful about calling the NAME function on the form.  Sometimes, the form is not really a call to the definer but instead a back-quoted expression in a macro.  In most such cases, the name is not really there; some comma-quoted expression is there instead.")
+
+            (IL:WHILE (CONSP IL:TAIL)
+               IL:DO (COND
+                        ((AND (LISTP (SETQ NEXT (CAR IL:TAIL)))
+                              (EQ (CAR NEXT)
+                                  IL:COMMENTFLG)
+                              (IL:SEMI-COLON-COMMENT-P NEXT))(IL:* IL:\; "Comments can appear anywhere, so print this one without consuming the template.  ENDLINE has side effect of printing comments")
+                         (IL:SUBPRINT/ENDLINE IL:LEFT *STANDARD-OUTPUT*)
+                         (SETQ NEWLINEP T))
+                        ((OR (ATOM TEMPLATE)
+                             (EQ (SETQ TYPE (POP TEMPLATE))
+                                 :BODY))                     (IL:* IL:\; 
+                                          "Once we hit the body, there's nothing more special to do.")
+                         (RETURN))
+                        (T (IL:SPACES 1)
+                           (CASE TYPE
+                               (:NAME                        (IL:* IL:\; 
+                                                             "Embolden the name of this thing")
+                                  (SETQ NEWLINEP NIL)
+                                  (COND
+                                     ((NOT TOP-LEVEL-P)      (IL:* IL:\; 
+                                             "Nothing special here--could even be a backquoted thing")
+                                      (PPRINT-DEFINER-RECURSE))
+                                     (T (POP IL:TAIL)
+                                        (COND
+                                           ((CONSP NEXT)     (IL:* IL:\; 
+      "Name is a list.  Assume the real name is the car and the rest is an options list or something")
+                                            (UNLESS (EQ (IL:DSPYPOSITION)
+                                                        (PROGN (IL:PRIN1 "(")
+                                                               (IL:PRINTOUT NIL IL:.FONT 
+                                                                      IL:LAMBDAFONT IL:.P2
+                                                                      (CAR NEXT)
+                                                                      IL:.FONT IL:DEFAULTFONT)
+                                                               (IL:SPACES 1)
+                                                               (IL:PRINTDEF (CDR NEXT)
+                                                                      T T T IL:FNSLST)
+                                                               (IL:PRIN1 ")")
+                                                               (IL:DSPYPOSITION)))
+                                                             (IL:* IL:\; 
+                                     "This thing took more than one line to print, so go to new line")
+                                                (IL:SUBPRINT/ENDLINE IL:LEFT *STANDARD-OUTPUT*)
+                                                (SETQ NEWLINEP T)))
+                                           (T                (IL:* IL:\; "Atomic name is bold")
+                                              (IL:PRINTOUT NIL IL:.FONT IL:LAMBDAFONT IL:.P2 NEXT 
+                                                     IL:.FONT IL:DEFAULTFONT))))))
+                               (:ARG-LIST                    (IL:* IL:\; 
+                                                             "NEXT is some sort of argument list.  ")
+                                  (COND
+                                     ((NULL NEXT)            (IL:* IL:\; 
+                                                             "If NIL, be sure to print as ()")
+                                      (IL:PRIN1 "()")
+                                      (POP IL:TAIL))
+                                     (T (PPRINT-DEFINER-RECURSE)))
+                                  (SETQ NEWLINEP NIL))
+                               (T                            (IL:* IL:\; 
+                                                         "Just print it, perhaps starting a new line")
+                                  (UNLESS (OR NEWLINEP (PPRINT-DEFINER-FITP NEXT))
+                                                             (IL:* IL:\; 
+                                                             "Go to new line if getting crowded")
+                                      (IL:PRINENDLINE IL:LEFT))
+                                  (PPRINT-DEFINER-RECURSE)
+                                  (SETQ NEWLINEP NIL))))))
+
+            (IL:* IL:|;;| 
+            "We've now gotten to the end of stuff we know how to print.  Just prettyprint the rest")
+
+            (UNLESS (NULL IL:TAIL)
+                (COND
+                   (NEWLINEP                                 (IL:* IL:\; "Already on new line"))
+                   ((OR (EQ TYPE :BODY)
+                        (NOT (PPRINT-DEFINER-FITP (CAR IL:TAIL))))
+                                                             (IL:* IL:\; "Go to new line and indent a bit.  Always do this for the part matching &BODY, whether or not the prettyprinter thought that the remainder would \"fit\"")
+                    (IL:PRINENDLINE IL:LEFT NIL T))
+                   (T (IL:SPACES 1)))
+                (IL:WHILE (AND (CONSP IL:TAIL)
+                               (ATOM (SETQ FORM (CAR IL:TAIL))))
+                   IL:DO 
+                         (IL:* IL:|;;| "Print this doc string or whatever on its own line.  This is because otherwise the prettyprinter gets confused and tries to put the next thing after the string")
+
+                         (PPRINT-DEFINER-RECURSE)
+                         (WHEN (AND (KEYWORDP FORM)
+                                    (CONSP IL:TAIL))         (IL:* IL:\; 
+                                       "Some sort of keyword-value pair stuff--print it on same line")
+                             (IL:SPACES 1)
+                             (PPRINT-DEFINER-RECURSE))
+                         (WHEN (NULL IL:TAIL)
+                               (RETURN))
+                         (IL:SUBPRINT/ENDLINE IL:LEFT *STANDARD-OUTPUT*))
+                (IL:PRINTDEF IL:TAIL T T T IL:FNSLST))
+            (IL:PRIN1 ")")
+            NIL))))
+
+(DEFUN PPRINT-DEFINER-FITP (ITEM)
+
+   (IL:* IL:|;;| 
+  "True if it won't look silly to try to print ITEM at current position instead of starting new line")
+
+   (IF (CONSP ITEM)
+       (OR (EQ (CAR ITEM)
+               IL:COMMENTFLG)
+           (AND (< (IL:COUNT ITEM)
+                   20)
+                (IL:FITP ITEM)))
+       (< (+ (IL:DSPXPOSITION)
+             (IL:STRINGWIDTH ITEM *STANDARD-OUTPUT*))
+          (IL:DSPRIGHTMARGIN))))
+
+(DEFUN PPRINT-DEFINER-RECURSE ()
+
+   (IL:* IL:|;;| 
+   "Print and pop the next element.  Prettyprinter uses the variable IL:TAIL for lookahead")
+
+   (DECLARE (SPECIAL IL:TAIL))
+   (IL:SUPERPRINT (CAR IL:TAIL)
+          IL:TAIL NIL *STANDARD-OUTPUT*)
+   (SETQ IL:TAIL (CDR IL:TAIL)))
+
+(DEFVAR IL:*REMOVE-INTERLISP-COMMENTS* ':WARN 
+                                         "Either NIL (don't) T (always do) or :WARN (don't and warn)")
+
+
+
+(IL:* IL:\; "Share with xcl?")
+
+
+(DEFUN %DEFINE-TYPE-DELDEF (NAME TYPE)
+
+   (IL:* IL:|;;| "DELETE definition of definer-defined NAME as TYPE ")
+
+   (UNDOABLY-SETF (DOCUMENTATION NAME TYPE)
+          NIL)
+   (LET* ((HT (GETHASH TYPE *DEFINITION-HASH-TABLE*))
+          (DEFN (AND HT (GETHASH NAME HT))))
+         (AND HT (IL:/PUTHASH NAME NIL HT))
+         (DOLIST (FN (OR (GET TYPE ':UNDEFINERS)
+                         (GET TYPE 'IL:UNDEFINERS)))
+             (FUNCALL FN NAME))
+         (DOLIST (FN (OR (GET (CAR DEFN)
+                              ':UNDEFINERS)
+                         (GET (CAR DEFN)
+                              'IL:UNDEFINERS)))
+             (FUNCALL FN NAME))
+         NAME))
+
+(DEFUN %DEFINE-TYPE-GETDEF (NAME TYPE OPTIONS)
+
+   (IL:* IL:|;;| "GETDEF method for all definers.  The EDIT is so that when you say EDITDEF you get a copy & can know when you made edits.")
+
+   (LET* ((HASH-TABLE (GETHASH TYPE *DEFINITION-HASH-TABLE*))
+          (DEFN (AND HASH-TABLE (GETHASH NAME HASH-TABLE))))
+         (IF (TYPECASE OPTIONS
+                 (CONS (MEMBER 'IL:EDIT OPTIONS :TEST #'EQ))
+                 (T (EQ OPTIONS 'IL:EDIT)))
+             (COPY-TREE DEFN)
+             DEFN)))
+
+(DEFUN %DEFINE-TYPE-FILE-DEFINITIONS (TYPE NAMES)
+
+   (IL:* IL:|;;| 
+   "get the definitions for NAMES suitable for printing on a file. Like GETDEF but checks.")
+
+   (MAPCAR #'(LAMBDA (NAME)
+                    (LET ((DEF (%DEFINE-TYPE-GETDEF NAME TYPE '(IL:NOCOPY))))
+                         (IF (NULL DEF)
+                             (ERROR 'IL:NO-SUCH-DEFINITION :NAME NAME :TYPE TYPE)
+                             DEF)))
+          NAMES))
+
+(DEFUN %DEFINE-TYPE-FILEGETDEF (NAME TYPE SOURCE OPTIONS NOTFOUND)
+   (LET ((VAL (IL:LOADFNS NIL SOURCE 'IL:GETDEF 
+
+                     (IL:* IL:|;;| 
+          "The bletcherous lambda form is require by the interface to loadfns (can't pass a closure)")
+
+                     `(IL:LAMBDA (FIRST SECOND)
+                        (AND (MEMBER FIRST ',(OR (GET TYPE ':DEFINED-BY)
+                                                 (GET TYPE 'IL:DEFINED-BY))
+                                    :TEST
+                                    #'EQ)
+                             (LET ((NAMER (OR (GET FIRST ':DEFINITION-NAME)
+                                              (GET FIRST 'IL:DEFINITION-NAME)
+                                              'SECOND)))
+                                  (IF (EQ NAMER 'SECOND)
+                                      (EQUAL SECOND ',NAME)
+                                      (EQUAL (FUNCALL NAMER (REMOVE-COMMENTS (IL:READ)))
+                                             ',NAME))))))))
+        (COND
+           ((EQ (CAAR VAL)
+                'IL:NOT-FOUND\:)
+            NOTFOUND)
+           ((CDR VAL)
+            (CONS 'PROGN VAL))
+           (T (CAR VAL)))))
+
+(DEFUN %DEFINE-TYPE-SAVE-DEFN (NAME TYPE DEFINITION)
+   (SETQ TYPE (IL:GETFILEPKGTYPE TYPE 'TYPE))
+   (LET ((HASH-TABLE (GETHASH TYPE *DEFINITION-HASH-TABLE*)))
+        (WHEN (NULL HASH-TABLE)
+            (WARN "Couldn't find a hash-table for ~S definitions.~%One will be created." TYPE)
+            (SETQ HASH-TABLE (SETF (GETHASH TYPE *DEFINITION-HASH-TABLE*)
+                                   (MAKE-HASH-TABLE :TEST #'EQUAL :SIZE 50 :REHASH-SIZE 50))))
+        (LET ((OLD-DEFINITION (GETHASH NAME HASH-TABLE)))
+             (UNLESS (EQUAL DEFINITION OLD-DEFINITION)
+                 (WHEN (AND OLD-DEFINITION (NOT (EQ IL:DFNFLG T)))
+                     (FORMAT *TERMINAL-IO* "~&New ~A definition for ~S~:[~; (but not installed)~].~%"
+                            TYPE NAME (MEMBER IL:DFNFLG '(IL:PROP IL:ALLPROP)
+                                             :TEST
+                                             #'EQ)))
+                 (IL:/PUTHASH NAME DEFINITION HASH-TABLE)
+                 (IL:MARKASCHANGED NAME TYPE (IF OLD-DEFINITION
+                                                 'IL:CHANGED
+                                                 'IL:DEFINED))))))
+
+(DEFUN %DEFINE-TYPE-PUTDEF (NAME TYPE DEFINITION REASON)
+   (IF (NULL DEFINITION)
+       (%DEFINE-TYPE-DELDEF NAME TYPE)
+       (LET ((DEFN-WITHOUT-COMMENTS (REMOVE-COMMENTS DEFINITION)))
+            (UNLESS (AND (CONSP DEFN-WITHOUT-COMMENTS)
+                         (MEMBER (CAR DEFN-WITHOUT-COMMENTS)
+                                (OR (GET TYPE ':DEFINED-BY)
+                                    (GET TYPE 'IL:DEFINED-BY))
+                                :TEST
+                                #'EQ)
+                         (EQUAL NAME (FUNCALL (OR (GET (CAR DEFN-WITHOUT-COMMENTS)
+                                                       ':DEFINITION-NAME)
+                                                  (GET (CAR DEFN-WITHOUT-COMMENTS)
+                                                       'IL:DEFINITION-NAME)
+                                                  'SECOND)
+                                            DEFN-WITHOUT-COMMENTS)))
+                (SIGNAL 'IL:DEFINER-MISMATCH :NAME NAME :TYPE TYPE :DEFINITION DEFINITION))
+            (SETQ DEFINITION (COPY-TREE DEFINITION))
+            (EVAL (IF IL:LISPXHIST
+                      (MAKE-UNDOABLE DEFINITION)
+                      DEFINITION)))))
+
+
+
+(IL:* IL:\; "Compatibility with old cmldeffer")
+
+(IL:DECLARE\: IL:DOCOPY IL:DONTEVAL@LOAD 
+
+(IL:MOVD '%DEFINE-TYPE-DELDEF 'IL:\\DEFINE-TYPE-DELDEF)
+
+(IL:MOVD '%DEFINE-TYPE-GETDEF 'IL:\\DEFINE-TYPE-GETDEF)
+
+(IL:MOVD '%DEFINE-TYPE-FILE-DEFINITIONS 'IL:\\DEFINE-TYPE-FILE-DEFINITIONS)
+
+(IL:MOVD '%DEFINE-TYPE-FILEGETDEF 'IL:\\DEFINE-TYPE-FILEGETDEF)
+
+(IL:MOVD '%DEFINE-TYPE-SAVE-DEFN 'IL:\\DEFINE-TYPE-SAVE-DEFN)
+
+(IL:MOVD '%DEFINE-TYPE-PUTDEF 'IL:\\DEFINE-TYPE-PUTDEF)
+
+(IL:MOVD 'PPRINT-DEFINER 'IL:PPRINT-DEFINER)
+)
+(IL:DECLARE\: IL:DOCOPY IL:DONTEVAL@LOAD 
+
+
+(IL:* IL:|;;| "Set up fake definer prototype stuff for FNS")
+
+
+(ADD-PROTOTYPE-FN 'IL:FNS 'IL:NLAMBDA #'(LAMBDA (NAME)
+                                               (AND (SYMBOLP NAME)
+                                                    `(IL:DEFINEQ (,NAME (IL:NLAMBDA ,@(
+                                                                             %MAKE-FUNCTION-PROTOTYPE
+                                                                                       )))))))
+
+(ADD-PROTOTYPE-FN 'IL:FNS 'IL:LAMBDA #'(LAMBDA (NAME)
+                                              (AND (SYMBOLP NAME)
+                                                   `(IL:DEFINEQ (,NAME (IL:LAMBDA ,@(
+                                                                             %MAKE-FUNCTION-PROTOTYPE
+                                                                                     )))))))
+)
+
+
+
+(IL:* IL:\; "The groundwork for bootstrapping ")
+
+
+(DEF-DEFINE-TYPE IL:DEFINE-TYPES "Definition type")
+
+(DEF-DEFINE-TYPE IL:FUNCTIONS "Common Lisp functions/macros"
+   :UNDEFINER IL:UNDOABLY-FMAKUNBOUND)
+
+(DEF-DEFINE-TYPE IL:VARIABLES "Common Lisp variables"
+   :UNDEFINER UNDOABLY-MAKUNBOUND)
+
+
+
+(IL:* IL:\; "DefDefiner itself and friends")
+
+
+(DEFUN SI::EXPANSION-FUNCTION (NAME ARG-LIST BODY)
+
+(IL:* IL:|;;;| "Shared code between DEFMACRO and DEFDEFINER.  Takes the parts of a DEFMACRO and returns two values: a LAMBDA form for the expansion function, and the documentation string found, if any.")
+
+   (MULTIPLE-VALUE-BIND (PARSED-BODY PARSED-DECLARATIONS PARSED-DOCSTRING)
+          (IL:PARSE-DEFMACRO ARG-LIST 'SI::$$MACRO-FORM BODY NAME NIL :ENVIRONMENT 
+                 'SI::$$MACRO-ENVIRONMENT)
+          (VALUES `(LAMBDA (SI::$$MACRO-FORM SI::$$MACRO-ENVIRONMENT)
+                          ,@PARSED-DECLARATIONS
+                          (BLOCK ,NAME ,PARSED-BODY))
+                 PARSED-DOCSTRING)))
+
+(DEFMACRO SI::MACRO-FUNCALL (EXPANSION-FUNCTION MACRO-CALL ENV)
+
+(IL:* IL:|;;;| "Used by DEFDEFINER as a mechanism for delaying macro-expansion until after checking the value of DFNFLG.  The arguments (unevaluated) are a macro-expansion function and a call on that macro.  The call to MACRO-FUNCALL should expand into the result of expanding the given macro-call.")
+
+   (FUNCALL EXPANSION-FUNCTION MACRO-CALL ENV))
+
+(DEFMACRO WITHOUT-FILEPKG (&BODY BODY)
+   `(PROGN (EVAL-WHEN (LOAD)
+                  ,@BODY)
+           (EVAL-WHEN (EVAL)
+                  (UNLESS (OR (EQ IL:DFNFLG 'IL:PROP)
+                              (EQ IL:DFNFLG 'IL:ALLPROP))
+                      (LET ((IL:FILEPKGFLG NIL)
+                            (IL:DFNFLG T))
+                           ,@BODY)))))
+
+
+
+(IL:* IL:\; "Compatibility with old cmldeffer")
+
+
+(DEFMACRO IL:WITHOUT-FILEPKG (&BODY BODY)
+   `(WITHOUT-FILEPKG ,@BODY))
+
+
+
+(IL:* IL:\; "Some special forms")
+
+
+(DEFMACRO DEFINER (TYPE NAME DEFINITION &OPTIONAL ENV)
+   (LET* ((EXPANDER (GET NAME :DEFINITION-EXPANDER))
+          (DEFINITION-WITHOUT-COMMENTS (REMOVE-COMMENTS DEFINITION))
+          (DEFINITION-NAME (FUNCALL (GET NAME :DEFINITION-NAME)
+                                  DEFINITION-WITHOUT-COMMENTS)))
+         `(PROGN (WITHOUT-FILEPKG (SI::MACRO-FUNCALL ,EXPANDER ,DEFINITION-WITHOUT-COMMENTS
+                                         ,ENV))
+                 (EVAL-WHEN (EVAL)
+                        (UNLESS (NULL IL:FILEPKGFLG)
+                            (%DEFINE-TYPE-SAVE-DEFN ',DEFINITION-NAME ',TYPE ',DEFINITION)))
+                 ',DEFINITION-NAME)))
+
+(DEFMACRO NAMED-PROGN (DEFINER NAME &REST FORMS)
+
+   (IL:* IL:|;;| "Used by the compiler when processing definers")
+
+   `(PROGN ,@FORMS ',NAME))
+
+
+
+(IL:* IL:\; "Auxiliary functions")
+
+
+(DEFUN GET-DEFINER-NAME (DEFINER STRING)
+   (VALUES (INTERN (CONCATENATE 'STRING STRING (STRING DEFINER))
+                  (SYMBOL-PACKAGE DEFINER))))
+
+(DEFUN %DELETE-DEFINER (NAME)
+   (AND (SYMBOLP NAME)
+        (LET ((TYPE (OR (GET NAME ':DEFINER-FOR)
+                        (GET NAME 'IL:DEFINER-FOR))))
+             (IL:/REMPROP NAME ':DEFINER-FOR)
+             (IL:/REMPROP NAME 'IL:DEFINER-FOR)
+             (IL:/REMPROP NAME ':DEFINITION-NAME)
+             (IL:/REMPROP NAME 'IL:DEFINITION-NAME)
+             (IL:/REMPROP NAME ':DEFINITION-EXPANDER)
+             (WHEN TYPE
+                 (IF (GET TYPE ':DEFINED-BY)
+                     (IL:/PUTPROP TYPE ':DEFINED-BY (REMOVE NAME (GET TYPE ':DEFINED-BY)))
+                     (IL:/PUTPROP TYPE 'IL:DEFINED-BY (REMOVE NAME (GET TYPE 'IL:DEFINED-BY))))
+
+                 (IL:* IL:|;;| "need to remove the prototype function!")
+
+                 (LET* ((LOOKUP-TYPE (ASSOC TYPE *DEFINITION-PROTOTYPES* :TEST #'EQ)))
+                       (IL:/RPLACD LOOKUP-TYPE (REMOVE NAME (CDR LOOKUP-TYPE)
+                                                      :KEY
+                                                      #'CAR)))))))
+
+(DEFDEFINER (DEF-DEFINE-TYPE (:PROTOTYPE (LAMBDA (NAME)
+                                                (AND (SYMBOLP NAME)
+                                                     `(DEF-DEFINE-TYPE ,NAME "Description string")))))
+ IL:DEFINE-TYPES (NAME DESCRIPTION &KEY UNDEFINER &AUX (CHANGELST (INTERN (CONCATENATE 'STRING 
+                                                                                 "CHANGED"
+                                                                                 (STRING NAME)
+                                                                                 "LST")
+                                                                         (SYMBOL-PACKAGE NAME))))
+   "Define NAME as a new definition type"
+
+   (IL:* IL:|;;| "This definition is a clean interface to a hokey implementation.  It works even before the file package is loaded.")
+
+   `(PROGN (SETF (DOCUMENTATION ',NAME 'IL:DEFINE-TYPES)
+                 ',DESCRIPTION)
+           (PUSHNEW '(,NAME X (IL:P IL:* (%DEFINE-TYPE-FILE-DEFINITIONS ',NAME 'X)))
+                  IL:PRETTYDEFMACROS :TEST 'EQUAL)
+
+           (IL:* IL:|;;| "the information about a type in the file package is split up into a number of different places. PRETTYTYPELST contains a random amount: the changelist is the variable whose top level value contains the list of changed items, and the description is a string used by files? This is duplicated in the CL:DOCUMENTATION mechanism")
+
+           (PUSHNEW '(,CHANGELST ,NAME ,DESCRIPTION)
+                  IL:PRETTYTYPELST :TEST 'EQUAL)
+           (DEFGLOBALVAR ,CHANGELST NIL)
+
+           (IL:* IL:|;;| "the definition hash table is where the definitions are really stored. Create an entry for this type. Note that definitions are compared using CL:EQUAL so that names can be strings, lists, etc.")
+
+           (UNLESS (GETHASH ',NAME *DEFINITION-HASH-TABLE*)
+               (SETF (GETHASH ',NAME *DEFINITION-HASH-TABLE*)
+                     (MAKE-HASH-TABLE :TEST 'EQUAL :SIZE 50 :REHASH-SIZE 50)))
+           (PUSHNEW ',NAME IL:FILEPKGTYPES)
+           (SETF (GET ',NAME 'IL:GETDEF)
+                 '%DEFINE-TYPE-GETDEF)
+           (SETF (GET ',NAME 'IL:DELDEF)
+                 '%DEFINE-TYPE-DELDEF)
+           (SETF (GET ',NAME 'IL:PUTDEF)
+                 '%DEFINE-TYPE-PUTDEF)
+           (SETF (GET ',NAME 'IL:FILEGETDEF)
+                 '%DEFINE-TYPE-FILEGETDEF)
+           (SETF (GET ',NAME 'IL:FILEPKGCONTENTS)
+                 'IL:NILL)
+           ,@(WHEN UNDEFINER
+                 `((PUSHNEW ',UNDEFINER (GET ',NAME ':UNDEFINERS))))))
+
+(DEFDEFINER (DEFDEFINER (:NAME (LAMBDA (WHOLE)
+                                      (LET ((NAME (SECOND WHOLE)))
+                                           (IF (CONSP NAME)
+                                               (CAR NAME)
+                                               NAME))))
+                        (:PROTOTYPE (LAMBDA (NAME)
+                                           (AND (SYMBOLP NAME)
+                                                `(DEFDEFINER ,NAME 
+                                                    ,(IF (EQ (IL:EDITMODE)
+                                                             'IL:SEDIT)
+                                                         (SYMBOL-VALUE (INTERN "BASIC-GAP" "SEDIT"))
+                                                         "Type") ,@(%MAKE-FUNCTION-PROTOTYPE)))))
+                        (:UNDEFINER %DELETE-DEFINER)
+                        (:TEMPLATE (:NAME :TYPE :ARG-LIST :BODY))) IL:FUNCTIONS (NAME TYPE ARG-LIST 
+                                                                                      &BODY BODY)
+   (LET*
+    ((OPTIONS (COND
+                 ((CONSP NAME)
+                  (PROG1 (CDR NAME)
+                      (SETQ NAME (CAR NAME))))
+                 (T NIL)))
+     (NAME-FN NIL)
+     (UNDEFINER NIL)
+     (PROTOTYPE-FN NIL)
+     (TEMPLATE NIL)
+     (PRETTYMACRO NIL))
+    (DOLIST (OPT-LIST OPTIONS)
+        (CASE (CAR OPT-LIST)
+            ((:UNDEFINER) (SETQ UNDEFINER (CADR OPT-LIST)))
+            ((:NAME) (SETQ NAME-FN (CADR OPT-LIST)))
+            ((:PROTOTYPE) (SETQ PROTOTYPE-FN (CADR OPT-LIST)))
+            ((:TEMPLATE) (SETQ TEMPLATE (CADR OPT-LIST)))
+            ((:PRETTYPRINTMACRO) (SETQ PRETTYMACRO (CADR OPT-LIST)))
+            (OTHERWISE (CERROR "Ignore the option" "Unrecognized option to DefDefiner: ~S" OPT-LIST)))
+)
+    (MULTIPLE-VALUE-BIND
+     (EXPANSION-FN DOC)
+     (SI::EXPANSION-FUNCTION NAME ARG-LIST BODY)
+     (UNLESS (OR TEMPLATE PRETTYMACRO (NOT (MEMBER '&BODY ARG-LIST)))
+                                                             (IL:* IL:\; 
+                                                       "Tell default prettyprinter where the body is")
+         (SETQ TEMPLATE (NCONC (IL:FOR X IL:IN ARG-LIST IL:UNTIL (EQ X '&BODY)
+                                  IL:UNLESS (MEMBER X LAMBDA-LIST-KEYWORDS) IL:COLLECT NIL)
+                               (LIST :BODY)))
+         (WHEN (AND (NULL (CAR TEMPLATE))
+                    (NULL NAME-FN))                          (IL:* IL:\; "Name is in default place")
+             (SETF (CAR TEMPLATE)
+                   :NAME)))
+     (LET ((EXPANDER-NAME (GET-DEFINER-NAME NAME "definition-expander-"))
+           (NAME-FN-NAME (IF (CONSP NAME-FN)
+                             (GET-DEFINER-NAME NAME "name-fn-"))))
+          `(PROGN (EVAL-WHEN (LOAD EVAL COMPILE)
+                         (SETF (GET ',NAME ':DEFINER-FOR)
+                               ',TYPE)
+                         (PUSHNEW ',NAME (GET ',TYPE ':DEFINED-BY))
+                         (SETF (SYMBOL-FUNCTION ',EXPANDER-NAME)
+                               #',EXPANSION-FN)
+                         (SETF (GET ',NAME ':DEFINITION-EXPANDER)
+                               ',EXPANDER-NAME)
+                         ,@(IF NAME-FN-NAME
+                               `((SETF (SYMBOL-FUNCTION ',NAME-FN-NAME)
+                                       #',NAME-FN)))
+                         (SETF (GET ',NAME ':DEFINITION-NAME)
+                               ',(OR NAME-FN-NAME NAME-FN 'SECOND))
+                         ,@(AND UNDEFINER (LET ((UNDEFINER-FN-NAME (GET-DEFINER-NAME NAME 
+                                                                          "undefiner-fn-")))
+                                               `((SETF (SYMBOL-FUNCTION ',UNDEFINER-FN-NAME)
+                                                       #',UNDEFINER)
+                                                 (PUSHNEW ',UNDEFINER-FN-NAME
+                                                        (GET ',NAME ':UNDEFINERS)))))
+                         ,@(AND PROTOTYPE-FN (LET ((PROTOTYPE-FN-NAME (GET-DEFINER-NAME NAME 
+                                                                             "prototype-fn-")))
+                                                  `((SETF (SYMBOL-FUNCTION ',PROTOTYPE-FN-NAME)
+                                                          #',PROTOTYPE-FN)
+                                                    (ADD-PROTOTYPE-FN ',TYPE ',NAME
+                                                           ',PROTOTYPE-FN-NAME))))
+                         ,@(AND DOC `((SETF (DOCUMENTATION ',NAME 'FUNCTION)
+                                            ,DOC)))
+                         ,@(AND TEMPLATE `((SETF (GET ',NAME ':DEFINITION-PRINT-TEMPLATE)
+                                                 ',TEMPLATE)))
+                         (PUSHNEW '(,NAME ,@(OR PRETTYMACRO 'PPRINT-DEFINER))
+                                IL:PRETTYPRINTMACROS :TEST 'EQUAL))
+                  (DEFMACRO ,NAME (&WHOLE DEFINITION &ENVIRONMENT ENV)
+                     `(DEFINER ,',TYPE ,',NAME ,DEFINITION ,ENV)))))))
+
+(DEFUN %EXPAND-DEFINER (DEFINER DEFINITION-WITHOUT-COMMENTS &OPTIONAL ENV)
+   (FUNCALL (GET DEFINER :DEFINITION-EXPANDER)
+          DEFINITION-WITHOUT-COMMENTS ENV))
+
+(DEFUN %DEFINER-NAME (DEFINER DEFINITION-WITHOUT-COMMENTS)
+   (FUNCALL (GET DEFINER :DEFINITION-NAME)
+          DEFINITION-WITHOUT-COMMENTS))
+
+
+
+(IL:* IL:\; "The most commonly-used definers")
+
+
+(DEFDEFINER (DEFUN (:PROTOTYPE (LAMBDA (NAME)
+                                      (AND (SYMBOLP NAME)
+                                           `(DEFUN ,NAME ,@(%MAKE-FUNCTION-PROTOTYPE)))))
+                   (:TEMPLATE (:NAME :ARG-LIST :BODY))) IL:FUNCTIONS (NAME ARGS &BODY
+                                                                           (BODY DECLS DOCUMENTATION)
+                                                                           )
+   `(PROGN (SETF (SYMBOL-FUNCTION ',NAME)
+                 #'(,'LAMBDA ,ARGS ,@DECLS (BLOCK ,NAME ,@BODY)))
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'FUNCTION)
+                                        ,DOCUMENTATION)))))
+
+(DEFDEFINER (DEFINLINE (:PROTOTYPE (LAMBDA (NAME)
+                                          (AND (SYMBOLP NAME)
+                                               `(DEFINLINE ,NAME ,@(%MAKE-FUNCTION-PROTOTYPE)))))
+                       (:TEMPLATE (:NAME :ARG-LIST :BODY))) IL:FUNCTIONS (NAME ARG-LIST &BODY BODY 
+                                                                               &ENVIRONMENT ENV)
+
+(IL:* IL:|;;;| "This is an INTERIM version of DEFINLINE.  Eventually, this will just turn into a DEFUN and a PROCLAIM INLINE.  (It says so right here.)  If you're using this one, DO NOT make any recursive calls in the body of the DEFINLINE.  If you do, the compiler will run forever trying to expand the optimizer...  Once the INLINE version gets working (in the PavCompiler only) that restriction will be lifted.")
+
+   (MULTIPLE-VALUE-BIND (CODE DECLS DOC)
+          (PARSE-BODY BODY ENV T)
+          (LET ((NEW-LAMBDA `(,'LAMBDA ,ARG-LIST ,@DECLS (BLOCK ,NAME ,@CODE))))
+               `(PROGN (DEFUN ,NAME ,ARG-LIST
+                          ,@BODY)
+                       (DEFOPTIMIZER ,NAME ,(PACK (LIST "definline-" NAME)
+                                                  (SYMBOL-PACKAGE NAME))
+                                           (&REST ARGS)
+                                           (CONS ',NEW-LAMBDA ARGS))))))
+
+(DEFDEFINER (DEFMACRO (:PROTOTYPE (LAMBDA (NAME)
+                                         (AND (SYMBOLP NAME)
+                                              `(DEFMACRO ,NAME ,@(%MAKE-FUNCTION-PROTOTYPE)))))
+                      (:UNDEFINER (LAMBDA (NAME)
+                                         (REMPROP NAME 'IL:ARGNAMES)))
+                      (:TEMPLATE (:NAME :ARG-LIST :BODY))) IL:FUNCTIONS (NAME DEFMACRO-ARGS &BODY 
+                                                                              DEFMACRO-BODY)
+   (UNLESS (AND NAME (SYMBOLP NAME))
+          (ERROR "Illegal name used in DEFMACRO: ~S" NAME))
+   (LET
+    ((CMACRONAME (PACK (LIST "expand-" NAME)
+                       (SYMBOL-PACKAGE NAME))))
+    (MULTIPLE-VALUE-BIND
+     (EXPANSION-FN DOC-STRING)
+     (SI::EXPANSION-FUNCTION NAME DEFMACRO-ARGS DEFMACRO-BODY)
+     `(PROGN (SETF (SYMBOL-FUNCTION ',CMACRONAME)
+                   #',EXPANSION-FN)
+             (SETF (MACRO-FUNCTION ',NAME)
+                   ',CMACRONAME)
+             ,@(AND DOC-STRING `((SETF (DOCUMENTATION ',NAME 'FUNCTION)
+                                       ,DOC-STRING)))
+             ,@(WHEN COMPILER::*NEW-COMPILER-IS-EXPANDING*
+                   `((SETF (GET ',NAME 'IL:ARGNAMES)
+                           ',(MAPCAR #'(LAMBDA (ARG)
+                                              (IF (MEMBER ARG LAMBDA-LIST-KEYWORDS)
+                                                  ARG
+                                                  (PRIN1-TO-STRING ARG)))
+                                    (IL:\\SIMPLIFY.CL.ARGLIST DEFMACRO-ARGS)))))))))
+
+(DEFDEFINER (DEFVAR (:PROTOTYPE (LAMBDA (NAME)
+                                       (AND (SYMBOLP NAME)
+                                            `(DEFVAR ,NAME))))) IL:VARIABLES (NAME &OPTIONAL
+                                                                                   (INITIAL-VALUE
+                                                                                    NIL IVP)
+                                                                                   DOCUMENTATION)
+   `(PROGN (PROCLAIM '(SPECIAL ,NAME))
+           ,@(AND IVP `((OR (BOUNDP ',NAME)
+                            (SETQ ,NAME ,INITIAL-VALUE))))
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'VARIABLE)
+                                        ,DOCUMENTATION)))))
+
+(DEFDEFINER (DEFPARAMETER (:PROTOTYPE (LAMBDA (NAME)
+                                             (AND (SYMBOLP NAME)
+                                                  `(DEFPARAMETER ,NAME "Value"
+                                                      "Documentation string"))))) IL:VARIABLES (NAME
+                                                                                                
+                                                                                        INITIAL-VALUE
+                                                                                                
+                                                                                            &OPTIONAL
+                                                                                                
+                                                                                        DOCUMENTATION
+                                                                                                )
+   `(PROGN (PROCLAIM '(SPECIAL ,NAME))
+           (SETQ ,NAME ,INITIAL-VALUE)
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'VARIABLE)
+                                        ,DOCUMENTATION)))))
+
+(DEFDEFINER (DEFCONSTANT (:PROTOTYPE (LAMBDA (NAME)
+                                            (AND (SYMBOLP NAME)
+                                                 `(DEFCONSTANT ,NAME "Value"
+                                                     "Documentation string"))))) IL:VARIABLES (NAME
+                                                                                               VALUE
+                                                                                               
+                                                                                            &OPTIONAL
+                                                                                               
+                                                                                        DOCUMENTATION
+                                                                                               )
+   `(PROGN ,@(IF (CONSTANTP NAME)
+                 `((SET-CONSTANTP ',NAME NIL)))
+           (SETQ ,NAME ,VALUE)
+           (PROCLAIM '(SI::CONSTANT ,NAME))
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'VARIABLE)
+                                        ,DOCUMENTATION)))))
+
+(DEFDEFINER (DEFGLOBALVAR (:PROTOTYPE (LAMBDA (NAME)
+                                             (AND (SYMBOLP NAME)
+                                                  `(DEFGLOBALVAR ,NAME))))) IL:VARIABLES (NAME
+                                                                                          &OPTIONAL
+                                                                                          (
+                                                                                        INITIAL-VALUE
+                                                                                           NIL IVP)
+                                                                                          
+                                                                                        DOCUMENTATION
+                                                                                          )
+
+   (IL:* IL:|;;| "Use IL:SETQ here or the INIT dies.")
+
+   `(PROGN (PROCLAIM '(GLOBAL ,NAME))
+           ,@(AND IVP `((OR (BOUNDP ',NAME)
+                            (SETQ ,NAME ,INITIAL-VALUE))))
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'VARIABLE)
+                                        ,DOCUMENTATION)))))
+
+(DEFDEFINER (DEFGLOBALPARAMETER (:PROTOTYPE (LAMBDA (NAME)
+                                                   (AND (SYMBOLP NAME)
+                                                        `(DEFGLOBALPARAMETER ,NAME "Value"
+                                                            "Documentation string"))))) IL:VARIABLES (
+                                                                                                 NAME
+                                                                                                      
+                                                                                        INITIAL-VALUE
+                                                                                                      
+                                                                                            &OPTIONAL
+                                                                                                      
+                                                                                        DOCUMENTATION
+                                                                                                      )
+   `(PROGN (PROCLAIM '(GLOBAL ,NAME))
+           (SETQ ,NAME ,INITIAL-VALUE)
+           ,@(AND DOCUMENTATION `((SETF (DOCUMENTATION ',NAME 'VARIABLE)
+                                        ,DOCUMENTATION)))))
+
+
+
+(IL:* IL:\; "Here so that the evaluator can be in the init without definers being in the init.")
+
+
+(DEF-DEFINE-TYPE IL:SPECIAL-FORMS "Common Lisp special forms"
+   :UNDEFINER %REMOVE-SPECIAL-FORM)
+
+(DEFUN %REMOVE-SPECIAL-FORM (X)
+   (IL:/REMPROP X 'IL:SPECIAL-FORM))
+
+(DEFDEFINER (DEFINE-SPECIAL-FORM (:TEMPLATE (:NAME :ARG-LIST :BODY))) IL:SPECIAL-FORMS (NAME ARGS 
+                                                                                             &REST 
+                                                                                             BODY)
+   (COND
+      ((NULL BODY)
+       (ASSERT (SYMBOLP NAME)
+              NIL "Ill-formed short DEFINE-SPECIAL-FORM; ~S is not a symbol." ARGS)
+       `(SETF (GET ',NAME 'IL:SPECIAL-FORM)
+              ',ARGS))
+      (T (LET ((SF (INTERN (CONCATENATE 'STRING "interpret-" (STRING NAME))
+                          (SYMBOL-PACKAGE NAME))))
+              (MULTIPLE-VALUE-BIND (PARSED-BODY DECLS DOC)
+                     (IL:PARSE-DEFMACRO ARGS '$$TAIL BODY NAME NIL :PATH '$$TAIL :ENVIRONMENT
+                            '$$ENV)
+                     `(PROGN (SETF (SYMBOL-FUNCTION ',SF)
+                                   #'(LAMBDA ($$TAIL $$ENV)
+                                            ,@DECLS
+                                            (BLOCK ,NAME ,PARSED-BODY)))
+                             (SETF (GET ',NAME 'IL:SPECIAL-FORM)
+                                   ',SF)))))))
+
+
+
+(IL:* IL:\; "Form for defining interpreters of special forms")
+
+
+
+
+(IL:* IL:\; "Don't note changes to these properties/variables")
+
+
+(IL:PUTPROPS IL:MACRO-FN IL:PROPTYPE IL:FUNCTIONS)
+
+(IL:PUTPROPS :UNDEFINERS IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS IL:UNDEFINERS IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS :DEFINER-FOR IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS IL:DEFINER-FOR IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS :DEFINED-BY IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS IL:DEFINED-BY IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS :DEFINITION-NAME IL:PROPTYPE IGNORE)
+
+(IL:PUTPROPS IL:DEFINITION-NAME IL:PROPTYPE IGNORE)
+
+
+
+(IL:* IL:\; "Templates for definers not defined here.  These should really be where they're defined.")
+
+
+(IL:PUTPROPS DEFCOMMAND :DEFINITION-PRINT-TEMPLATE (:NAME :ARG-LIST :BODY))
+
+(IL:PUTPROPS DEFINE-CONDITION :DEFINITION-PRINT-TEMPLATE (:NAME :VALUE :BODY))
+
+(IL:PUTPROPS DEFINE-MODIFY-MACRO :DEFINITION-PRINT-TEMPLATE (:NAME :ARG-LIST))
+
+(IL:PUTPROPS DEFINE-SETF-METHOD :DEFINITION-PRINT-TEMPLATE (:NAME :ARG-LIST :BODY))
+
+(IL:PUTPROPS DEFSETF :DEFINITION-PRINT-TEMPLATE (:NAME :ARG-LIST :ARG-LIST :BODY))
+
+(IL:PUTPROPS DEFSTRUCT :DEFINITION-PRINT-TEMPLATE (:NAME :BODY))
+
+(IL:PUTPROPS DEFTYPE :DEFINITION-PRINT-TEMPLATE (:NAME :ARG-LIST :BODY))
+
+
+
+(IL:* IL:|;;| "Arrange for the correct compiler to be used.")
+
+
+(IL:PUTPROPS IL:CMLDEFFER IL:FILETYPE :COMPILE-FILE)
+
+(IL:PUTPROPS IL:CMLDEFFER IL:MAKEFILE-ENVIRONMENT (:READTABLE "XCL" :PACKAGE "XCL"))
+(IL:PUTPROPS IL:CMLDEFFER IL:COPYRIGHT ("Venue & Xerox Corporation" 1986 1900 1987 1988 1990))
+(IL:DECLARE\: IL:DONTCOPY
+  (IL:FILEMAP (NIL (8238 9262 (REMOVE-COMMENTS 8238 . 9262)) (9264 17485 (PPRINT-DEFINER 9264 . 17485)) 
+(17487 17944 (PPRINT-DEFINER-FITP 17487 . 17944)) (17946 18244 (PPRINT-DEFINER-RECURSE 17946 . 18244))
+ (18440 19117 (%DEFINE-TYPE-DELDEF 18440 . 19117)) (19119 19626 (%DEFINE-TYPE-GETDEF 19119 . 19626)) (
+19628 20088 (%DEFINE-TYPE-FILE-DEFINITIONS 19628 . 20088)) (20090 21297 (%DEFINE-TYPE-FILEGETDEF 20090
+ . 21297)) (21299 22473 (%DEFINE-TYPE-SAVE-DEFN 21299 . 22473)) (22475 23700 (%DEFINE-TYPE-PUTDEF 
+22475 . 23700)) (25512 26187 (SI::EXPANSION-FUNCTION 25512 . 26187)) (26189 26611 (SI::MACRO-FUNCALL 
+26189 . 26611)) (26613 26981 (WITHOUT-FILEPKG 26613 . 26981)) (27039 27118 (IL:WITHOUT-FILEPKG 27039
+ . 27118)) (27162 27846 (DEFINER 27162 . 27846)) (27848 28004 (NAMED-PROGN 27848 . 28004)) (28049 
+28208 (GET-DEFINER-NAME 28049 . 28208)) (28210 29245 (%DELETE-DEFINER 28210 . 29245)) (37017 37190 (
+%EXPAND-DEFINER 37017 . 37190)) (37192 37341 (%DEFINER-NAME 37192 . 37341)) (47003 47075 (
+%REMOVE-SPECIAL-FORM 47003 . 47075)))))
+IL:STOP

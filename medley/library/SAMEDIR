@@ -1,0 +1,126 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "31-Oct-2022 13:09:14" {WMEDLEY}<library>SAMEDIR.;4 6221   
+
+      :CHANGES-TO (FNS CHECKSAMEDIR HOST&DIRECTORYFIELD)
+
+      :PREVIOUS-DATE "25-Apr-2022 09:23:16" {WMEDLEY}<library>SAMEDIR.;3)
+
+
+(* ; "
+Copyright (c) 1982, 1984-1987, 1990, 2018, 2020 by Venue & Xerox Corporation.
+")
+
+(PRETTYCOMPRINT SAMEDIRCOMS)
+
+(RPAQQ SAMEDIRCOMS
+       ((FNS CHECKSAMEDIR HOST&DIRECTORYFIELD)
+        (INITVARS (SAMEDIRWAIT 10)
+               (SAMEDIRDEFAULT 'O))
+        (ADDVARS [MAKEFILEFORMS (OR (NLSETQ (CHECKSAMEDIR FILE))
+                                    (RETFROM 'MAKEFILE]
+               (MIGRATIONS))
+        (GLOBALVARS MIGRATIONS)))
+(DEFINEQ
+
+(CHECKSAMEDIR
+  [LAMBDA (FILE)                                             (* ; "Edited 31-Oct-2022 13:08 by rmk")
+                                                             (* ; "Edited 25-Apr-2022 09:16 by rmk")
+                                                            (* ; "Edited  1-Sep-2020 11:40 by rmk:")
+
+    (* ;; "Check (a) that we are writing FILE to the same directory we last read/wrote it and (b) that a version newer than the current one has not since appeared.")
+
+    (* ;; " OKHOST/DIRS is a list of places it's OK for the file to be winding up, so if your'e migrating code from one place ot another, you can do it gracefully.")
+
+    [RESETSAVE (DIRECTORYNAME T)
+           '(PROGN (CNDIR OLDVALUE]                          (* ; 
+                                                             "Assumes that MAKEFILE has  RESETLST")
+    (PROG ((*UPPER-CASE-FILE-NAMES* NIL)
+           (DATES (GET (SETQ FILE (ROOTFILENAME FILE))
+                       'FILEDATES))
+           HOST/DIR HOST DIR NEWV OKHOST/DIRS)
+      AGAIN
+          (OR (LISTP DATES)
+              (RETURN))                                      (* ; 
+                     "RMK: Use HOST&DIRECTORYFIELD to canonicalize both file and connected directory")
+          [SETQ OKHOST/DIRS (CONS (SETQ HOST/DIR (HOST&DIRECTORYFIELD (DIRECTORYNAME T)))
+                                  (MKLIST (CDR (OR (ASSOC HOST/DIR MIGRATIONS :TEST 'STRING-EQUAL)
+                                                   (ASSOC (TRUEFILENAME HOST/DIR)
+                                                          MIGRATIONS :TEST 'STRING-EQUAL)
+                                                   (ASSOC (PSEUDOFILENAME HOST/DIR)
+                                                          MIGRATIONS :TEST 'STRING-EQUAL]
+          (COND
+             ([for OLDFILE in DATES bind HOST DIR
+                 never (OR (CL:MEMBER (HOST&DIRECTORYFIELD (CDR OLDFILE))
+                                  OKHOST/DIRS :TEST 'STRING-EQUAL)
+                           (CL:MEMBER (TRUEFILENAME (HOST&DIRECTORYFIELD (CDR OLDFILE)))
+                                  OKHOST/DIRS :TEST 'STRING-EQUAL)
+                           (CL:MEMBER (PSEUDOFILENAME (HOST&DIRECTORYFIELD (CDR OLDFILE)))
+                                  OKHOST/DIRS :TEST 'STRING-EQUAL]
+
+              (* ;; "The file is going somewhere it has never been before.  ")
+
+              (* ;; "Check that that is really what the user wants.")
+
+              (SELECTQ (ASKUSER SAMEDIRWAIT SAMEDIRDEFAULT (LIST "You haven't loaded or written" FILE
+                                                                 "in your connected directory" 
+                                                                 HOST/DIR "-- write it out anyway")
+                              `[[O ,(CONCAT "Oops!  Make file on " (SETQ HOST/DIR (
+                                                                                  HOST&DIRECTORYFIELD
+                                                                                   (CDAR DATES]
+                                (C "Make file on other directory: ")
+                                (Y ,(CONCAT "Yes, write it here")
+                                   (CHARACTER (CHARCODE EOL)))
+                                (N ,(CONCAT "No, abort MAKEFILE")
+                                   (CHARACTER (CHARCODE EOL]
+                              NIL NIL '(NOECHOFLG T))
+                  (Y (RETURN))
+                  (N (ERROR!))
+                  (C (SETQ HOST/DIR))
+                  (O (TERPRI T))
+                  (SHOULDNT))
+              [NLSETQ (CNDIR (OR HOST/DIR (READ T T]
+              (GO AGAIN))
+             ([AND [SETQ NEWV (INFILEP (PACKFILENAME.STRING 'VERSION NIL 'BODY (CDAR DATES]
+                   (NOT (STRING-EQUAL NEWV (CDAR DATES]
+
+              (* ;; "A newer version appeared while the user was editing this file.")
+
+              (* ;; "Ask if he should over-write it.")
+
+              (SELECTQ (ASKUSER 15 'Y (LIST (CDAR DATES)
+                                            "is not the most recent version (version"
+                                            (FILENAMEFIELD.STRING NEWV 'VERSION)
+                                            "has since appeared)." 
+                                            "Do you want to make the file anyway"))
+                  (Y)
+                  (N (ERROR!))
+                  (SHOULDNT])
+
+(HOST&DIRECTORYFIELD
+  [LAMBDA (FILENAME)                                         (* ; "Edited 31-Oct-2022 13:03 by rmk")
+                                                             (* ; "Edited 25-Apr-2022 09:22 by rmk")
+                                                            (* ; "Edited 15-Apr-2018 19:05 by rmk:")
+    (PACKFILENAME.STRING 'DEVICE (U-CASE (FILENAMEFIELD.STRING FILENAME 'DEVICE))
+           'HOST
+           (U-CASE (FILENAMEFIELD.STRING FILENAME 'HOST))
+           'DIRECTORY
+           (FILENAMEFIELD.STRING FILENAME 'DIRECTORY])
+)
+
+(RPAQ? SAMEDIRWAIT 10)
+
+(RPAQ? SAMEDIRDEFAULT 'O)
+
+(ADDTOVAR MAKEFILEFORMS (OR (NLSETQ (CHECKSAMEDIR FILE))
+                            (RETFROM 'MAKEFILE)))
+
+(ADDTOVAR MIGRATIONS )
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS MIGRATIONS)
+)
+(PUTPROPS SAMEDIR COPYRIGHT ("Venue & Xerox Corporation" 1982 1984 1985 1986 1987 1990 2018 2020))
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (731 5838 (CHECKSAMEDIR 741 . 5249) (HOST&DIRECTORYFIELD 5251 . 5836)))))
+STOP

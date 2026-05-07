@@ -1,0 +1,162 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "16-Jul-2022 22:45:28" {DSK}<home>larry>medley>sources>MAIKOLOADUPFNS.;2 5827   
+
+      :CHANGES-TO (VARS MAIKOLOADUPFNSCOMS)
+                  (FNS CL::%%COPY-TIME-STATS CHECKPAGEMAP CLOCK CLOCK0 DAYTIME SETTIME)
+
+      :PREVIOUS-DATE "26-Oct-2021 09:55:14" {DSK}<home>larry>medley>sources>MAIKOLOADUPFNS.;1)
+
+
+(* ; "
+Copyright (c) 1989, 2018, 2021-2022 by ENVOS Corporation.
+")
+
+(PRETTYCOMPRINT MAIKOLOADUPFNSCOMS)
+
+(RPAQQ MAIKOLOADUPFNSCOMS
+       ((PROP (FILETYPE MAKEFILE-ENVIRONMENT)
+              MAIKOLOADUPFNS)
+        (FNS CL::%%COPY-TIME-STATS CHECKPAGEMAP CLOCK CLOCK0 DAYTIME SETTIME \BITBLTSUB \BLTCHAR 
+             \CHECKSUM \CLOCK0 \COUNTREALPAGES \DAYTIME0 \DIRTYBACKGROUND \DOLOCKPAGES \DONEWPAGE 
+             \DORECLAIM \DOTEMPLOCKPAGES \LOADVMEMPAGE \LOCKEDPAGEP \LOCKPAGES \MOVEVMEMFILEPAGE 
+             \NEWPAGE \PAGEFAULT \SHOWPAGETABLE \TEMPUNLOCKPAGES \UNLOCKPAGES \WRITEDIRTYPAGE)
+        (GLOBALVARS \TimeZoneComp)))
+
+(PUTPROPS MAIKOLOADUPFNS FILETYPE CL:COMPILE-FILE)
+
+(PUTPROPS MAIKOLOADUPFNS MAKEFILE-ENVIRONMENT (:PACKAGE "INTERLISP" :READTABLE "INTERLISP" :BASE 10))
+(DEFINEQ
+
+(CL::%%COPY-TIME-STATS
+  [LAMBDA (REFERENCE-BLOCK DESTINIATION-BLOCK)            (* ; "Edited  2-May-88 17:16 by MASINTER")
+    (SUBRCALL COPYTIMESTATS REFERENCE-BLOCK DESTINIATION-BLOCK])
+
+(CHECKPAGEMAP
+  [LAMBDA NIL                                              (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(CLOCK
+  [LAMBDA (N BOX)                                         (* ; "Edited  2-May-88 16:11 by MASINTER")
+    (SUBRCALL GETUNIXTIME N BOX])
+
+(CLOCK0
+  [LAMBDA (BOX)                                           (* ; "Edited  2-May-88 16:19 by MASINTER")
+    (SUBRCALL GETUNIXTIME 0 BOX])
+
+(DAYTIME
+  [LAMBDA (BOX)                                           (* ; "Edited  2-May-88 16:20 by MASINTER")
+    (SUBRCALL GETUNIXTIME 5 BOX])
+
+(SETTIME
+  [LAMBDA (RETFLG)                                         (* ; "Edited 16-Jul-2022 22:44 by larry")
+                                                             (* ; "Edited 13-May-88 15:22 by lmm")
+    (CL:UNLESS (AND RETFLG (NOT (STRINGP RETFLG)))
+        (SETQ \TimeZoneComp (SUBRCALL GETUNIXTIME 8 NIL)))
+    (\PROCESS.RESET.TIMERS)
+    (DAYTIME])
+
+(\BITBLTSUB
+  [LAMBDA (PILOTBBT SourceBitMap SLX STY DestinationBitMap DLX DTY HEIGHT SourceType Operation 
+                 Texture WindowXOffset WindowYOffset)  (* ; "Edited 26-Oct-2021 09:53 by larry")
+
+    (* ;; "replaces \BITBLTSUB on Maiko")
+
+    (SUBRCALL BITBLTSUB PILOTBBT SourceBitMap SLX STY DestinationBitMap DLX DTY HEIGHT SourceType 
+           Operation Texture WindowXOffset WindowYOffset])
+
+(\BLTCHAR
+  [LAMBDA (CHARCODE DISPLAYSTREAM DISPLAYDATA)         (* ; "Edited 26-Oct-2021 09:51 by larry")
+    (SUBRCALL NEW-BLTCHAR CHARCODE DISPLAYSTREAM DISPLAYDATA])
+
+(\CHECKSUM
+  [LAMBDA (BASE NWORDS INITSUM)                       (* ; "Edited 20-May-88 11:48 by MASINTER")
+    (SUBRCALL CHECK-SUM BASE NWORDS INITSUM])
+
+(\CLOCK0
+  [LAMBDA (BOX)                                       (* ; "Edited  2-May-88 16:19 by MASINTER")
+    (SUBRCALL GETUNIXTIME 0 BOX])
+
+(\COUNTREALPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:08 by larry")
+    0])
+
+(\DAYTIME0
+  [LAMBDA (BOX)                                       (* ; "Edited  2-May-88 16:20 by MASINTER")
+    (SUBRCALL GETUNIXTIME 4 BOX])
+
+(\DIRTYBACKGROUND
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\DOLOCKPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\DONEWPAGE
+  [LAMBDA (BASE NOERROR LOCK?)                        (* ; "Edited 20-Apr-88 10:28 by MASINTER")
+    (SUBRCALL NEWPAGE BASE])
+
+(\DORECLAIM
+  [LAMBDA NIL                                         (* ; "Edited 12-Oct-88 12:01 by krivacic")
+    (SUBRCALL DORECLAIM])
+
+(\DOTEMPLOCKPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\LOADVMEMPAGE
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\LOCKEDPAGEP
+  [LAMBDA NIL                                            (* lmm " 4-OCT-83 03:05")
+    T])
+
+(\LOCKPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\MOVEVMEMFILEPAGE
+  [LAMBDA NIL                                            (* lmm " 4-OCT-83 03:05")
+    T])
+
+(\NEWPAGE
+  [LAMBDA (BASE NOERROR LOCK?)                        (* ; "Edited 20-Apr-88 10:28 by MASINTER")
+    (SUBRCALL NEWPAGE BASE])
+
+(\PAGEFAULT
+  [LAMBDA (X)                                                (* lmm%: 26 JUN 75 726)
+    X])
+
+(\SHOWPAGETABLE
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\TEMPUNLOCKPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\UNLOCKPAGES
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+
+(\WRITEDIRTYPAGE
+  [LAMBDA NIL                                          (* ; "Edited 25-Feb-2021 10:07 by larry")
+    NIL])
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS \TimeZoneComp)
+)
+(PUTPROPS MAIKOLOADUPFNS COPYRIGHT ("ENVOS Corporation" 1989 2018 2021 2022))
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1214 5661 (CL::%%COPY-TIME-STATS 1224 . 1424) (CHECKPAGEMAP 1426 . 1562) (CLOCK 1564 . 
+1717) (CLOCK0 1719 . 1873) (DAYTIME 1875 . 2030) (SETTIME 2032 . 2417) (\BITBLTSUB 2419 . 2841) (
+\BLTCHAR 2843 . 3024) (\CHECKSUM 3026 . 3191) (\CLOCK0 3193 . 3344) (\COUNTREALPAGES 3346 . 3479) (
+\DAYTIME0 3481 . 3634) (\DIRTYBACKGROUND 3636 . 3772) (\DOLOCKPAGES 3774 . 3906) (\DONEWPAGE 3908 . 
+4057) (\DORECLAIM 4059 . 4205) (\DOTEMPLOCKPAGES 4207 . 4343) (\LOADVMEMPAGE 4345 . 4478) (
+\LOCKEDPAGEP 4480 . 4596) (\LOCKPAGES 4598 . 4728) (\MOVEVMEMFILEPAGE 4730 . 4851) (\NEWPAGE 4853 . 
+5000) (\PAGEFAULT 5002 . 5114) (\SHOWPAGETABLE 5116 . 5250) (\TEMPUNLOCKPAGES 5252 . 5388) (
+\UNLOCKPAGES 5390 . 5522) (\WRITEDIRTYPAGE 5524 . 5659)))))
+STOP

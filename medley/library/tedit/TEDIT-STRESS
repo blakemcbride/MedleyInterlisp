@@ -1,0 +1,723 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "30-Jun-2025 07:04:31" 
+{DSK}<Users>kaplan>Local>medley3.5>working-medley>library>TEDIT>TEDIT-STRESS.;130 42287  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS STRESSHC STRESSINSERT STRESS-SYSOUT SYSOUT-SETUP STRESS-SETUP STRESSRAND 
+                       STRESSPUT STRESSOPEN STRESSREAD STRESSFORMAT STRESSSCROLL STRESSDELETE 
+                       STRESSDELETEWINDOW STRESSINSERTWINDOW STRESSGREP STRESSPEEK SYSOUTRING 
+                       STRESSDISPLAY)
+                  (VARS TEDIT-STRESSCOMS)
+
+      :PREVIOUS-DATE "26-Jun-2025 20:58:11" {WMEDLEY}<library>tedit>TEDIT-STRESS.;120)
+
+
+(PRETTYCOMPRINT TEDIT-STRESSCOMS)
+
+(RPAQQ TEDIT-STRESSCOMS
+       (                                                     (* ; "Preload typical image objects")
+        (FNS STRESSHC STRESSRAND STRESSPUT STRESSOPEN STRESSREAD STRESSFORMAT STRESSDISPLAY 
+             STRESSSCROLL STRESSDELETE STRESSDELETEWINDOW STRESSINSERT STRESSINSERTWINDOW STRESSGREP
+             STRESSPEEK)
+        (FNS STRESS-SETUP SYSOUT-SETUP STRESS-SYSOUT STRESS-AFTERSYSOUT SYSOUTRING SYSOUTNAME 
+             SYSOUTRING SYSOUTNAME)
+        (FNS EQTEXTSTREAM COPYTOCORE CHECKARRAYS SAVERANDSTATE)
+        (INITVARS (CHECKARRAYS NIL)
+               (USELASTRANDSTATE NIL)
+               (SYSOUTLEVEL NIL)
+               (NSYSOUTS 0))
+        (VARS (ARRAYBLOCKCHECKING T))
+        (APPENDVARS (AFTERSYSOUTFORMS (STRESS-AFTERSYSOUT)))
+        (FILES TEDIT-DEBUG)
+        (MACROS STRESS)))
+
+
+
+(* ; "Preload typical image objects")
+
+(DEFINEQ
+
+(STRESSHC
+  [LAMBDA (FILES REPS ERROR SEPARATEOUT PDF SYSOUTNAME SINGLESTEP)
+                                                             (* ; "Edited 30-Jun-2025 07:04 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:27 by rmk")
+                                                             (* ; "Edited 21-Oct-2024 00:26 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:33 by rmk")
+                                                             (* ; "Edited 14-Mar-2024 15:15 by rmk")
+                                                             (* ; "Edited 13-Mar-2024 00:23 by rmk")
+    (DECLARE (SPECVARS SINGLESTEP))
+
+    (* ;; "If all arguments are defaulted, runs through all TEDIT files in the current directory until it fails, doing SAVEVM before each file.  The HC files are made as {CORE}FOO.PS.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSHC))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (SYSOUT-SETUP 'STRESSHC)
+    (PRINTOUT T "First file is " (CAR FILES)
+           T T)
+    (BKSYSBUF " ")
+    (for R SYSOUTS (ITYPE _ (CL:IF PDF
+                                'pdf
+                                'ps))
+         (N _ 0) from 1 to REPS do (PRINTOUT T "Rep " R T)
+                                   (SETQ SYSOUTS (STRESS-SYSOUT SYSOUTS))
+                                   [for F TSTREAM HCFILE in FILES unless (DIRECTORYNAMEP F)
+                                      do (PROMPTPRINT F)
+                                         (SETQ HCFILE (CL:IF SEPARATEOUT
+                                                          (OUTFILEP (PACKFILENAME 'EXTENSION ITYPE
+                                                                           'VERSION 1 'BODY F))
+                                                          (CL:IF PDF
+                                                              "{CORE}FOO.PDF;1"
+                                                              "{CORE}FOO.PS;1")))
+                                         [STRESS (NOT ERROR)
+                                                (SETQ TSTREAM (OPENTEXTSTREAM F))
+                                                (CHECKARRAYS 'AFTEROPEN)
+                                                (TEDIT.FORMAT.HARDCOPY TSTREAM HCFILE T NIL NIL NIL
+                                                       (CL:IF PDF
+                                                           'PDF
+                                                           'POSTSCRIPT)]
+                                         (CL:WHEN SINGLESTEP
+                                             (\TEDIT.THELP (CONCAT "Just hardcopied " F " to " HCFILE
+                                                                  )))]
+                                   (PRINTOUT T "  Hardcopied " N " files without failure" T)
+       finally (RETURN (LIST R N])
+
+(STRESSRAND
+  [LAMBDA (FILES REPS ERROR PROBESPERFILE)                   (* ; "Edited 29-Jun-2025 21:58 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:10 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:27 by rmk")
+                                                             (* ; "Edited 31-May-2025 09:10 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:33 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:47 by rmk")
+
+    (* ;; "Opens, fetches random characters")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSRAND))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (CL:UNLESS PROBESPERFILE (SETQ PROBESPERFILE 100))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files with " PROBESPERFILE " probes per file" T)
+    (SAVERANDSTATE)
+    (for R (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          [for F TSTREAM in FILES unless (DIRECTORYNAMEP F)
+             do (STRESS (NOT ERROR)
+                       (SETQ TSTREAM (OPENTEXTSTREAM F))
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (for I (LEN _ (TEDIT.NCHARS TSTREAM)) from 1 to PROBESPERFILE
+                          do (TEDIT.NTHCHARCODE TSTREAM (RAND 1 LEN]
+       finally (RETURN (LIST R N])
+
+(STRESSPUT
+  [LAMBDA (FILES REPS NOERROR CHECKEQUIV STOP)               (* ; "Edited 29-Jun-2025 21:58 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:28 by rmk")
+                                                             (* ; "Edited 31-May-2025 09:10 by rmk")
+                                                             (* ; "Edited 21-Oct-2024 00:26 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+
+    (* ;; "Opens, puts, reopens and tests for equivalence")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSPUT))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (for R (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TSP in FILES unless (DIRECTORYNAMEP F)
+             do (STRESS NOERROR (SETQ TSTREAM (OPENTEXTSTREAM F))
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (TEDIT.PUT TSTREAM "{CORE}FOO.TEDIT;1")
+                       (SETQ TSP (OPENTEXTSTREAM "{CORE}FOO.TEDIT;1"))
+                       (CL:WHEN (AND CHECKEQUIV (NOT (EQTEXTSTREAM TSTREAM TSP STOP)))
+                              (\TEDIT.THELP "Get of put not equivalent" F))
+                       (CLOSEF TSP))) finally (RETURN (LIST R N])
+
+(STRESSOPEN
+  [LAMBDA (FILES REPS NOERROR)                               (* ; "Edited 29-Jun-2025 21:55 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:28 by rmk")
+                                                             (* ; "Edited 31-May-2025 09:12 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:15 by rmk")
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSOPEN))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (for R (N _ 0) from 1 to REPS do (PRINTOUT T R " ")
+                                     [for F TSTREAM in FILES unless (DIRECTORYNAMEP F)
+                                        do (STRESS NOERROR (SETQ TSTREAM (OPENTEXTSTREAM F]
+       finally (RETURN (LIST R N])
+
+(STRESSREAD
+  [LAMBDA (FILES REPS NOERROR)                               (* ; "Edited 29-Jun-2025 21:56 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:28 by rmk")
+                                                             (* ; "Edited 31-May-2025 09:13 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSREAD))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (for R (N _ 0) from 1 to REPS do (PRINTOUT T R " ")
+                                     [for F TSTREAM in FILES unless (DIRECTORYNAMEP F)
+                                        do (STRESS NOERROR (SETQ TSTREAM (OPENTEXTSTREAM F))
+                                                  (CHECKARRAYS 'AFTEROPEN)
+                                                  (for I from 1 while (TEDIT.NTHCHARCODE TSTREAM I]
+       finally (RETURN (LIST (SUB1 R)
+                             N])
+
+(STRESSFORMAT
+  [LAMBDA (FILES REPS NOERROR)                               (* ; "Edited 29-Jun-2025 21:56 by rmk")
+                                                             (* ; "Edited 23-Jun-2025 12:34 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:28 by rmk")
+                                                             (* ; "Edited 31-May-2025 09:19 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Calls FORMATLINE from beginning to end of each file")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSFORMAT))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (for R (N _ 0) from 1 to REPS do (PRINTOUT T R " ")
+                                     [for F TSTREAM TEXTOBJ in FILES unless (DIRECTORYNAMEP F)
+                                        do (SETQ TSTREAM (OPENTEXTSTREAM F))
+                                           (CHECKARRAYS 'AFTEROPEN)
+                                           (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                                           (STRESS NOERROR (bind LINE (NCHARS _ (TEDIT.NCHARS TSTREAM
+                                                                                       ))
+                                                                 (CHNO _ 1)
+                                                              while (ILESSP CHNO NCHARS)
+                                                              do (CHECKARRAYS 'BEFORE)
+                                                                 (SETQ LINE (\TEDIT.FORMATLINE 
+                                                                                   TSTREAM CHNO))
+                                                                 (CHECKARRAYS 'AFTER)
+                                                                 (SETQ CHNO (GETLD LINE LCHARLIM]
+       finally (RETURN (LIST (SUB1 R)
+                             N])
+
+(STRESSDISPLAY
+  [LAMBDA (FILES REPS NOERROR)                               (* ; "Edited 29-Jun-2025 21:14 by rmk")
+                                                             (* ; "Edited 23-Jun-2025 12:34 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:29 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Creates a single empty window, gets each file into that window without a process, and then displays every line there")
+
+    [SETQ FILES (OR (MKLIST FILES)
+                    (FILDIR '*.TEDIT;]
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T REPS " reps of " (LENGTH FILES)
+           " files" T)
+    (for R [WINDOW _ (CREATEW '(600 800 800 150]
+         (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TEXTOBJ in FILES unless (DIRECTORYNAMEP F)
+             do                                              (* ; "No process")
+                (STRESS NOERROR (WINDOWPROP WINDOW 'TITLE (CONCAT "Fetching " F))
+                       [SETQ TSTREAM (OPENTEXTSTREAM F WINDOW '(READONLY T LEAVETTY T]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (bind LINE (NCHARS _ (TEDIT.NCHARS TSTREAM))
+                             (CHNO _ 1) while (ILESSP CHNO NCHARS) do (CHECKARRAYS 'BEFOREFORMAT)
+                                                                      (SETQ LINE (\TEDIT.FORMATLINE
+                                                                                  TSTREAM CHNO))
+                                                                      (CHECKARRAYS 'BEFOREDISPLAY)
+                                                                      (\TEDIT.DISPLAYLINE TSTREAM 
+                                                                             LINE WINDOW)
+                                                                      (CHECKARRAYS 'AFTERDISPLAY)
+                                                                      (SETQ CHNO (GETLD LINE LCHARLIM
+                                                                                        )))
+                       (CHECKARRAYS 'BEFOREDEACTIVATE)
+                       (TEDIT.DEACTIVATE.WINDOW WINDOW)
+                       (CHECKARRAYS 'AFTERDEACTIVATE)
+                       (CLEARW WINDOW))) finally (RETURN (LIST (SUB1 R)
+                                                               N])
+
+(STRESSSCROLL
+  [LAMBDA (FILES NSCROLLS REPS NOERROR)                      (* ; "Edited 29-Jun-2025 21:56 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:11 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:29 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Creates a single empty window, gets each file into that window without a process, and then does NSCROLLS random scrolls before moving on to the next file.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSSCROLL))
+    (CL:UNLESS NSCROLLS (SETQ NSCROLLS 10))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T "STRESS SCROLL: " REPS " reps randomly scrolling " NSCROLLS " times in " (LENGTH
+                                                                                          FILES)
+           " files" T)
+    (SAVERANDSTATE)
+    (for R [WINDOW _ (CREATEW '(600 500 750 400]
+         (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TEXTOBJ LEN in FILES unless (DIRECTORYNAMEP F)
+             do                                              (* ; "No process")
+                (WINDOWPROP WINDOW 'TITLE (CONCAT "Fetching " F))
+                [STRESS NOERROR [SETQ TSTREAM (OPENTEXTSTREAM F WINDOW '(READONLY T LEAVETTY T]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (SETQ LEN (TEDIT.NCHARS TSTREAM))
+                       (for I from 1 to NSCROLLS do (CHECKARRAYS 'BEFORE)
+                                                    (TEDIT.SETSEL TSTREAM (RAND 1 LEN)
+                                                           1)
+                                                    (TEDIT.NORMALIZECARET TSTREAM NIL T)
+                                                    (CHECKARRAYS 'AFTER]
+                (TEDIT.DEACTIVATE.WINDOW WINDOW)
+                (CLEARW WINDOW)) finally (RETURN (LIST (SUB1 R)
+                                                       N])
+
+(STRESSDELETE
+  [LAMBDA (FILES NTIMES REPS NOERROR)                        (* ; "Edited 29-Jun-2025 21:56 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:11 by rmk")
+                                                             (* ; "Edited  4-Jun-2025 09:20 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:29 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; 
+    "For each file does NDELETES random single-character deletes before moving on to the next file.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSDELETE))
+    (CL:UNLESS NTIMES (SETQ NTIMES 10))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T "STRESS DELETE: " REPS " reps randomly deleting 1 character " NTIMES " times in "
+           (LENGTH FILES)
+           " files" T)
+    (SAVERANDSTATE)
+    (for R (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TEXTOBJ LEN in FILES unless (DIRECTORYNAMEP F)
+             do                                              (* ; "No process")
+                (STRESS NOERROR [SETQ TSTREAM (OPENTEXTSTREAM F NIL '(LEAVETTY T HISTORY OFF]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (SETQ LEN (TEDIT.NCHARS TSTREAM))
+                       (for I from 1 to NTIMES do (CHECKARRAYS 'BEFORE)
+                                                  (TEDIT.DELETE TSTREAM (RAND 1 LEN)
+                                                         1)
+                                                  (CHECKARRAYS 'AFTER)
+                                                  (add LEN -1))
+                       (CLOSEF? TSTREAM))) finally (RETURN (LIST (SUB1 R)
+                                                                 N])
+
+(STRESSDELETEWINDOW
+  [LAMBDA (FILES NTIMES REPS NOERROR)                        (* ; "Edited 29-Jun-2025 21:56 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:11 by rmk")
+                                                             (* ; "Edited  4-Jun-2025 09:19 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 22:35 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Creates a single empty window, gets each file into that window without a process, and then does NTIMES random 1-character deletions before moving on to the next file.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSDELETEWINDOW))
+    (CL:UNLESS NTIMES (SETQ NTIMES 10))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T "STRESS INSERT: " REPS " reps randomly inserting 3 characters " NTIMES " times in "
+           (LENGTH FILES)
+           " files" T)
+    (SAVERANDSTATE)
+    (for R [WINDOW _ (CREATEW '(550 800 750 150]
+         (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TEXTOBJ LEN in FILES unless (DIRECTORYNAMEP F)
+             do                                              (* ; "No process")
+                (WINDOWPROP WINDOW 'TITLE (CONCAT "Fetching " F))
+                (STRESS NOERROR [SETQ TSTREAM (OPENTEXTSTREAM F WINDOW '(LEAVETTY T HISTORY OFF]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (SETQ LEN (TEDIT.NCHARS TSTREAM))
+                       (for I from 1 to NTIMES do (CHECKARRAYS 'BEFORE)
+                                                  (TEDIT.DELETE TSTREAM (RAND 1 LEN))
+                                                  (CHECKARRAYS 'AFTER)
+                                                  (add LEN -1)))
+                (PUTTEXTPROP TSTREAM 'DIRTY NIL)
+                (TEDIT.DEACTIVATE.WINDOW WINDOW)
+                (CLEARW WINDOW)) finally (RETURN (LIST (SUB1 R)
+                                                       N])
+
+(STRESSINSERT
+  [LAMBDA (FILES NTIMES REPS NOERROR SYSOUTNAME)             (* ; "Edited 30-Jun-2025 07:03 by rmk")
+                                                             (* ; "Edited 26-Jun-2025 20:19 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:11 by rmk")
+                                                             (* ; "Edited  4-Jun-2025 09:18 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 22:34 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Does random inserts in the tstreams without a window or process")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSINSERT))
+    (CL:UNLESS NTIMES (SETQ NTIMES 10))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (PRINTOUT T T "STRESSINSERT: " T 2 REPS " reps randomly inserting 3 characters " NTIMES 
+           " times in " (LENGTH FILES)
+           " files" T)
+    (SYSOUT-SETUP 'STRESSINSERT)
+    (SAVERANDSTATE)
+    (for REP SYSOUTS AFTERCRASH (N _ 0) from 1 to REPS declare (SPECVARS SYSOUTS AFTERCRASH)
+       do (CL:WHEN AFTERCRASH (TERPRI T))
+          (PRINTOUT T REP " ")
+          (for F TSTREAM TEXTOBJ LEN in FILES unless (DIRECTORYNAMEP F)
+             do (CL:WHEN AFTERCRASH
+                    (PRINTOUT T T [if (EQ 'TEDIT (FILENAMEFIELD F 'EXTENSION))
+                                      then (FILENAMEFIELD F 'NAME)
+                                    else (PACKFILENAME 'NAME (FILENAMEFIELD F 'NAME)
+                                                'EXTENSION
+                                                (FILENAMEFIELD F 'EXTENSION]
+                           T)
+                    'FILE)
+                (STRESS NOERROR [SETQ TSTREAM (OPENTEXTSTREAM F NIL '(LEAVETTY T HISTORY OFF]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (SETQ LEN (TEDIT.NCHARS TSTREAM))
+                       (for I RAND from 1 to NTIMES do (CHECKARRAYS 'BEFORE)
+                                                       (SETQ RAND (RAND 1 LEN))
+                                                       (CL:WHEN AFTERCRASH (PRINTOUT T RAND " "))
+                                                       (SETQ SYSOUTS (STRESS-SYSOUT SYSOUTS))
+                                                       (TEDIT.INSERT TSTREAM "aaa" RAND)
+                                                       (CHECKARRAYS 'AFTER)
+                                                       (add LEN 3))
+                       (CLOSEF? TSTREAM))) finally (RETURN (LIST (SUB1 REP)
+                                                                 N])
+
+(STRESSINSERTWINDOW
+  [LAMBDA (FILES NTIMES REPS NOERROR)                        (* ; "Edited 29-Jun-2025 21:57 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 21:12 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 22:35 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:34 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:19 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 09:48 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 09:13 by rmk")
+
+    (* ;; "Creates a single empty window, gets each file into that window without a process, and then does NTIMES random 3-character inserts before moving on to the next file.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSINSERTWINDOW))
+    (CL:UNLESS NTIMES (SETQ NTIMES 10))
+    (CL:UNLESS REPS (SETQ REPS MAX.SMALLP))
+    (BKSYSBUF " ")
+    (PRINTOUT T "STRESS INSERT: " REPS " reps randomly inserting 3 characters " NTIMES " times in "
+           (LENGTH FILES)
+           " files" T)
+    (SAVERANDSTATE)
+    (for R [WINDOW _ (CREATEW '(550 800 750 150]
+         (N _ 0) from 1 to REPS
+       do (PRINTOUT T R " ")
+          (for F TSTREAM TEXTOBJ LEN in FILES unless (DIRECTORYNAMEP F)
+             do                                              (* ; "No process")
+                (WINDOWPROP WINDOW 'TITLE (CONCAT "Fetching " F))
+                (STRESS NOERROR [SETQ TSTREAM (OPENTEXTSTREAM F WINDOW '(LEAVETTY T HISTORY OFF]
+                       (CHECKARRAYS 'AFTEROPEN)
+                       (SETQ TEXTOBJ (TEXTOBJ TSTREAM))
+                       (SETQ LEN (TEDIT.NCHARS TSTREAM))
+                       (for I from 1 to NTIMES do (CHECKARRAYS 'BEFORE)
+                                                  (TEDIT.INSERT TSTREAM "aaa" (RAND 1 LEN))
+                                                  (CHECKARRAYS 'AFTER)
+                                                  (add LEN 3)))
+                (PUTTEXTPROP TSTREAM 'DIRTY NIL)
+                (TEDIT.DEACTIVATE.WINDOW WINDOW)
+                (CLEARW WINDOW)) finally (RETURN (LIST (SUB1 R)
+                                                       N])
+
+(STRESSGREP
+  [LAMBDA (FILES NOERROR TARGET)                             (* ; "Edited 29-Jun-2025 21:57 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:30 by rmk")
+                                                             (* ; "Edited 17-Mar-2024 19:46 by rmk")
+
+    (* ;; "GREP does forward bins and peekbins.  If it hits on something, it also runs the backfileptr function.  FOO appears in quite a few lispusers/ Tedit files.")
+
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSGREP))
+    (CL:UNLESS TARGET (SETQ TARGET "FOO"))
+    (FILESLOAD GREP)
+    (for F in FILES unless (DIRECTEORYNAMEP F) unless (if NOERROR
+                                                          then (NLSETQ (GREP TARGET F))
+                                                        else (PROGN (GREP TARGET F))
+                                                             T)
+       do (PRINTOUT T T "Error for " (PACKFILENAME 'HOST NIL 'DIRECTORY NIL 'BODY F)
+                 T])
+
+(STRESSPEEK
+  [LAMBDA (FILES ERROR)                                      (* ; "Edited 29-Jun-2025 21:57 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:30 by rmk")
+                                                             (* ; "Edited 19-Mar-2024 21:33 by rmk")
+    (SETQ FILES (STRESS-SETUP FILES 'STRESSPEEK))
+    (for F TSTREAM (N _ 0) in FILES unless (DIRECTORYNAMEP F)
+       do (STRESS (NOT ERROR)
+                 (SETQ TSTREAM (OPENTEXTSTREAM F))
+                 (CHECKARRAYS 'AFTEROPEN)
+                 (bind P while (SETQ P (PEEKCCODE TSTREAM T)) always (EQ P (BIN TSTREAM])
+)
+(DEFINEQ
+
+(STRESS-SETUP
+  [LAMBDA (FILES SUBDIR)                                     (* ; "Edited 30-Jun-2025 06:54 by rmk")
+                                                             (* ; "Edited 26-Jun-2025 20:18 by rmk")
+
+    (* ;; "Copy the files to CORE, defaulting to TEDIT files in connected directory, and load all the image object functions.")
+
+    (BKSYSBUF " ")
+    (LET ((COREDIR (PACKFILENAME 'HOST 'CORE 'DIRECTORY SUBDIR))
+          TOCOPY)
+         (if (EQ FILES T)
+             then (CL:UNLESS [SETQ FILES (FILDIR (PACKFILENAME 'BODY COREDIR 'BODY '*]
+                         (ERROR "No stress files in " COREDIR))
+                  (PRINTOUT T "Stress files in " COREDIR T)
+           else [SETQ FILES (OR (MKLIST FILES)
+                                (FILDIR '*.TEDIT;]
+                (SETQ TOCOPY (for F in FILES unless (INFILEP (PACKFILENAME 'BODY COREDIR 'BODY F))
+                                collect F))
+                (if TOCOPY
+                    then (PRINTOUT T "Copying " (LENGTH TOCOPY)
+                                " files to " COREDIR T)
+                         (for F CF in TOCOPY collect (SETQ CF (COPYFILE F (PACKFILENAME 'BODY COREDIR
+                                                                                 'BODY F)))
+                                                   (CLOSEF? (OPENTEXTSTREAM CF))
+                                                   CF)
+                  else (PRINTOUT T (LENGTH FILES)
+                              " files already copied to " COREDIR T))
+                (FILDIR (PACKFILENAME 'BODY COREDIR 'BODY '*])
+
+(SYSOUT-SETUP
+  [LAMBDA (SUBDIR)
+    (DECLARE (USEDFREE SYSOUTNAME NSYSOUTS))                 (* ; "Edited 30-Jun-2025 07:00 by rmk")
+    (CL:UNLESS (EQ NSYSOUTS 0)
+        (PACKFILENAME 'VERSION NIL 'BODY (PACKFILENAME 'DIRECTORY MEDLEYDIR 'NAME SUBDIR 'EXTENSION
+                                                'SYSOUT)))
+    (PRINTOUT T 2 "Saving " (if (EQ NSYSOUTS 0)
+                                then "no sysouts"
+                              elseif (EQ NSYSOUTS 'SAVEVM)
+                                then " the virtual memory"
+                              else (PRINTOUT NIL NSYSOUTS " sysouts on ")
+                                   (PSEUDOFILENAME SYSOUTNAME))
+           T)
+    SYSOUTNAME])
+
+(STRESS-SYSOUT
+  [LAMBDA (SYSOUTS)                                          (* ; "Edited 30-Jun-2025 07:02 by rmk")
+                                                             (* ; "Edited 26-Jun-2025 20:57 by rmk")
+    (DECLARE (USEDFREE NSYSOUTS SYSOUTNAME))
+    (if (EQ NSYSOUTS 'SAVEVM)
+        then (SAVEVM)
+      elseif (IGREATERP NSYSOUTS 0)
+        then 
+             (* ;; "Keep NSYSOUT sysouts with increasing versions")
+
+             (CL:WHEN (IGEQ (LENGTH SYSOUTS)
+                            NSYSOUTS)
+                 (DELFILE (pop SYSOUTS)))                    (* ; 
+                                                             "Drop the oldest, put out the newest")
+             (SETQ SYSOUTNAME (SYSOUT SYSOUTNAME))
+             [if (LISTP SYSOUTNAME)
+                 then                                        (* ; 
+                                                             "Restarting presumab ly after crash")
+                      (SETQ AFTERCRASH T)
+               else 
+                    (* ;; "Newest goes at the end of the ring")
+
+                    (SETQ SYSOUTS (NCONC1 SYSOUTS SYSOUTNAME))
+                    (CL:WHEN (IGREATERP (FILENAMEFIELD SYSOUTNAME 'VERSION)
+                                    1000)                    (* ; "Restart the versions at one")
+                        [SETQ SYSOUTS (for S in SYSOUTS as V from 1
+                                         collect (RENAMEFILE S (PACKFILENAME 'VERSION V 'BODY S])]
+             SYSOUTS])
+
+(STRESS-AFTERSYSOUT
+  [LAMBDA NIL                                                (* ; "Edited 26-Jun-2025 09:18 by rmk")
+    (DECLARE (USEDFREE SYSOUTLEVEL))                         (* ; 
+                                                   "Bound at the stress-test entry, or top-level NIL")
+    (BKSYSBUF " ")
+    (CL:WHEN SYSOUTLEVEL
+        (CL:WHEN (OR (UNIX-GETENV "STRESSHELP")
+                     (EQ SYSOUTLEVEL 'EVENT))
+               (HELP "STRESS SYSOUT"))
+        (SETQ SYSOUTLEVEL (SELECTQ SYSOUTLEVEL
+                              (REPS 'FILE)
+                              (FILE 'EVENT)
+                              NIL)))])
+
+(SYSOUTRING
+  [LAMBDA (SYSOUTNAME SYSOUTS)                               (* ; "Edited 29-Jun-2025 21:19 by rmk")
+                                                             (* ; "Edited 26-Jun-2025 20:06 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 17:52 by rmk")
+
+    (* ;; "SYSOUTS is the list of names of sysouts that currently exist.")
+
+    (DECLARE (USEDFREE NSYSOUTS AFTERCRASH))
+    (CL:WHEN (IGREATERP NSYSOUTS 0)                          (* ; 
+                                                      "Keep NSYSOUT sysouts with increasing versions")
+        (CL:WHEN (IGEQ (LENGTH SYSOUTS)
+                       NSYSOUTS)
+            (DELFILE (pop SYSOUTS)))                         (* ; 
+                                                             "Drop the oldest, put out the newest")
+        (SETQ SYSOUTNAME (SYSOUT SYSOUTNAME))
+        (CL:WHEN (LISTP SYSOUTNAME)                          (* ; "Restarting")
+            (SETQ AFTERCRASH T))
+        (NCONC1 SYSOUTS SYSOUTNAME))])
+
+(SYSOUTNAME
+  [LAMBDA (SYSOUTNAME)                                       (* ; "Edited 26-Jun-2025 00:12 by rmk")
+
+    (* ;; "Doesn't work with PSEUDOFILENAME ??")
+
+    (PACKFILENAME 'VERSION NIL 'DIRECTORY MEDLEYDIR 'NAME SYSOUTNAME 'EXTENSION 'SYSOUT])
+
+(SYSOUTRING
+  [LAMBDA (SYSOUTNAME SYSOUTS)                               (* ; "Edited 29-Jun-2025 21:19 by rmk")
+                                                             (* ; "Edited 26-Jun-2025 20:06 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 17:52 by rmk")
+
+    (* ;; "SYSOUTS is the list of names of sysouts that currently exist.")
+
+    (DECLARE (USEDFREE NSYSOUTS AFTERCRASH))
+    (CL:WHEN (IGREATERP NSYSOUTS 0)                          (* ; 
+                                                      "Keep NSYSOUT sysouts with increasing versions")
+        (CL:WHEN (IGEQ (LENGTH SYSOUTS)
+                       NSYSOUTS)
+            (DELFILE (pop SYSOUTS)))                         (* ; 
+                                                             "Drop the oldest, put out the newest")
+        (SETQ SYSOUTNAME (SYSOUT SYSOUTNAME))
+        (CL:WHEN (LISTP SYSOUTNAME)                          (* ; "Restarting")
+            (SETQ AFTERCRASH T))
+        (NCONC1 SYSOUTS SYSOUTNAME))])
+
+(SYSOUTNAME
+  [LAMBDA (SYSOUTNAME)                                       (* ; "Edited 26-Jun-2025 00:12 by rmk")
+
+    (* ;; "Doesn't work with PSEUDOFILENAME ??")
+
+    (PACKFILENAME 'VERSION NIL 'DIRECTORY MEDLEYDIR 'NAME SYSOUTNAME 'EXTENSION 'SYSOUT])
+)
+(DEFINEQ
+
+(EQTEXTSTREAM
+  [LAMBDA (TS1 TS2 STOP)                                     (* ; "Edited 21-Oct-2024 00:26 by rmk")
+                                                             (* ; "Edited 11-Mar-2024 16:53 by rmk")
+    (AND (IEQP (TEDIT.NCHARS TS1)
+               (TEDIT.NCHARS TS2))
+         (OR (for I C1 C2 from 1 to (TEDIT.NCHARS TS1) eachtime (SETQ C1 (TEDIT.NTHCHARCODE TS1 I))
+                                                             (SETQ C2 (TEDIT.NTHCHARCODE TS2 I))
+                unless (OR (EQ C1 C2)
+                           (AND (EQ C1 10)
+                                (EQ C2 13))
+                           (AND (EQ C1 13)
+                                (EQ C2 10))
+                           (AND (IMAGEOBJP C1)
+                                (IMAGEOBJP C2)
+                                (EQUALALL C1 C2))) do (CL:WHEN STOP
+                                                          (\TEDIT.THELP "Different characters: "
+                                                                 (LIST I C1 C2)))
+                                                      (RETURN NIL) finally (RETURN T])
+
+(COPYTOCORE
+  [LAMBDA (FILES SUBDIR NORECLAIM)                           (* ; "Edited 25-Jun-2025 23:41 by rmk")
+                                                             (* ; "Edited  2-Jun-2025 21:30 by rmk")
+                                                             (* ; "Edited 12-Mar-2024 22:45 by rmk")
+
+    (* ;; "Copy FILES to {CORE}, defaulting to TEDIT files in connected directory")
+
+    [SETQ FILES (OR (MKLIST FILES)
+                    (FILDIR '*.TEDIT;]
+    (PRINTOUT T "Copying " (LENGTH FILES)
+           " files to {CORE} "
+           (CL:IF NORECLAIM
+               "without "
+               "with ")
+           "reclaiming" T)
+    (for F CF in FILES collect (SETQ CF (PACKFILENAME 'HOST 'CORE 'DIRECTORY SUBDIR 'BODY F))
+                             (OR (INFILEP CF)
+                                 (COPYFILE F CF)) finally (CL:UNLESS NORECLAIM (RECLAIM])
+
+(CHECKARRAYS
+  [LAMBDA (TAG)
+    (DECLARE (SPECVARS TAG))                                 (* ; "Edited  2-Jun-2025 21:11 by rmk")
+
+    (* ;; "TAG is visible as an argument in URAID")
+
+    (CL:WHEN CHECKARRAYS
+        (CL:WHEN (EQ CHECKARRAYS 'RECLAIM)
+               (RECLAIM))
+        (\PARSEARRAYSPACE))])
+
+(SAVERANDSTATE
+  [LAMBDA NIL                                                (* ; "Edited  5-Jun-2025 21:20 by rmk")
+    (DECLARE (USEDFREE USELASTRANDSTATE))
+    (LET (RSTREAM)
+         (if USELASTRANDSTATE
+             then (SETQ RSTREAM (OPENSTREAM 'RANDSTATE 'INPUT))
+                  (RANDSET (READ RSTREAM))
+           else (SETQ RSTREAM (OPENSTREAM 'RANDSTATE 'OUTPUT))
+                (PRINTOUT RSTREAM (RANDSET T)
+                       T))
+         (CLOSEF RSTREAM])
+)
+
+(RPAQ? CHECKARRAYS NIL)
+
+(RPAQ? USELASTRANDSTATE NIL)
+
+(RPAQ? SYSOUTLEVEL NIL)
+
+(RPAQ? NSYSOUTS 0)
+
+(RPAQQ ARRAYBLOCKCHECKING T)
+
+(APPENDTOVAR AFTERSYSOUTFORMS (STRESS-AFTERSYSOUT))
+
+(FILESLOAD TEDIT-DEBUG)
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS STRESS MACRO ((NOERROR . FORMS)
+                        (CHECKARRAYS 'BEFORESTRESS)
+                        (if (if NOERROR
+                                then (NLSETQ . FORMS)
+                              else (PROGN . FORMS)
+                                   T)
+                            then (add N 1)
+                          else (PRINTOUT T T "Error for " (PACKFILENAME 'HOST NIL 'DIRECTORY NIL
+                                                                 'BODY F)
+                                      T))
+                        (CHECKARRAYS 'AFTERSTRESS)
+                        (CLOSEF? TSTREAM)))
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1599 30932 (STRESSHC 1609 . 4675) (STRESSRAND 4677 . 6213) (STRESSPUT 6215 . 7784) (
+STRESSOPEN 7786 . 8949) (STRESSREAD 8951 . 10451) (STRESSFORMAT 10453 . 12928) (STRESSDISPLAY 12930 . 
+15909) (STRESSSCROLL 15911 . 18479) (STRESSDELETE 18481 . 20860) (STRESSDELETEWINDOW 20862 . 23454) (
+STRESSINSERT 23456 . 26661) (STRESSINSERTWINDOW 26663 . 29149) (STRESSGREP 29151 . 30225) (STRESSPEEK 
+30227 . 30930)) (30933 38383 (STRESS-SETUP 30943 . 32604) (SYSOUT-SETUP 32606 . 33350) (STRESS-SYSOUT 
+33352 . 34945) (STRESS-AFTERSYSOUT 34947 . 35611) (SYSOUTRING 35613 . 36721) (SYSOUTNAME 36723 . 36996
+) (SYSOUTRING 36998 . 38106) (SYSOUTNAME 38108 . 38381)) (38384 41332 (EQTEXTSTREAM 38394 . 39563) (
+COPYTOCORE 39565 . 40495) (CHECKARRAYS 40497 . 40824) (SAVERANDSTATE 40826 . 41330)))))
+STOP

@@ -1,0 +1,180 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "18-Feb-2026 16:26:48" {WMEDLEY}<lispusers>DEFAULTICON.;2 4702   
+
+      :EDIT-BY rmk
+
+      :PREVIOUS-DATE "13-Jan-87 01:23:25" {WMEDLEY}<lispusers>DEFAULTICON.;1)
+
+
+(PRETTYCOMPRINT DEFAULTICONCOMS)
+
+(RPAQQ DEFAULTICONCOMS ((FILES ICONW)
+                        (UGLYVARS \DEFAULTICON)
+                        (INITVARS (DEFAULTICON \DEFAULTICON))
+                        (FNS \MAKEICONWINDOW)))
+
+(FILESLOAD ICONW)
+
+(READVARS-FROM-STRINGS '(\DEFAULTICON)
+       "(({(READBITMAP)(64 64
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@AOOOOOOOOOOH@@%"
+%"@@N@@@@@@@@@@G@@%"
+%"@C@@@@@@@@@@@@L@%"
+%"@D@@@@@@@@@@@@B@%"
+%"@H@@@@@@@@@@@@A@%"
+%"A@@@@@@@@@@@@@@H%"
+%"B@@@@@@@@@@@CO@D%"
+%"B@@@@@@@@@@@BDHD%"
+%"D@@@@@@@@@@@ABDB%"
+%"D@@@@@@@@@@@AODB%"
+%"D@@@@@@@@@@@ABLB%"
+%"D@@@@@@@@@@@ABDA%"
+%"H@@@@@@@@@@@ABDA%"
+%"H@@@@@@@@@@@AOHA%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"H@@@@@@@@@@@@@@A%"
+%"D@@@@@@@@@@@@@@B%"
+%"D@@@@@@@@@@@@@@B%"
+%"D@@@@@@@@@@@@@@B%"
+%"B@@@@@@@@@@@@@@D%"
+%"B@@@@@@@@@@@@@@D%"
+%"A@@@@@@@@@@@@@@H%"
+%"@H@@@@@@@@@@@@A@%"
+%"@D@@@@@@@@@@@@B@%"
+%"@C@@@@@@@@@@@@L@%"
+%"@@N@@@@@@@@@@G@@%"
+%"@@AOOOOOOOOOOH@@%")}  {(READBITMAP)(64 64
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@@@@@@@@@@@@@@@%"
+%"@@AOOOOOOOOOOH@@%"
+%"@@OOOOOOOOOOOO@@%"
+%"@COOOOOOOOOOOOL@%"
+%"@GOOOOOOOOOOOON@%"
+%"@OOOOOOOOOOOOOO@%"
+%"AOOOOOOOOOOOOOOH%"
+%"COOOOOOOOOOOOOOL%"
+%"COOOOOOOOOOONDOL%"
+%"GOOOOOOOOOOOOBGN%"
+%"GOOOOOOOOOOOOOGN%"
+%"GOOOOOOOOOOOOBON%"
+%"GOOOOOOOOOOOOBGO%"
+%"OOOOOOOOOOOOOBGO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"OOOOOOOOOOOOOOOO%"
+%"GOOOOOOOOOOOOOON%"
+%"GOOOOOOOOOOOOOON%"
+%"GOOOOOOOOOOOOOON%"
+%"COOOOOOOOOOOOOOL%"
+%"COOOOOOOOOOOOOOL%"
+%"AOOOOOOOOOOOOOOH%"
+%"@OOOOOOOOOOOOOO@%"
+%"@GOOOOOOOOOOOON@%"
+%"@COOOOOOOOOOOOL@%"
+%"@@OOOOOOOOOOOO@@%"
+%"@@AOOOOOOOOOOH@@%")}  (5 6 52 46)))
+")
+
+(RPAQ? DEFAULTICON \DEFAULTICON)
+(DEFINEQ
+
+(\MAKEICONWINDOW
+  [LAMBDA (iconText)                                      (* ; "Edited 13-Jan-87 01:22 by Masinter")
+    (DECLARE (SPECVARS ICONPOSITION WINDOW)
+           (GLOBALVARS DEFAULTICON \DEFAULTICON WindowTitleDisplayStream))
+          
+          (* ;; "Note: This function has to be compiled for STKNTHNAME to work properly.")
+
+    (LET ((icon (OR DEFAULTICON \DEFAULTICON)))
+         (SETQ icon (SELECTQ (TYPENAME icon)
+                        (BITMAP (CREATEWFROMIMAGE (BITMAPCOPY icon)))
+                        (WINDOW (CREATEWFROMIMAGE (WINDOW.BITMAP icon)))
+                        (LISTP (TITLEDICONW icon (if (WINDOWP iconText)
+                                                     then (WINDOWPROP iconText 'TITLE)
+                                                   else iconText)
+                                      WINDOWTITLEFONT
+                                      (CONSTANT ORIGIN)
+                                      T))
+                        (ERROR icon "can't be used as an icon")))
+         [if [AND (NOT ICONPOSITION)
+                  (NOT (WINDOWPROP WINDOW 'ICONPOSITION]
+             then (SETQ ICONPOSITION (GETBOXPOSITION (WINDOWPROP icon 'WIDTH)
+                                            (WINDOWPROP icon 'HEIGHT]
+         icon])
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (3351 4679 (\MAKEICONWINDOW 3361 . 4677)))))
+STOP

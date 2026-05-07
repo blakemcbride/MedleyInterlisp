@@ -1,0 +1,360 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "XCL" BASE 10)
+
+(FILECREATED "21-Feb-2025 09:55:10" |{WMEDLEY}<lispusers>tmax>TMAX-DATE.;9| 15170  
+
+      :EDIT-BY |rmk|
+
+      :CHANGES-TO (FNS DATE.COPYFN CURRENT.DISPLAY.FONT)
+
+      :PREVIOUS-DATE "25-Jun-2024 12:00:23" |{WMEDLEY}<lispusers>tmax>TMAX-DATE.;8|)
+
+
+(PRETTYCOMPRINT TMAX-DATECOMS)
+
+(RPAQQ TMAX-DATECOMS
+       (
+        (* |;;| "Developed under support from NIH grant RR-00785. Written by Frank Gilmurray and Sami Shaio. Updated by Ron Kaplan (2021)")
+
+        
+
+(* |;;;| "TMAX-DATE ImageObject functions")
+
+        (FNS DATEOBJ DATEOBJP DATE.DISPLAYFN DATE.IMAGEBOXFN DATE.PUTFN DATE.GETFN DATE.COPYFN 
+             DATE.BUTTONEVENTINFN)
+        
+
+(* |;;;| "Date support functions")
+
+        (FNS CURRENT.DISPLAY.FONT CHANGE.DATE.FORMAT)
+        
+
+(* |;;;| "Functions to change date format")
+
+        (FNS FINDTIME FINDHOUR AMPM FINDDAY NUMP FINDMONTH FINDYEAR)
+        (VARS DATE.FORMAT.ITEMS)
+        (FNS MAKE.DATEOBJ.IMAGEFNS)
+        (INITVARS (\\DATEOBJ.IMAGEFNS (MAKE.DATEOBJ.IMAGEFNS)))
+        (ADDVARS (IMAGEOBJGETFNS (DATE.GETFN)))
+        (DECLARE\: DOEVAL@COMPILE DONTCOPY (RECORDS DATERECORD))))
+
+
+
+(* |;;| 
+"Developed under support from NIH grant RR-00785. Written by Frank Gilmurray and Sami Shaio. Updated by Ron Kaplan (2021)"
+)
+
+
+
+
+(* |;;;| "TMAX-DATE ImageObject functions")
+
+(DEFINEQ
+
+(dateobj
+  (lambda (date/time date.string template)                   (* |fsg| "13-Jul-87 11:51")
+          (* * |Create| |an| |instance| |of| \a date |imageobj.|)
+
+    (let* ((template.type (or template '(m d y f)))
+           (dateandtime (or date/time (mkstring (date))))
+           (displaydate (or date.string (change.date.format dateandtime template.type)))
+           (newobj (imageobjcreate (|create| daterecord
+                                          datestring _ dateandtime
+                                          display.date _ displaydate
+                                          template.date _ template.type)
+                          \\dateobj.imagefns)))
+          (imageobjprop newobj 'type 'dateobj)
+          newobj)))
+
+(dateobjp
+  (lambda (imobj)                                            (* |ss:| "27-Jun-87 15:39")
+          (* |Tests| |an| |imageobj| |to| |see| |if| |it| |is| \a |date| |imageobject.|
+          b\y |convention,| |testing| |functions| |for| |an| |imageobject| |will| |be| 
+          |named| (concat |<type| |of| |imageobj>| "P"))
+
+    (and imobj (eq (imageobjprop imobj 'type)
+                   'dateobj))))
+
+(date.displayfn
+  (lambda (obj stream streamtype hoststream)                 (* |fsg| "17-Sep-87 10:44")
+          (* * |Display| |function| |for| |date| |imageobjs.|)
+
+    (tmax.shadeobj obj stream)
+    (prin1 (|fetch| display.date |of| (|fetch| objectdatum |of| obj))
+           stream)))
+
+(DATE.IMAGEBOXFN
+  (LAMBDA (OBJ STREAM CURRENTX RIGHTMARGIN)                 (* \; "Edited 25-May-2024 20:34 by rmk")
+                                                             (* |ss:| "27-Jun-87 15:38")
+    (|create| IMAGEBOX
+           XSIZE _ (STRINGWIDTH (|fetch| DISPLAY.DATE |of| (|fetch| OBJECTDATUM |of| OBJ))
+                          STREAM)
+           YSIZE _ (FONTPROP STREAM 'HEIGHT)
+           YDESC _ (FONTPROP STREAM 'DESCENT)
+           XKERN _ 0)))
+
+(date.putfn
+  (lambda (obj stream)                                       (* |ss:| "27-Jun-87 15:38")
+    (prin2 (list '|Date| (|fetch| objectdatum |of| obj))
+           stream)))
+
+(DATE.GETFN
+  (LAMBDA (STREAM COPY.OBJECT)                              (* \; "Edited 25-Jun-2024 11:59 by rmk")
+                                                            (* \; "Edited 16-Mar-2024 07:45 by rmk")
+                                                             (* |fsg| "20-Aug-87 14:56")
+    (DECLARE (USEDFREE TSTREAM))
+    (TSP.SETUP.FMMENU (\\TEDIT.PRIMARYPANE TSTREAM))
+    (APPLY (FUNCTION DATEOBJ)
+           (OR COPY.OBJECT (CADR (READ STREAM))))))
+
+(DATE.COPYFN
+  (LAMBDA (IMAGE.OBJ SOURCE.STREAM TARGET.STREAM)           (* \; "Edited 21-Feb-2025 09:29 by rmk")
+                                                             (* |fsg| "23-Jul-87 11:34")
+
+(* |;;;| "Here to COPY a Date Image Object.")
+
+    (SELECTQ (IMAGESTREAMTYPE TARGET.STREAM)
+        (TEXT (APPLY* (IMAGEOBJPROP IMAGE.OBJ 'GETFN)
+                     TARGET.STREAM
+                     (|fetch| OBJECTDATUM |of| IMAGE.OBJ)))
+        (ERROR "Unknown TARGET stream type" (IMAGESTREAMTYPE TARGET.STREAM)))))
+
+(date.buttoneventinfn
+  (lambda (obj windowstream selection relx rely window hoststream button)
+                                                             (* |fsg| "11-Aug-87 13:56")
+    (and (mousestate middle)
+         (let ((old.date (|fetch| objectdatum |of| obj))
+               (new.date (menu (|create| menu
+                                      title _ '|Date/Time Menu|
+                                      items _ date.format.items
+                                      centerflg _ t))))
+              (and new.date (not (equal (|fetch| (daterecord template.date) |of| old.date)
+                                        new.date))
+                   (progn (|with| daterecord old.date (cond
+                                                         ((listp new.date)
+                                                          (setq display.date (change.date.format
+                                                                              datestring new.date))
+                                                          (setq template.date new.date))
+                                                         (t (setq datestring (mkstring (date)))
+                                                            (setq display.date (change.date.format
+                                                                                datestring 
+                                                                                template.date)))))
+                          'changed))))))
+)
+
+
+
+(* |;;;| "Date support functions")
+
+(DEFINEQ
+
+(CURRENT.DISPLAY.FONT
+  (LAMBDA (TSTREAM)                                         (* \; "Edited 21-Feb-2025 09:49 by rmk")
+                                                            (* \; "Edited 25-May-2024 20:36 by rmk")
+                                                            (* \; "Edited  9-May-2024 10:05 by rmk")
+                                                             (* \; "Edited 12-Mar-88 15:28 by drc:")
+
+(* |;;;| "Return the current font.  This function is not now used in TMAX, but the comment says \"this code is also used in the LetterHead code.\" ")
+
+    (LET ((CURRENT.FONT (|fetch| CLFONT |of| (TEDIT.CARETLOOKS TSTREAM))))
+         (COND
+            ((TYPENAMEP CURRENT.FONT 'FONTDESCRIPTOR)
+             CURRENT.FONT)
+            ((TYPENAMEP CURRENT.FONT 'FONTCLASS)
+             (|fetch| DISPLAYFD |of| CURRENT.FONT))
+            (T (SHOULDNT "Can't get current font"))))))
+
+(CHANGE.DATE.FORMAT
+  (LAMBDA (DATE TEMPLATE)                                    (* \; 
+                                                           "Edited 24-Oct-2021 13:47 by rmk:")
+                                                             (* |ss:| "27-Jun-87 15:36")
+
+(* |;;;| "Convert the string DATE to the format specified by TEMPLATE.")
+
+    (COND
+       (TEMPLATE (LET ((VERSION (SELECTQ (CAR (LAST TEMPLATE))
+                                    (A 'ABBREV)
+                                    (F 'FULL)
+                                    'EURO))
+                       (FUNCLST '((D FINDDAY)
+                                  (M FINDMONTH)
+                                  (Y FINDYEAR))))
+                      (COND
+                         ((EQ T (CAR TEMPLATE))
+                          (FINDTIME DATE VERSION))
+                         (T (LET ((CH (|if| (EQ VERSION 'ABBREV)
+                                          |then| "/"
+                                        |else| " ")))
+                                 (CONCAT (APPLY (CADR (ASSOC (CAR TEMPLATE)
+                                                             FUNCLST))
+                                                (LIST DATE VERSION))
+                                        CH
+                                        (APPLY (CADR (ASSOC (CADR TEMPLATE)
+                                                            FUNCLST))
+                                               (LIST DATE VERSION))
+                                        (|if| (EQUAL CH " ")
+                                            |then| ", "
+                                          |else| CH)
+                                        (APPLY (CADR (ASSOC (CADDR TEMPLATE)
+                                                            FUNCLST))
+                                               (LIST DATE VERSION))))))))
+       (T (DATE)))))
+)
+
+
+
+(* |;;;| "Functions to change date format")
+
+(DEFINEQ
+
+(FINDTIME
+  (LAMBDA (OLDDATE VERSION)                                  (* \; 
+                                                           "Edited 24-Oct-2021 13:28 by rmk:")
+
+    (* |;;| 
+  "RMK: The spell-out default is very strange:  it rounds the minutes to the nearest half hour.")
+
+    (* |;;| "RMK:  Correct for Y2K: Substrings then work.  Still, terrible code.")
+                                                             (* |ss:| "27-Jun-87 15:40")
+    (LET* ((UDATE (\\UNPACKDATE (IDATE OLDDATE)))
+           (HOUR (CAR (NTH UDATE 4)))
+           (MINUTES (CAR (NTH UDATE 5))))
+          (SELECTQ VERSION
+              (ABBREV (CONCAT (FINDHOUR HOUR)
+                             ":" MINUTES " " (AMPM HOUR)))
+              (EURO (SUBSTRING OLDDATE 13 17))
+              (CONCAT (SELECTQ (|if| (LESSP MINUTES 46)
+                                   |then| (FINDHOUR HOUR)
+                                 |else| (PLUS 1 (FINDHOUR HOUR)))
+                          (1 "one")
+                          (2 "two")
+                          (3 "three")
+                          (4 "four")
+                          (5 "five")
+                          (6 "six")
+                          (7 "seven")
+                          (8 "eight")
+                          (9 "nine")
+                          (10 "ten")
+                          (11 "eleven")
+                          (12 "twelve")
+                          NIL)
+                     " "
+                     (|if| (AND (GREATERP MINUTES 15)
+                                    (LESSP MINUTES 45))
+                         |then| "thirty"
+                       |else| "o'clock")
+                     " "
+                     (AMPM HOUR))))))
+
+(FINDHOUR
+  (LAMBDA (HOUR)                                             (* \; 
+                                                           "Edited 24-Oct-2021 13:35 by rmk:")
+                                                             (* |ss:| " 8-Feb-86 17:49")
+    (COND
+       ((LESSP HOUR 13)
+        HOUR)
+       (T (IDIFFERENCE HOUR 12)))))
+
+(AMPM
+  (LAMBDA (HOUR)                                             (* \; 
+                                                           "Edited 24-Oct-2021 13:37 by rmk:")
+    (|if| (OR (LESSP HOUR 12)
+                  (EQ HOUR 24))
+        |then| "a.m."
+      |else| "p.m.")))
+
+(findday
+  (lambda (olddate version)                                  (* |shw:| " 1-Jul-85 11:28")
+    (mkatom (|if| (nump (substring olddate 1 2))
+                |then| (substring olddate 1 2)
+              |else| (substring olddate 2 2)))))
+
+(nump
+  (lambda (n)                                                (* |edited:| " 4-Apr-86 17:55")
+                                                             (* |changed|)
+    (not (null (numberp (mkatom n))))))
+
+(FINDMONTH
+  (LAMBDA (OLDDATE VERSION)                                  (* \; 
+                                                           "Edited 24-Oct-2021 13:52 by rmk:")
+                                                             (* |ss:| "27-Jun-87 15:40")
+
+    (* |;;| "\\UNPACKDATE uses 0 origin for months")
+
+    (LET ((MONTH (ASSOC (ADD1 (CAR (NTH (\\UNPACKDATE (IDATE OLDDATE))
+                                        2)))
+                        '((1 |Jan| |January|)
+                          (2 |Feb| |February|)
+                          (3 |Mar| |March|)
+                          (4 |Apr| |April|)
+                          (5 |May| |May|)
+                          (6 |Jun| |June|)
+                          (7 |Jul| |July|)
+                          (8 |Aug| |August|)
+                          (9 |Sep| |September|)
+                          (10 |Oct| |October|)
+                          (11 |Nov| |November|)
+                          (12 |DecDecember|)))))
+         (|if| (EQ VERSION 'ABBREV)
+             |then| (CADR MONTH)
+           |else| (CADDR MONTH)))))
+
+(FINDYEAR
+  (LAMBDA (OLDDATE VERSION)                                  (* \; 
+                                                           "Edited 24-Oct-2021 13:48 by rmk:")
+                                                             (* |ss:| "27-Jun-87 15:41")
+    (CAR (\\UNPACKDATE (IDATE OLDDATE)))))
+)
+
+(RPAQQ DATE.FORMAT.ITEMS
+       ((|Month Day, Year| '(M D Y F)
+               "Insert current date as \"March 8, 1952\"")
+        (|Month/Day/Year| '(M D Y A)
+               "Insert current date as \"3/8/52\"")
+        (|Day Month, Year| '(D M Y F)
+               "Insert current date as \"8 March, 1952\"")
+        (|Day/Month/Year| '(D M Y A)
+               "Insert current date as \"8/3/52\"")
+        (|Time| '(T F)
+               "Insert current time as \"four thirty p.m.\"")
+        (|Numbered Time| '(T A)
+               "Insert current time as \"4:30 p.m.\"")
+        (|Military Time| '(T E)
+               "Insert current time as \"16:30\"")
+        (|Update| T "Convert to current date/time")))
+(DEFINEQ
+
+(MAKE.DATEOBJ.IMAGEFNS
+  (LAMBDA NIL                                               (* \; "Edited 17-Mar-2022 23:03 by rmk")
+    (IMAGEFNSCREATE (FUNCTION DATE.DISPLAYFN)
+           (FUNCTION DATE.IMAGEBOXFN)
+           (FUNCTION DATE.PUTFN)
+           (FUNCTION DATE.GETFN)
+           (FUNCTION DATE.COPYFN)
+           (FUNCTION DATE.BUTTONEVENTINFN)
+           (FUNCTION NILL)
+           (FUNCTION NILL)
+           (FUNCTION NILL)
+           (FUNCTION NILL)
+           (FUNCTION NILL)
+           (FUNCTION NILL)
+           (FUNCTION NILL))))
+)
+
+(RPAQ? \\DATEOBJ.IMAGEFNS (MAKE.DATEOBJ.IMAGEFNS))
+
+(ADDTOVAR IMAGEOBJGETFNS (DATE.GETFN))
+(DECLARE\: DOEVAL@COMPILE DONTCOPY 
+(DECLARE\: EVAL@COMPILE
+
+(RECORD DATERECORD (DATESTRING DISPLAY.DATE TEMPLATE.DATE))
+)
+)
+(DECLARE\: DONTCOPY
+  (FILEMAP (NIL (1400 6236 (DATEOBJ 1410 . 2177) (DATEOBJP 2179 . 2613) (DATE.DISPLAYFN 2615 . 2937) (
+DATE.IMAGEBOXFN 2939 . 3444) (DATE.PUTFN 3446 . 3644) (DATE.GETFN 3646 . 4144) (DATE.COPYFN 4146 . 
+4698) (DATE.BUTTONEVENTINFN 4700 . 6234)) (6280 9188 (CURRENT.DISPLAY.FONT 6290 . 7251) (
+CHANGE.DATE.FORMAT 7253 . 9186)) (9241 13640 (FINDTIME 9251 . 11030) (FINDHOUR 11032 . 11393) (AMPM 
+11395 . 11694) (FINDDAY 11696 . 11967) (NUMP 11969 . 12198) (FINDMONTH 12200 . 13316) (FINDYEAR 13318
+ . 13638)) (14352 14918 (MAKE.DATEOBJ.IMAGEFNS 14362 . 14916)))))
+STOP

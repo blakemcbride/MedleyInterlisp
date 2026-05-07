@@ -1,0 +1,58 @@
+# Options for SOlaris 2.x, SPARC and X-Window
+
+# $Id: makefile-sunos5.sparc-x,v 1.7 2001/12/26 22:17:10 sybalsky Exp $ #
+
+#************************************************************************/
+#*									*/
+#*	(C) Copyright 1989, 1990, 1990, 1991, 				*/
+#*		      1992, 1993, 1994, 1996,           		*/
+#*		      1999						*/
+#*	    Venue.  All Rights Reserved.				*/
+#*	Manufactured in the United States of America.			*/
+#*									*/
+#************************************************************************/
+
+# Setup for using gcc
+#  CC = gcc $(GCC_CFLAGS)
+# Setup for using Solaris Developer Studio 12.6 cc
+#  CC = cc -m32 $(DEVSTUDIO_CFLAGS)
+
+CC = cc -m32 $(DEVSTUDIO_CFLAGS)
+
+XFILES = $(OBJECTDIR)xmkicon.o \
+	$(OBJECTDIR)xbbt.o \
+	$(OBJECTDIR)dspif.o \
+	$(OBJECTDIR)xinit.o \
+	$(OBJECTDIR)xscroll.o \
+	$(OBJECTDIR)xcursor.o \
+	$(OBJECTDIR)xlspwin.o \
+	$(OBJECTDIR)xrdopt.o \
+	$(OBJECTDIR)xwinman.o
+
+XFLAGS = -DXWINDOW
+
+# OPTFLAGS is normally -O2.
+OPTFLAGS =  -O2 -g3
+
+# Set any debugging options in DEBUGFLAGS.  E.g., to enable stack
+# checking, use -DSTACKCHECK; to enable the fn-call-time stack
+# check, use -DFNSTKCHECK.
+
+DEBUGFLAGS = # -DSTACKCHECK -DFNSTKCHECK
+
+MACHINEFLAGS = -DOS5 -DUSE_DLPI
+
+DFLAGS = $(XFLAGS) \
+	 $(DEBUGFLAGS) \
+	 $(MACHINEFLAGS) \
+	 -DRELEASE=$(RELEASE)
+
+LDFLAGS = -lX11 -lc -lm -lsocket -lnsl
+LDELDFLAGS = -lX11  -lc -lm -lsocket -lnsl
+LDEETHERLDFLAGS = -lc -lm -lsocket -lnsl
+
+DLPIFILES = $(OBJECTDIR)dlpi.o
+
+OBJECTDIR = ../$(RELEASENAME)/
+
+default:	../$(OSARCHNAME)/lde ../$(OSARCHNAME)/ldeether ../$(OSARCHNAME)/ldex

@@ -1,0 +1,2387 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "29-Jan-2026 10:45:17" {WMEDLEY}<sources>HARDCOPY.;160 149481 
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS PRINTERNAME FIND.PRINTER.FOR.IMAGETYPE PRINTERDEVICE.OPENFN PRINTERTYPE)
+
+      :PREVIOUS-DATE "27-Jan-2026 23:11:17" {WMEDLEY}<sources>HARDCOPY.;157)
+
+
+(PRETTYCOMPRINT HARDCOPYCOMS)
+
+(RPAQQ HARDCOPYCOMS
+       [[EXPORT (CONSTANTS (MICASPERINCH 2540)
+                       (PTSPERINCH 72)
+                       (MICASPERPT (FQUOTIENT MICASPERINCH PTSPERINCH))
+                       (IHALFMICASPERPT (FIX (FQUOTIENT MICASPERPT 2)))
+                       (IMICASPERPT (FIX MICASPERPT))
+                       (PTSPERCM (FQUOTIENT PTSPERINCH 2.54))
+                       (PTSPERMICA (FQUOTIENT PTSPERINCH MICASPERINCH))
+                       (PTSPERPICA 12)
+                       (PICASPERINCH (QUOTIENT PTSPERINCH PTSPERPICA))
+                       (DEFAULTTAB (IQUOTIENT PTSPERINCH 2]
+        (COMS                                                (* ; "exported functionality")
+              (INITVARS (ChangeDefaultPrinter))
+              (FNS MakeMenuOfPrinters PRINTERS.WHENSELECTEDFN MakeMenuOfImageTypes 
+                   GetNewPrinterFromUser PopUpWindowAndGetAtom PopUpWindowAndGetList NewPrinter 
+                   GetPrinterName GetImageFile))
+        (COMS                                                (* ; 
+                                                             "Interface for PRINTERS and IMAGEFILES")
+              (FNS HARDCOPYW LISTFILES1 PRINTERPROP PRINTERSTATUS PRINTERTYPE PRINTERNAME 
+                   PRINTFILETYPE PRINTERTYPEP SEND.FILE.TO.PRINTER FIND.PRINTER.FOR.IMAGETYPE 
+                   CAN.PRINT.SOMEHOW CAN.PRINT.DIRECTLY)
+              [COMS (FNS PRINTERDEVICE PRINTERDEVICE.OPENFN PRINTERDEVICE.CLOSEFN PRINTERDEVICEP 
+                         PRINTERNAME)
+                    (DECLARE%: DONTEVAL@LOAD DOCOPY (P (PRINTERDEVICE 'LPT]
+              (FNS DEFAULTPRINTERS)
+              (INITVARS (DEFAULTPRINTINGHOST)
+                     (EMPRESS#SIDES T))
+              (COMS (INITVARS (DEFAULTPRINTERTYPE 'VIEWER))
+                    (ADDVARS (PRINTERTYPES (VIEWER (CANPRINT (PDF HTML))
+                                                  (STATUS TRUE)
+                                                  (PROPERTIES NILL)
+                                                  (SEND VIEWERPRINT)))
+                           (DEFAULTPRINTINGHOST (VIEWER VIEWER)
+                                  (UNIX UNIX)))
+                    (FNS VIEWERPRINT))
+              (GLOBALVARS DEFAULTPRINTINGHOST DEFAULTPRINTERTYPE EMPRESS#SIDES PRINTERTYPES))
+        (FNS SCALEREGION)
+        [COMS                                                (* ; 
+                                                             "Converting text files to imagestreams")
+              (GLOBALVARS TEXTDEFAULTPAGEREGION)
+              [INITVARS (TEXTDEFAULTPAGEREGION (SCALEREGION MICASPERINCH (CREATEREGION 1.1 0.75 7.25
+                                                                                9.75]
+              (ALISTS (IMAGESTREAMTYPES TEXT)
+                     (PRINTFILETYPES TEXT))
+              (FNS TEXT.TO.IMAGEFILE COPY.TEXT.TO.IMAGE TEXTTOIMAGEFILE)
+              (P (FONTPROFILE.ADDDEVICE 'TEXT)
+                 (DEFAULT.IMAGETYPE.CONVERSIONS '(TEXT TEXT.TO.IMAGEFILE]
+        (COMS                                                (* ; 
+                                                       "hack for printers that can't really BLTSHADE")
+              (FNS \BLTSHADE.GENERICPRINTER))
+        [COMS                                                (* ; 
+                                                  "stuff to support hardcopy streams on the display.")
+              (FNS MAKEHARDCOPYSTREAM UNMAKEHARDCOPYSTREAM HARDCOPYSTREAMTYPE \CHARWIDTH.HDCPYDISPLAY
+                   \DSPFONT.HDCPYDISPLAY \DSPRIGHTMARGIN.HDCPYDISPLAY \DSPXPOSITION.HDCPYDISPLAY 
+                   \DSPYPOSITION.HDCPYDISPLAY \STRINGWIDTH.HDCPYDISPLAY \STRINGWIDTH.HCPYDISPLAYAUX 
+                   \HDCPYBLTCHAR \HDCPYDISPLAY.FIX.XPOS \HDCPYDISPLAY.FIX.YPOS \HDCPYDISPLAYINIT 
+                   \HDCPYDSPPRINTCHAR \SLOWHDCPYBLTCHAR \CHANGECHARSET.HDCPYDISPLAY)
+              (DECLARE%: DONTCOPY DOEVAL@COMPILE (EXPORT (MACROS \MICASTOPTS]
+        (COMS                                                (* ; 
+                                         "Stuff to support MICA-unit hardcopy streams on the display")
+              (FNS MAKEHARDCOPYMODESTREAM UNMAKEHARDCOPYMODESTREAM \HCPYDISPLAYIMAGEOPS 
+                   \BLTSHADE.HCPYMODE \BITBLT.HCPYMODE \BRUSHCONVERT.HCPYMODE \CHANGECHARSET.HCPYMODE
+                   \DASHINGCONVERT.HCPYMODE \CHARWIDTH.HCPYMODE \DRAWLINE.HCPYMODE 
+                   \DRAWCURVE.HCPYMODE \DRAWCIRCLE.HCPYMODE \DRAWELLIPSE.HCPYMODE \DSPFONT.HCPYMODE 
+                   \DSPLEFTMARGIN.HCPYMODE \DSPLINEFEED.HCPYMODE \DSPRIGHTMARGIN.HCPYMODE 
+                   \DSPSPACEFACTOR.HCPYMODE \DSPXPOSITION.HCPYMODE \DSPYPOSITION.HCPYMODE 
+                   \MOVETO.HCPYMODE \FONTCREATE.HCPYMODE \CREATECHARSET.HCPYMODE 
+                   \STRINGWIDTH.HCPYMODE \HCPYMODEBLTCHAR \HCPYMODEDSPPRINTCHAR \SLOWHCPYMODEBLTCHAR
+                   \SFFixY.HCPYMODE))
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS (ADDVARS (NLAMA)
+                                                                             (NLAML)
+                                                                             (LAMA])
+(* "FOLLOWING DEFINITIONS EXPORTED")(DECLARE%: EVAL@COMPILE 
+
+(RPAQQ MICASPERINCH 2540)
+
+(RPAQQ PTSPERINCH 72)
+
+(RPAQ MICASPERPT (FQUOTIENT MICASPERINCH PTSPERINCH))
+
+(RPAQ IHALFMICASPERPT (FIX (FQUOTIENT MICASPERPT 2)))
+
+(RPAQ IMICASPERPT (FIX MICASPERPT))
+
+(RPAQ PTSPERCM (FQUOTIENT PTSPERINCH 2.54))
+
+(RPAQ PTSPERMICA (FQUOTIENT PTSPERINCH MICASPERINCH))
+
+(RPAQQ PTSPERPICA 12)
+
+(RPAQ PICASPERINCH (QUOTIENT PTSPERINCH PTSPERPICA))
+
+(RPAQ DEFAULTTAB (IQUOTIENT PTSPERINCH 2))
+
+
+(CONSTANTS (MICASPERINCH 2540)
+       (PTSPERINCH 72)
+       (MICASPERPT (FQUOTIENT MICASPERINCH PTSPERINCH))
+       (IHALFMICASPERPT (FIX (FQUOTIENT MICASPERPT 2)))
+       (IMICASPERPT (FIX MICASPERPT))
+       (PTSPERCM (FQUOTIENT PTSPERINCH 2.54))
+       (PTSPERMICA (FQUOTIENT PTSPERINCH MICASPERINCH))
+       (PTSPERPICA 12)
+       (PICASPERINCH (QUOTIENT PTSPERINCH PTSPERPICA))
+       (DEFAULTTAB (IQUOTIENT PTSPERINCH 2)))
+)
+
+(* "END EXPORTED DEFINITIONS")
+
+
+
+
+(* ; "exported functionality")
+
+
+(RPAQ? ChangeDefaultPrinter )
+(DEFINEQ
+
+(MakeMenuOfPrinters
+  [LAMBDA (MENUTITLE)                                        (* ; "Edited 17-Dec-2025 00:58 by rmk")
+                                                             (* ; "Edited  6-Dec-2025 09:52 by rmk")
+                                                             (* ; "Edited 22-Jun-2023 17:30 by rmk")
+                                                             (* ; "Edited 29-May-93 14:18 by rmk:")
+                                                             (* ; "Edited 11-Jul-90 13:35 by jds")
+    (create MENU
+           ITEMS _ `(("(Default printer)" (KWOTE :DEFAULTPRINTER))
+                     ,@(for P in (DEFAULTPRINTERS) when P unless (EQ P :DEFAULTPRINTER)
+                          collect                            (* ; "Skipped the NIL %"%" defaults")
+                                (LIST (CL:IF (LISTP P)
+                                          (CL:IF (CADDR P)
+                                              (CONCAT (CADR P)
+                                                     " "
+                                                     (CADDR P))
+                                              (CADR P))
+                                          P)
+                                      (KWOTE P)))
+                     ("Other..." 'OTHER "You will be prompted for a printer"))
+           TITLE _ MENUTITLE
+           WHENSELECTEDFN _ (FUNCTION PRINTERS.WHENSELECTEDFN])
+
+(PRINTERS.WHENSELECTEDFN
+  [LAMBDA (ITEM MENU BUTTON)                                 (* ; "Edited 28-Dec-2025 00:38 by rmk")
+                                                             (* ; "Edited 17-Dec-2025 00:46 by rmk")
+                                                            (* ; "Edited 16-Apr-2018 22:14 by rmk:")
+    (DECLARE (GLOBALVARS ChangeDefaultPrinter))
+
+    (* ;; "Fix Menu so that it doesn't ask about changing the default unless you click with middle")
+
+    (LET ((PRINTERCHOICE (CADR (CADR ITEM)))
+          DEFAULTPRINTER)
+         [COND
+            ((EQ PRINTERCHOICE 'OTHER)
+             (SETQ PRINTERCHOICE (GetNewPrinterFromUser]
+         (CL:WHEN [AND PRINTERCHOICE (NEQ PRINTERCHOICE (SETQ DEFAULTPRINTER (CAR (DEFAULTPRINTERS
+                                                                                   NIL T]
+             [NewPrinter PRINTERCHOICE (AND DEFAULTPRINTER (EQ BUTTON 'MIDDLE)
+                                            (MENU (OR ChangeDefaultPrinter
+                                                      (SETQ ChangeDefaultPrinter
+                                                       (create MENU
+                                                              TITLE _ "Make this the new default?"
+                                                              ITEMS _ '(("Yes" T 
+                                                             "Yes, make this the new default printer"
+                                                                               )
+                                                                        ("No" NIL 
+                                                                              "No, don't change it"))
+                                                              MENUROWS _ 1
+                                                              CENTERFLG _ T])
+         PRINTERCHOICE])
+
+(MakeMenuOfImageTypes
+  [LAMBDA (MENUTITLE)                                        (* ; "Edited 26-Aug-87 14:10 by Snow")
+
+(* ;;; "type selection; elements of \DISPLAYSTREAMTYPES are temporarily disallowed")
+
+    (DECLARE (GLOBALVARS IMAGESTREAMTYPES))
+    (create MENU
+           ITEMS _ [for IMAGETYPE in IMAGESTREAMTYPES bind IMAGETYPENAME
+                      collect (PROGN (SETQ IMAGETYPENAME (CAR IMAGETYPE))
+                                     (LIST (L-CASE IMAGETYPENAME T)
+                                           (KWOTE IMAGETYPENAME)))
+                      when (AND (ASSOC 'OPENSTREAM (CDR IMAGETYPE))
+                                (NOT (FMEMB (CAR IMAGETYPE)
+                                            \DISPLAYSTREAMTYPES]
+           TITLE _ MENUTITLE])
+
+(GetNewPrinterFromUser
+  [LAMBDA (PROMPTSTRING)                                     (* ; "Edited 25-Dec-2025 08:22 by rmk")
+                                                             (* ; "Edited  7-Jun-93 15:33 by rmk:")
+                                                             (* ; "Edited 26-Aug-87 14:10 by Snow")
+
+    (* ;; 
+  "Changed from PopUpWindowAndGetAtom, so user can enter PRINTERTYPE PRINTERNAME PREFERREDIMAGETYPE.")
+
+    (PopUpWindowAndGetList (OR PROMPTSTRING "Printer name (CR to abort): "])
+
+(PopUpWindowAndGetAtom
+  [LAMBDA (PROMPTSTRING CANDIDATE)                           (* ; "Edited  6-Mar-2024 13:15 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:10 by Snow")
+    (RESETLST
+        (RESETSAVE (TTY.PROCESS (THIS.PROCESS)))
+        [LET* ((FONT (DEFAULTFONT))
+               [WIDTH (WIDTHIFWINDOW (IPLUS (STRINGWIDTH PROMPTSTRING FONT)
+                                            (CL:IF CANDIDATE
+                                                (IPLUS (STRINGWIDTH CANDIDATE FONT)
+                                                       (ITIMES 10 (CHARWIDTH (CHARCODE A)
+                                                                         FONT)))
+                                                (ITIMES 40 (CHARWIDTH (CHARCODE A)
+                                                                  FONT)))]
+               (PROMPTW (CREATEW [CREATEREGION (IMIN LASTMOUSEX (IDIFFERENCE SCREENWIDTH WIDTH))
+                                        LASTMOUSEY WIDTH (HEIGHTIFWINDOW (FONTPROP FONT 'HEIGHT]
+                               NIL NIL T)))
+              (RESETSAVE (OPENW PROMPTW)
+                     (LIST (FUNCTION CLOSEW)
+                           PROMPTW))
+              (LET [(RESPONSE (TTYINPROMPTFORWORD PROMPTSTRING CANDIDATE NIL PROMPTW NIL NIL
+                                     (CHARCODE (CR]
+                   (AND RESPONSE (PACK* RESPONSE])])
+
+(PopUpWindowAndGetList
+  [LAMBDA (PROMPTSTRING CANDIDATE)                          (* ; "Edited 16-Apr-2018 22:13 by rmk:")
+                                                             (* ; "Edited 26-Aug-87 14:10 by Snow")
+
+    (* ;; "Makes both image-type part of LISTP printers show up in menu, so you can see the imagetype in multiple-type printers")
+
+    (RESETLST
+        (RESETSAVE (TTY.PROCESS (THIS.PROCESS)))
+        [LET* ((FONT (DEFAULTFONT))
+               [WIDTH (WIDTHIFWINDOW (IPLUS (STRINGWIDTH PROMPTSTRING FONT)
+                                            (ITIMES 40 (CHARWIDTH (CHARCODE A)
+                                                              FONT]
+               (PROMPTW (CREATEW [CREATEREGION (IMIN LASTMOUSEX (IDIFFERENCE SCREENWIDTH WIDTH))
+                                        LASTMOUSEY WIDTH (HEIGHTIFWINDOW (TIMES 2 (FONTPROP
+                                                                                   FONT
+                                                                                   'HEIGHT]
+                               NIL NIL T)))
+
+              (* ;; "Allow room for 2 lines so that TTYIN doesn't hang on page-full")
+
+              (RESETSAVE (TTYDISPLAYSTREAM PROMPTW))
+              [RESETSAVE NIL `(CLOSEW ,PROMPTW]
+              (LET ((RESPONSE (TTYIN PROMPTSTRING CANDIDATE NIL '(NORAISE READ)
+                                     NIL NIL NIL TTYINWORDRDTBL)))
+                   (CL:IF (CDR RESPONSE)
+                       RESPONSE
+                       (CAR RESPONSE))])])
+
+(NewPrinter
+  [LAMBDA (PRINTER NEW-DEFAULT?)                             (* ; "Edited 17-Dec-2025 01:00 by rmk")
+                                                             (* ; "Edited  6-Dec-2025 10:01 by rmk")
+                                                             (* ; "Edited 11-Jul-90 13:48 by jds")
+
+(* ;;; "If Printer is unknown it will be added to DEFAULTPRINTINGHOST. In addition, if NEW-DEFAULT? is true the printer will be pushed to the head of DEFAULTPRINTINGHOST, thus making it the default printer.")
+
+    (DECLARE (GLOBALVARS DEFAULTPRINTINGHOST))
+    (CL:UNLESS (EQ :DEFAULTPRINTER PRINTER)
+        [LET* ((PRINTERS (DEFAULTPRINTERS))
+               (PRINTER-NAME (CL:IF (LISTP PRINTER)
+                                 (CADR PRINTER)
+                                 PRINTER))
+               [MEMBER? (CL:MEMBER PRINTER-NAME PRINTERS :TEST '(LAMBDA (PRINTER ENTRY)
+                                                                  (STRING-EQUAL PRINTER
+                                                                         (CL:IF (LISTP ENTRY)
+                                                                             (CADR ENTRY)
+                                                                             ENTRY)]
+               (ENTRY (CL:IF MEMBER?
+                          (CAR MEMBER?)
+                          PRINTER)))
+              (SETQ DEFAULTPRINTINGHOST (CL:IF NEW-DEFAULT?
+                                            (CONS ENTRY (REMOVE ENTRY PRINTERS))
+                                            (NCONC1 PRINTERS ENTRY))])])
+
+(GetPrinterName
+  [LAMBDA NIL                                                (* ; "Edited 29-May-93 13:58 by rmk:")
+                                                             (* ; "Edited 26-Aug-87 14:10 by Snow")
+    (MENU (MakeMenuOfPrinters "Which printer?"])
+
+(GetImageFile
+  [LAMBDA (FILEORW)                                          (* ; "Edited  4-Nov-2025 22:43 by rmk")
+                                                             (* ; "Edited  3-Nov-2025 19:52 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 08:07 by rmk")
+                                                             (* ; "Edited 10-Sep-2025 14:50 by rmk")
+                                                             (* ; "Edited 18-Jan-96 11:17 by ")
+                                                             (* ; "Edited 17-Jan-96 10:42 by rmk")
+
+    (* ;; " If FILEORW is a window, its HARDCOPY properties are used to create the menu's candidate filename. Otherwise, it is taken to already be the candidate.  Returns NIL if the imagefile/type are not determined.")
+
+    (LET (IMAGEFILE IMAGEFILETYPE)
+
+         (* ;; "Strip candidate version so overwrites must be explicitly indicated each time.  Use previous file as candidate, and if no previous one, apply function associated with the window to the window and the extension associated with the defaultprinting host.  Such a function on a TEDIT window, for example, could suggest the image-type file named after the underlying TEDIT file.")
+
+         (SETQ IMAGEFILE (PopUpWindowAndGetAtom "File name (Clear to abort): "
+                                (if (WINDOWP FILEORW)
+                                    then (CLEARW (GETPROMPTWINDOW FILEORW))
+                                         [if (WINDOWPROP FILEORW 'HARDCOPYFILE)
+                                             then (PACKFILENAME 'VERSION NIL 'BODY
+                                                         (WINDOWPROP FILEORW 'HARDCOPYFILE))
+                                           elseif (WINDOWPROP FILEORW 'HARDCOPYFILEFN)
+                                             then (APPLY* (WINDOWPROP FILEORW 'HARDCOPYFILEFN)
+                                                         FILEORW
+                                                         (CAR (EXTENSIONS.FOR.IMAGEFILETYPE (
+                                                                                          PRINTERTYPE
+                                                                                             ]
+                                  else FILEORW)))
+         (CL:WHEN [AND IMAGEFILE (SETQ IMAGEFILE (OUTFILEP IMAGEFILE))
+                       (SETQ IMAGEFILETYPE (OR (IMAGEFILETYPE.FROM.EXTENSION IMAGEFILE)
+                                               (MENU (MakeMenuOfImageTypes "File type?"]
+             (CL:WHEN (WINDOWP FILEORW)                      (* ; 
+                                                             "Save full name less version for reuse")
+                 (WINDOWPROP FILEORW 'HARDCOPYFILE (PACKFILENAME 'VERSION NIL 'BODY IMAGEFILE)))
+             (CONS IMAGEFILE IMAGEFILETYPE))])
+)
+
+
+
+(* ; "Interface for PRINTERS and IMAGEFILES")
+
+(DEFINEQ
+
+(HARDCOPYW
+  [LAMBDA (WINDOW/BITMAP/REGION FILE HOST SCALEFACTOR ROTATION PRINTERTYPE HARDCOPYTITLE)
+                                                             (* ; "Edited 11-Jan-2026 13:08 by rmk")
+                                                             (* ; "Edited 28-Dec-2025 01:06 by rmk")
+    (if HOST
+        then (if (NULL PRINTERTYPE)
+                 then (SETQ PRINTERTYPE (PRINTERTYPE HOST))
+               elseif (NEQ PRINTERTYPE (PRINTERTYPE HOST))
+                 then (ERROR HOST (CONCAT "is not of printer type " PRINTERTYPE)))
+      elseif (NULL FILE)
+        then (SETQ HOST (OR (CAR (OR (DEFAULTPRINTERS PRINTERTYPE)
+                                     (DEFAULTPRINTERS)))
+                            :DEFAULTPRINTER))
+             (SETQ PRINTERTYPE (PRINTERTYPE HOST))
+      else (SETQ PRINTERTYPE (PRINTERTYPE :DEFAULTPRINTER)))
+    (LET ([OPTIONS `(SCALEFACTOR ,SCALEFACTOR ROTATION ,ROTATION DOCUMENT.NAME
+                           ,(OR HARDCOPYTITLE "Window Image"]
+          IMAGEFILE PRINTER)
+         (SETQ IMAGEFILE (CONVERT.TO.IMAGEFILE WINDOW/BITMAP/REGION FILE
+                                [OR (IMAGEFILETYPE.FROM.EXTENSION FILE)
+                                    (CAR (PRINTERPROP PRINTERTYPE 'CANPRINT]
+                                OPTIONS))
+         (CL:WHEN HOST (SEND.FILE.TO.PRINTER IMAGEFILE HOST OPTIONS))
+         IMAGEFILE])
+
+(LISTFILES1
+  [LAMBDA (FILE PRINTOPTIONS)                                (* ; "Edited 26-Aug-87 14:17 by Snow")
+    (SEND.FILE.TO.PRINTER FILE NIL PRINTOPTIONS])
+
+(PRINTERPROP
+  [LAMBDA (PRINTERTYPE PROP)                                 (* ; "Edited 26-Aug-87 14:20 by Snow")
+    (for X in PRINTERTYPES when (EQMEMB PRINTERTYPE (CAR X))
+       do (RETURN (CADR (ASSOC PROP (CDR X])
+
+(PRINTERSTATUS
+  [LAMBDA (PRINTER)                                          (* ; "Edited 26-Aug-87 14:21 by Snow")
+    (LET [(STATUSFN (PRINTERPROP (PRINTERTYPE PRINTER)
+                           'STATUS]
+         (AND STATUSFN (APPLY* STATUSFN PRINTER])
+
+(PRINTERTYPE
+  [LAMBDA (HOST PREFERRED NODEFAULT)                         (* ; "Edited 28-Jan-2026 23:55 by rmk")
+                                                             (* ; "Edited 18-Jan-2026 14:47 by rmk")
+                                                             (* ; "Edited 16-Jan-2026 07:35 by rmk")
+                                                             (* ; "Edited 17-Dec-2025 00:52 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 17:53 by rmk")
+                                                             (* ; "Edited 12-Dec-2025 22:37 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 12:51 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 10:18 by rmk")
+                                                             (* ; "Edited 27-Apr-98 16:16 by rmk:")
+                                                           (* ; "Edited 15-Feb-91 14:14 by gadener")
+    (COND
+       ((NULL HOST)
+        DEFAULTPRINTERTYPE)
+       ((LISTP HOST)
+
+        (* ;; "A pair (type hostname) or maybe a triple of the form (printertype hostname preferred-imagetype).  Check that type is one we know about.")
+
+        (LET ((TYPE (CAR HOST)))
+             (CL:UNLESS (PRINTERTYPEP TYPE)
+                    (ERROR TYPE "is an undefined printer type"))
+             TYPE))
+       [(OR (GETPROP HOST 'PRINTERTYPE)
+            (GETPROP (U-CASE HOST)
+                   'PRINTERTYPE]
+       ((GETPROP (SETQ HOST (OR (CANONICAL.HOSTNAME HOST)
+                                HOST))
+               'PRINTERTYPE))
+       [(for TYPE FN in PRINTERTYPES when (AND (SETQ FN (CDR (ASSOC 'HOSTNAMEP TYPE)))
+                                               (APPLY* (CAR FN)
+                                                      HOST)) do 
+
+                                    (* ;; "Try the predicates for each printer type for recognizing their own host names. This gets the colon for NS/Interpress printers")
+
+                                                                (RETURN (CAAR TYPE]
+       [(for PRINTER in (DEFAULTPRINTERS) when (AND (LISTP PRINTER)
+                                                    (STRING-EQUAL (CADR PRINTER)
+                                                           HOST)) do 
+
+                                                      (* ;; 
+        "Try looking for literal match before doing canonical hostname, cause that may be expensive.")
+
+                                                                     (RETURN (CAR PRINTER]
+       [(for PRINTER in (DEFAULTPRINTERS) when (AND (LISTP PRINTER)
+                                                    (STRING-EQUAL (OR (CANONICAL.HOSTNAME
+                                                                       (CADR PRINTER))
+                                                                      (CADR PRINTER))
+                                                           HOST)) do (RETURN (CAR PRINTER]
+       ((NOT NODEFAULT)
+        DEFAULTPRINTERTYPE])
+
+(PRINTERNAME
+  [LAMBDA (PRINTER)                                          (* ; "Edited 29-Jan-2026 10:44 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 09:35 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 09:59 by rmk")
+
+    (* ;; 
+    "If PRINTER designates a printer (a printer-spec or stream/filename, returns the printer's name.")
+
+    (* ;; "Takes a printer-spec (in form (type printer-name) or just printer-name) and returns printer-name.  returns nil for null arg.")
+
+    (if (LISTP PRINTER)
+        then (CADR PRINTER)
+      elseif (LITATOM PRINTER)
+        then PRINTER
+      elseif (PRINTERDEVICEP PRINTER)
+        then (LET (FDEV)
+                  (if (AND (STREAMP PRINTER)
+                           (STREAMPROP PRINTER 'PRINTERNAME))
+                    else (SETQ FDEV (TRUEDEVICE PRINTER))
+                         (if (EQ 'LPT (fetch (FDEV DEVICENAME) of FDEV))
+                             then (CL:UNLESS [EQ '%. (SETQ PRINTER (FILENAMEFIELD PRINTER
+                                                                          'NAME]
+                                         PRINTER)
+                           else (fetch (FDEV DEVICENAME) of FDEV])
+
+(PRINTFILETYPE
+  [LAMBDA (FILE DONTOPEN)                                    (* ; "Edited 24-Dec-2025 20:39 by rmk")
+                                                             (* ; "Edited 18-Sep-2025 11:22 by rmk")
+                                                             (* ; "For backward compatibility")
+    (IMAGESOURCETYPE FILE DONTOPEN])
+
+(PRINTERTYPEP
+  [LAMBDA (X)                                                (* ; "Edited  5-Dec-2025 12:23 by rmk")
+    (CL:WHEN (for PTYPE in PRINTERTYPES thereis (EQMEMB X (CAR PTYPE)))
+           X])
+
+(SEND.FILE.TO.PRINTER
+  [LAMBDA (IMAGESOURCE HOST OPTIONS)                         (* ; "Edited 19-Jan-2026 08:40 by rmk")
+                                                             (* ; "Edited 17-Jan-2026 00:32 by rmk")
+                                                             (* ; "Edited 27-Dec-2025 23:06 by rmk")
+                                                             (* ; "Edited 23-Dec-2025 15:33 by rmk")
+                                                             (* ; "Edited 21-Dec-2025 09:03 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 15:48 by rmk")
+                                                             (* ; "Edited 11-Dec-2025 23:56 by rmk")
+                                                             (* ; "Edited  7-Dec-2025 11:08 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 14:41 by rmk")
+                                                             (* ; "Edited 27-Sep-2025 07:43 by rmk")
+                                                             (* ; "Edited 25-Sep-2025 21:34 by rmk")
+                                                             (* ; "Edited 20-Sep-2025 13:23 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 00:15 by rmk")
+                                                             (* ; "Edited 13-Sep-2025 23:39 by rmk")
+                                                             (* ; "Edited 21-Jan-93 11:34 by jds")
+
+    (* ;; "Returns IMAGESOURCE if successful, NIL if not. ")
+
+    (* ;; "The heuristics for finding the right printer with the right kind of imagefile are in FIND.PRINTER.FOR.IMAGETYPE.")
+
+    (CL:WHEN (IMAGESOURCEFILEP IMAGESOURCE)
+        (SETQ IMAGESOURCE (FINDFILE IMAGESOURCE T)))
+
+    (* ;; " ")
+
+    (CL:UNLESS HOST                                          (* ; 
+                                                "Not sure whether HOST or props should have priority")
+        [SETQ HOST (for X on OPTIONS by (CDDR X) when (MEMB (U-CASE (CAR X))
+                                                            '(HOST SERVER))
+                      do (RETURN (CADR X])
+
+    (* ;; "If HOST is still NIL, then it is clearly unspecified, we have to pick it based on the types.  The default here is the first of (PRINTERS)  that can print the type, not just the first printer.")
+
+    (RESETLST
+        [bind PTYPE/PRINTER/ITYPE IMAGEFILETYPE IMAGEFILE SENDFN (IMAGESOURCETYPE _ (IMAGESOURCETYPE
+                                                                                     IMAGESOURCE))
+           first (SETQ IMAGEFILETYPE (OR (LISTGET OPTIONS 'IMAGEFILETYPE)
+                                         IMAGESOURCETYPE))
+           do                                                (* ; "Errors all at this level")
+              (SETQ IMAGEFILE NIL)
+              (CL:UNLESS (SETQ PTYPE/PRINTER/ITYPE (FIND.PRINTER.FOR.IMAGETYPE IMAGEFILETYPE HOST))
+                  (ERROR (CONCAT "Can't find printer for " IMAGEFILETYPE " file")))
+              (CL:UNLESS (SETQ SENDFN (PRINTERPROP (PRINTERTYPE (CADR PTYPE/PRINTER/ITYPE))
+                                             'SEND))
+                  (ERROR (CONCAT "Don't know how to send to a " (PRINTERTYPE PTYPE/PRINTER/ITYPE)
+                                " printer")))
+              [RESETSAVE (SETQ IMAGEFILE (CONVERT.TO.IMAGEFILE IMAGESOURCE NIL (CADDR 
+                                                                                  PTYPE/PRINTER/ITYPE
+                                                                                      )
+                                                OPTIONS))
+                     `(PROGN (DELFILE (CLOSEF? OLDVALUE]
+              (CL:UNLESS IMAGEFILE
+                  (ERROR (CONCAT "Can't convert " IMAGESOURCETYPE " file to " (CADDR 
+                                                                                  PTYPE/PRINTER/ITYPE
+                                                                                     ))
+                         IMAGESOURCE)) 
+
+              (* ;; "Go around: maybe the user fixed something in an error break?")
+ repeatuntil (AND PTYPE/PRINTER/ITYPE SENDFN IMAGEFILE)
+           finally 
+
+                 (* ;; "Now have the printer and proper imagefile.  Complexity here is because we want to say something meaningful about the image source, which may be a window, bitmap, tedit stream ")
+
+                 [SETQ OPTIONS `(HEADING ,(SELECTQ (LISTGET OPTIONS 'HEADING)
+                                              (T NIL)
+                                              (NIL           (* ; 
+                                                       "If not a file, use the type or window title?")
+                                                   (CL:WHEN (IMAGESOURCEFILEP IMAGESOURCE)
+                                                       (CONCAT IMAGESOURCE "     "
+                                                              (GETFILEINFO IMAGESOURCE 'CREATIONDATE)
+                                                              )))
+                                              (LISTGET OPTIONS 'HEADING))
+                                       ,@OPTIONS %#COPIES 1 DOCUMENT.NAME ,(CL:IF (IMAGESOURCEFILEP
+                                                                                   IMAGESOURCE)
+                                                                               IMAGESOURCE
+                                                                               (TYPENAME IMAGESOURCE))
+                                       ]
+                 (CL:WHEN (LISTGET OPTIONS 'DELETE)
+                     [RESETSAVE IMAGEFILE '(PROGN (DELFILE OLDVALUE])
+                 (CL:WHEN (APPLY* SENDFN (CADR PTYPE/PRINTER/ITYPE)
+                                 IMAGEFILE OPTIONS)
+                     (RETURN (CL:IF (STREAMP IMAGESOURCE)
+                                 (FULLNAME IMAGESOURCE)
+                                 IMAGESOURCE)))])])
+
+(FIND.PRINTER.FOR.IMAGETYPE
+  [LAMBDA (IMAGETYPE HOST)                                   (* ; "Edited 29-Jan-2026 10:29 by rmk")
+                                                             (* ; "Edited 12-Jan-2026 23:49 by rmk")
+                                                             (* ; "Edited 28-Dec-2025 18:02 by rmk")
+                                                             (* ; "Edited 23-Dec-2025 10:13 by rmk")
+                                                             (* ; "Edited 17-Dec-2025 00:59 by rmk")
+                                                             (* ; "Edited 15-Dec-2025 11:48 by rmk")
+
+    (* ;; "Returns a (PTYPE PRINTER TARGETTYPE) triple.  This is to be compatible with other interfaces where the type is separate (e.g. as for the default), even though here it is computable from the HOST.")
+
+    (* ;; " If HOST is given and not the default, then it must be able to print IMAGETYPE.  Otherwise, we first look for something that can print directly (e.g. PDF IMAGETYPE can be printed by a UNIX printer), and if not directly, something that can be converted (TEDIT can be converted to PDF--PDF is in the return) to tell the caller what conversion to pick for this printer.")
+
+    (LET (TARGETTYPE)
+         (if (AND HOST (NEQ HOST :DEFAULTPRINTER))
+             then 
+                  (* ;; "Really want to print on HOST, even by conversion")
+
+                  (CL:WHEN (SETQ TARGETTYPE (CAN.PRINT.SOMEHOW HOST IMAGETYPE))
+                      (LIST (PRINTERTYPE HOST)
+                            (PRINTERNAME HOST)
+                            TARGETTYPE))
+           elseif (for PRINTER in (DEFAULTPRINTERS) when (SETQ TARGETTYPE (CAN.PRINT.SOMEHOW PRINTER
+                                                                                 IMAGETYPE T))
+                     do                                      (* ; "Direct?")
+                        (RETURN (LIST (PRINTERTYPE PRINTER)
+                                      (PRINTERNAME PRINTER)
+                                      TARGETTYPE)))
+           else (for PRINTER in (DEFAULTPRINTERS) when (SETQ TARGETTYPE (CAN.PRINT.SOMEHOW PRINTER 
+                                                                               IMAGETYPE))
+                   do                                        (* ; "Conversion")
+                      (RETURN (LIST (PRINTERTYPE PRINTER)
+                                    (PRINTERNAME PRINTER)
+                                    TARGETTYPE])
+
+(CAN.PRINT.SOMEHOW
+  [LAMBDA (PRINTER IMAGESOURCETYPE DIRECTONLY)               (* ; "Edited 23-Dec-2025 11:09 by rmk")
+                                                             (* ; "Edited 14-Dec-2025 14:28 by rmk")
+
+    (* ;; "Returns the PRINTFILETYPE (e.g. PDF) by which PRINTER can print a source of IMAGESOURCETYPE (e.g. TEDIT or POSTSCRIPT), perhaps by conversion.")
+
+    (if (CAN.PRINT.DIRECTLY (PRINTERTYPE PRINTER)
+               IMAGESOURCETYPE)
+      elseif DIRECTONLY
+        then NIL
+      else (thereis CPTYPE in (PRINTERPROP (PRINTERTYPE PRINTER)
+                                     'CANPRINT) suchthat (OR (LISTGET (CAR (GETMULTI PRINTFILETYPES 
+                                                                                  CPTYPE 'CONVERSION)
+                                                                           )
+                                                                    IMAGESOURCETYPE)
+                                                             (LISTGET (CAR (GETMULTI PRINTFILETYPES
+                                                                                  'DEFAULT
+                                                                                  'CONVERSION))
+                                                                    IMAGESOURCETYPE])
+
+(CAN.PRINT.DIRECTLY
+  [LAMBDA (PRINTERTYPE IMAGEFILETYPE)                        (* ; "Edited 23-Dec-2025 10:37 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 14:44 by rmk")
+                                                             (* ; "Edited  3-Nov-2025 15:46 by rmk")
+    (CAR (FMEMB IMAGEFILETYPE (PRINTERPROP PRINTERTYPE 'CANPRINT])
+)
+(DEFINEQ
+
+(PRINTERDEVICE
+  [LAMBDA (LPTNAME)                                          (* ; "Edited 18-Jan-2026 00:45 by rmk")
+                                                             (* ; "Edited 16-Jan-2026 16:15 by rmk")
+                                                             (* ; "Edited 11-Sep-2025 12:40 by rmk")
+                                                             (* ; "Edited  5-Dec-96 11:23 by rmk:")
+                                                             (* ; "Edited  4-Dec-86 16:32 by hdj")
+
+    (* ;; "This defines an LPT device.  An LPT file is a file that gets sent to printer and deleted when it is closed.  The device is essentially UNIX with an FDEV with specialized OPEN and CLOSE functions.  The openfn opens on UNIX, then switches the device so that the closefn will run.  Closefn switches the device back, then closes.")
+
+    [LET [(NAME (OR (U-CASE (FILENAMEFIELD LPTNAME 'HOST))
+                    'LPT]
+         (\DEFINEDEVICE NAME (create FDEV using (\GETDEVICEFROMNAME 'UNIX)
+                                                DEVICENAME _ NAME NODIRECTORIES _ T DIRECTORYNAMEP _
+                                                (FUNCTION NILL)
+                                                OPENFILE _ (FUNCTION PRINTERDEVICE.OPENFN)
+                                                CLOSEFILE _ (FUNCTION PRINTERDEVICE.CLOSEFN)
+                                                REGISTERFILE _ (FUNCTION NILL)
+                                                GENERATEFILES _ (FUNCTION \NULLFILEGENERATOR]
+    LPTNAME])
+
+(PRINTERDEVICE.OPENFN
+  [LAMBDA (LPTNAME ACCESS RECOG PARAMETERS FDEV OLDSTREAM)   (* ; "Edited 29-Jan-2026 00:13 by rmk")
+                                                             (* ; "Edited 19-Jan-2026 12:19 by rmk")
+                                                             (* ; "Edited 16-Jan-2026 23:09 by rmk")
+                                                             (* ; "Edited 28-Dec-2025 17:44 by rmk")
+                                                             (* ; "Edited 11-Sep-2025 17:03 by rmk")
+
+    (* ;; 
+    "Creates a {Uni}x tmp/ file except that its FDEV has a closefn that calls SEND.FILE.TO.PRINTER.")
+
+    (* ;; "PRINTOPTIONS might be in PARAMETERS.  ")
+
+    (* ;; "LPTNAME is typically the target of a COPYFILE, in which case the source file is merely copied, and when the stream is closed there is an attempt to convert it to the imagetype extension, if provided, before sending to the (possibly also provided) printer.")
+
+    (* ;; "The file can also be the target of an OPENIMAGESTREAM, in which case the file will be created according to the OPENIMAGESTREAM type, and then possibly converted to the LPTNAME's imagetype for printing.")
+
+    (LET ((PRINTERNAME (FILENAMEFIELD LPTNAME 'NAME))
+          [IMAGEFILETYPE (U-CASE (OR (LISTGET PARAMETERS 'IMAGEFILETYPE)
+                                     (FILENAMEFIELD LPTNAME 'EXTENSION]
+          STRM PN)
+         (CL:WHEN (EQ (CHARCODE %.)
+                      (CHCON1 PRINTERNAME))
+             (SETQ IMAGEFILETYPE (U-CASE (SUBATOM PRINTERNAME 2)))
+                                                             (* ; "{LPT}.PDF")
+             (SETQ PRINTERNAME NIL))
+         (CL:WHEN (AND IMAGEFILETYPE (NOT (GETMULTI PRINTFILETYPES IMAGEFILETYPE))
+                       (NOT (PRINTERTYPE PRINTERNAME NIL T))
+                       (PRINTERTYPE (SETQ PN (SUBATOM LPTNAME (STRPOS "}" LPTNAME NIL NIL NIL T)))
+                              NIL T))                        (* ; 
+                                               "The case of foo.local as a printer name with no type")
+             (SETQ PRINTERNAME PN)
+             (SETQ IMAGEFILETYPE NIL))
+
+         (* ;; "Filename is now decoded")
+
+         [if (AND IMAGEFILETYPE PRINTERNAME)
+             then (CL:UNLESS (CAN.PRINT.SOMEHOW PRINTERNAME IMAGEFILETYPE)
+                                                             (* ; "{LPT}P.T")
+                      (ERROR PRINTERNAME (CONCAT "cannot print files of type " IMAGEFILETYPE)))
+           elseif PRINTERNAME
+             then                                            (* ; "{LPT}P")
+                  [SETQ IMAGEFILETYPE (CAR (PRINTERPROP (PRINTERTYPE PRINTERNAME)
+                                                  'CANPRINT]
+           elseif IMAGEFILETYPE
+             then                                            (* ; "{LPT}.T")
+                  (CL:UNLESS (SETQ PRINTERNAME (FIND.PRINTER.FOR.IMAGETYPE IMAGEFILETYPE))
+                      (ERROR "No printers for " IMAGEFILETYPE " files" (CONCAT 
+                                                                        "cannot print files of type "
+                                                                              IMAGEFILETYPE)))
+           else (SETQ PRINTERNAME :DEFAULTPRINTER)           (* ; "Just {LPT}")
+                (SETQ IMAGEFILETYPE (CAR (PRINTERPROP (PRINTERTYPE PRINTERNAME)
+                                                'CANPRINT]
+
+         (* ;; "Open as a regular Unix tmp stream... with a funky closefn")
+
+         (SETQ STRM (OPENSTREAM (UNIX-TMP-FILE-NAME 'lpt)
+                           ACCESS RECOG PARAMETERS))
+         (replace (STREAM DEVICE) of STRM with FDEV)
+         (STREAMPROP STRM 'PRINTERNAME PRINTERNAME)
+         (STREAMPROP STRM 'IMAGEFILETYPE IMAGEFILETYPE)
+         STRM])
+
+(PRINTERDEVICE.CLOSEFN
+  [LAMBDA (STRM)                                             (* ; "Edited 17-Jan-2026 08:17 by rmk")
+                                                             (* ; "Edited 28-Dec-2025 17:50 by rmk")
+                                                             (* ; "Edited  4-Oct-2025 16:37 by rmk")
+                                                             (* ; "Edited 28-Sep-2025 14:46 by rmk")
+                                                             (* ; "Edited 20-Sep-2025 13:40 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 11:51 by rmk")
+                                                             (* ; "Edited 11-Sep-2025 12:37 by rmk")
+
+    (* ;; "STRM's FDEV is LPT, even though a {UNIX} file.  Revert to Unix.")
+
+    (* ;; " PRINTERNAME and IMAGEFILETYPE come from LPT name at original opening")
+
+    (* ;; "We don't have the name or any metadata of the original COPYFILE source, so we can't pass its extension-based sourcetype. It has to be inferred from the internal bytes.")
+
+    (replace (STREAM DEVICE) of STRM with (\GETDEVICEFROMNAME 'UNIX))
+    (LET [(OPTIONS `(IMAGEFILETYPE ,(STREAMPROP STRM 'IMAGEFILETYPE)
+                           ,@(STREAMPROP STRM 'PRINTOPTIONS)
+                           DELETE T HEADING T]
+         (CLOSEF STRM)
+         (CL:UNLESS [OR RESETSTATE (EQ 0 (GETFILEINFO STRM 'LENGTH]
+
+             (* ;; "Don't send on error or if empty. ")
+
+             (SEND.FILE.TO.PRINTER (FULLNAME STRM)
+                    (STREAMPROP STRM 'PRINTERNAME)
+                    OPTIONS))
+         (DELFILE STRM])
+
+(PRINTERDEVICEP
+  [LAMBDA (X)                                                (* ; "Edited 17-Dec-2025 00:04 by rmk")
+                                                             (* ; "Edited 13-Dec-2025 10:12 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 14:47 by rmk")
+    (if (OR (NULL X)
+            (EQ X :DEFAULTPRINTER)
+            (STRING.EQUAL X ""))
+        then 'LPT
+      else (CL:WHEN (LISTP X)
+               (SETQ X (CADR X)))
+           (CL:WHEN (OR (LITATOM X)
+                        (STRINGP X)
+                        (STREAMP X))
+               (LET [(FDEV (CAR (NLSETQ (TRUEDEVICE X]
+                    (CL:WHEN (AND FDEV (EQ (FUNCTION PRINTERDEVICE.OPENFN)
+                                           (fetch (FDEV OPENFILE) of FDEV)))
+                        (fetch (FDEV DEVICENAME) of FDEV))))])
+
+(PRINTERNAME
+  [LAMBDA (PRINTER)                                          (* ; "Edited 29-Jan-2026 10:44 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 09:35 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 09:59 by rmk")
+
+    (* ;; 
+    "If PRINTER designates a printer (a printer-spec or stream/filename, returns the printer's name.")
+
+    (* ;; "Takes a printer-spec (in form (type printer-name) or just printer-name) and returns printer-name.  returns nil for null arg.")
+
+    (if (LISTP PRINTER)
+        then (CADR PRINTER)
+      elseif (LITATOM PRINTER)
+        then PRINTER
+      elseif (PRINTERDEVICEP PRINTER)
+        then (LET (FDEV)
+                  (if (AND (STREAMP PRINTER)
+                           (STREAMPROP PRINTER 'PRINTERNAME))
+                    else (SETQ FDEV (TRUEDEVICE PRINTER))
+                         (if (EQ 'LPT (fetch (FDEV DEVICENAME) of FDEV))
+                             then (CL:UNLESS [EQ '%. (SETQ PRINTER (FILENAMEFIELD PRINTER
+                                                                          'NAME]
+                                         PRINTER)
+                           else (fetch (FDEV DEVICENAME) of FDEV])
+)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(PRINTERDEVICE 'LPT)
+)
+(DEFINEQ
+
+(DEFAULTPRINTERS
+  [LAMBDA (PRINTERTYPE NAMESONLY)                            (* ; "Edited 28-Dec-2025 00:35 by rmk")
+                                                             (* ; "Edited 17-Dec-2025 00:44 by rmk")
+                                                             (* ; "Edited 13-Dec-2025 14:04 by rmk")
+                                                             (* ; "Edited  5-Dec-2025 14:28 by rmk")
+
+    (* ;; "The spec for DEFAULTPRINTINGHOSTS is ambiguous because a list whose CAR is a printertype could be a (PRINTERTYPE PRINTER) singleton. This tries to normalize that case to ((PRINTERTYPE PRINTER).")
+
+    (DECLARE (GLOBALVARS DEFAULTPRINTINGHOST))
+    (for P in (if (EQ 0 (NCHARS DEFAULTPRINTINGHOST))
+                  then (CONS NIL)
+                elseif (LITATOM DEFAULTPRINTINGHOST)
+                  then (CONS DEFAULTPRINTINGHOST)
+                elseif (AND (LISTP DEFAULTPRINTINGHOST)
+                            (LITATOM (CAR DEFAULTPRINTINGHOST))
+                            (LITATOM (CADR DEFAULTPRINTINGHOST)))
+                  then 
+                       (* ;; 
+                      "Trying to decode FOO (PDF) and (PDF FOO) as singletons. The spec is ambiguous")
+
+                       (if (PRINTERTYPEP (CAR DEFAULTPRINTINGHOST))
+                           then (CONS DEFAULTPRINTINGHOST)
+                         elseif (PRINTERTYPEP (CADR DEFAULTPRINTINGHOST))
+                           then (CONS (LIST* (CADR DEFAULTPRINTINGHOST)
+                                             (CAR DEFAULTPRINTINGHOST)
+                                             (CDDR DEFAULTPRINTINGHOST)))
+                         elseif (GETMULTI PRINTFILETYPES (CAR DEFAULTPRINTINGHOST))
+                           then (CONS (LIST* NIL (CADR DEFAULTPRINTINGHOST)
+                                             (CAR DEFAULTPRINTINGHOST)
+                                             (CDDR DEFAULTPRINTINGHOST)))
+                         else DEFAULTPRINTINGHOST)
+                else DEFAULTPRINTINGHOST) eachtime (CL:IF (AND NAMESONLY (LISTP P))
+                                                       (SETQ P (CADR P)))
+       when (OR (NULL PRINTERTYPE)
+                (EQ PRINTERTYPE (PRINTERTYPE P))) unless (MEMBER P $$VAL) collect P])
+)
+
+(RPAQ? DEFAULTPRINTINGHOST )
+
+(RPAQ? EMPRESS#SIDES T)
+
+(RPAQ? DEFAULTPRINTERTYPE 'VIEWER)
+
+(ADDTOVAR PRINTERTYPES (VIEWER (CANPRINT (PDF HTML))
+                              (STATUS TRUE)
+                              (PROPERTIES NILL)
+                              (SEND VIEWERPRINT)))
+
+(ADDTOVAR DEFAULTPRINTINGHOST (VIEWER VIEWER)
+                              (UNIX UNIX))
+(DEFINEQ
+
+(VIEWERPRINT
+  [LAMBDA (HOST FILE PRINTOPTIONS)                           (* ; "Edited 19-Jan-2026 14:09 by rmk")
+                                                             (* ; "Edited 28-Dec-2025 18:07 by rmk")
+                                                             (* ; "Edited 25-Dec-2025 08:49 by rmk")
+    (LET [(IMAGEFILETYPE (OR (IMAGESOURCETYPE FILE)
+                             (ERROR "Not a recognizable imagefile type" FILE]
+         [if (STREAMP FILE)
+             then (SETQ FILE (UNIX-FILE-NAME FILE 'INPUT IMAGEFILETYPE IMAGEFILETYPE))
+           elseif [NOT (MEMB (U-CASE (FILENAMEFIELD FILE 'EXTENSION))
+                             (U-CASE (EXTENSIONS.FOR.IMAGEFILETYPE IMAGEFILETYPE]
+             then (SETQ FILE (if (AND (EQ 'UNIX (FILENAMEFIELD FILE 'HOST))
+                                      (STRPOS "/tmp" (FILENAMEFIELD FILE 'DIRECTORY)
+                                             1 NIL T))
+                                 then (RENAMEFILE FILE (UNIX-TMP-FILE-NAME 'viewerprint IMAGEFILETYPE
+                                                              ))
+                               else (UNIX-FILE-NAME FILE 'INPUT IMAGEFILETYPE IMAGEFILETYPE]
+         (ShellOpen (TRUEFILENAME FILE])
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS DEFAULTPRINTINGHOST DEFAULTPRINTERTYPE EMPRESS#SIDES PRINTERTYPES)
+)
+(DEFINEQ
+
+(SCALEREGION
+  [LAMBDA (SCALE REGION)                                     (* rmk%: "21-JUL-82 13:06")
+                                                             (* ; "Scales a region")
+    (create REGION
+           LEFT _ (FIX (FTIMES SCALE (fetch (REGION LEFT) of REGION)))
+           BOTTOM _ (FIX (FTIMES SCALE (fetch (REGION BOTTOM) of REGION)))
+           WIDTH _ (FIX (FTIMES SCALE (fetch (REGION WIDTH) of REGION)))
+           HEIGHT _ (FIX (FTIMES SCALE (fetch (REGION HEIGHT) of REGION])
+)
+
+
+
+(* ; "Converting text files to imagestreams")
+
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS TEXTDEFAULTPAGEREGION)
+)
+
+(RPAQ? TEXTDEFAULTPAGEREGION (SCALEREGION MICASPERINCH (CREATEREGION 1.1 0.75 7.25 9.75)))
+
+(ADDTOVAR IMAGESTREAMTYPES (TEXT (FONTCREATE \CREATEDISPLAYFONT)
+                                 (CREATECHARSET \CREATECHARSET.DISPLAY)))
+
+(ADDTOVAR PRINTFILETYPES (TEXT (TEST LISPSOURCEFILEP)
+                               (EXTENSION (TXT TEXT))))
+(DEFINEQ
+
+(TEXT.TO.IMAGEFILE
+  [LAMBDA (FILE IMAGEFILE IMAGETYPE OPTIONS)                 (* ; "Edited 17-Jan-2026 12:25 by rmk")
+                                                             (* ; "Edited  7-Dec-2025 16:36 by rmk")
+                                                             (* ; "Edited 28-Sep-2025 11:52 by rmk")
+                                                             (* ; "Edited 18-Sep-2025 23:17 by rmk")
+                                                             (* ; "Edited 17-Sep-2025 22:47 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:23 by Snow")
+    (RESETLST
+        (CL:UNLESS (GETSTREAM FILE 'INPUT T)
+            [RESETSAVE (SETQ FILE (OPENSTREAM FILE 'INPUT))
+                   `(PROGN (CLOSEF? OLDVALUE])
+        (LET ((IMAGESTREAM (OPENIMAGESTREAM IMAGEFILE IMAGETYPE OPTIONS)))
+             [RESETSAVE NIL `(PROGN (CLOSEF ,IMAGESTREAM)
+                                    (AND RESETSTATE (DELFILE ,IMAGESTREAM]
+             (COPY.TEXT.TO.IMAGE FILE IMAGESTREAM (LISTGET OPTIONS 'FONTS)
+                    (LISTGET OPTIONS 'TABS))
+             (FULLNAME IMAGESTREAM)))])
+
+(COPY.TEXT.TO.IMAGE
+  [LAMBDA (INFILE IMAGESTREAM FONTS TABS)                    (* ; "Edited 16-Jan-2026 23:02 by rmk")
+                                                             (* ; "Edited 28-Sep-2025 11:46 by rmk")
+                                                             (* ; "Edited  3-Mar-2023 23:46 by rmk")
+                                                             (* ; "Edited 20-Jul-2022 17:14 by rmk")
+                                                            (* ; "Edited  8-Oct-2021 22:23 by rmk:")
+                                                             (* ; "Edited 10-Apr-95 21:23 by rmk:")
+
+    (* ;; "Copy text to an image stream, obeying PSPOOL control characters")
+
+    (LET*
+     [(IMAGESTREAM (GETSTREAM IMAGESTREAM 'OUTPUT))
+      (RIGHTMAR (DSPRIGHTMARGIN NIL IMAGESTREAM))
+      (FONTARRAY (FONTMAPARRAY FONTS))
+      (MAXFONT (ARRAYSIZE FONTARRAY))
+      [INSTRM (OR (GETSTREAM INFILE 'INPUT T)
+                  (OPENSTREAM INFILE 'INPUT]
+      DEFTAB C FC (EOSP (GETFILEINFO INSTRM 'ENDOFSTREAMOP]
+
+     (* ;; 
+ "RMK:  EOS function changed to NILL from ZERO. 0 in low-order bits is OK in UNICODE, when we switch")
+
+     (SETFILEINFO INSTRM 'ENDOFSTREAMOP (FUNCTION NILL))
+     (SETFILEPTR INSTRM 0)
+     [while (SETQ C (\INCCODE.EOLC INSTRM ANY.EOLC))
+        do
+        (COND
+           ((AND RIGHTMAR (> (DSPXPOSITION NIL IMAGESTREAM)
+                             RIGHTMAR))                      (* ; 
+                                                        "Not to walk off the right edge of the paper")
+            (TERPRI IMAGESTREAM)))
+        (COND
+           ([> C (CONSTANT (APPLY (FUNCTION MAX)
+                                  (CHARCODE (^F CR LF ^L EOL TAB]
+            (\OUTCHAR IMAGESTREAM C))
+           (T
+            (SELCHARQ C
+                 (^F                                         (* ; "Font shift")
+
+                     (* ;; 
+                     "For FX-XP-9 printer:SETXY interpress command to avoid printer's BUG(Take)")
+
+                     (DSPXPOSITION (IPLUS (DSPXPOSITION NIL IMAGESTREAM)
+                                          1)
+                            IMAGESTREAM)
+                     [SELCHARQ (SETQ FC (\INCCODE.EOLC INSTRM ANY.EOLC))
+                          (^T                                (* ; "tab to absolute pos.")
+                              (CL:UNLESS (SETQ FC (\INCCODE INSTRM))
+                                  (\OUTCHAR IMAGESTREAM (CHARCODE ^F))
+                                  (\OUTCHAR IMAGESTREAM (CHARCODE ^T))
+                                  (RETURN))
+
+                              (* ;; "DEFAULTTAB is now a constant defined here as 36 = 1/2 inch.  Maybe that should be scaled by the stream's scale factor vis a vis points, not related to the current font.  If you are tabbing for alignment, you wouldn't want it to be ragged based on what font one line is in compare to another.      TEXTDEFAULTTAB is a hack that should be removed.")
+
+                              [SETQ FC
+                               (IF TABS
+                                   THEN (OR (CAR (NTH TABS FC))
+                                            (ERROR "Undefined absolute tab number" FC))
+                                 ELSE (TIMES FC (OR DEFTAB (SETQ DEFTAB
+                                                            (TIMES 8
+                                                                   (CHARWIDTH (CHARCODE SPACE)
+                                                                          (FONTCREATE (ELT FONTARRAY
+                                                                                           1)
+                                                                                 NIL NIL NIL 
+                                                                                 IMAGESTREAM]
+                              (DSPXPOSITION FC IMAGESTREAM))
+                          (NIL (\OUTCHAR IMAGESTREAM (CHARCODE ^F))
+                                                             (* ; "EOS after ^F")
+                               (RETURN))
+                          (COND
+                             ((AND (>= MAXFONT FC)
+                                   (NEQ FC 0))
+                              (DSPFONT (ELT FONTARRAY FC)
+                                     IMAGESTREAM))
+                             (T (\OUTCHAR IMAGESTREAM (CHARCODE ^F))
+                                (\OUTCHAR IMAGESTREAM FC])
+                 (EOL 
+                      (* ;; "Assumes that CR and possibly following LF denote a single EOL, independent of the EOL convention and independent of whether the file was opened binary or text.  Originally, this function tried to discriminate, treating an LF in a CR-mode file as a line-feed and a CR in an LF file as a carriage-return.  But these formatting effects cannot be guaranteed across text-file transfers (which is all that it makes sense to print), so it is silly to take them seriously.  Given that just this information can be lost in text-mode file transfers, we adopt here the 99%% correct solution, which is to treat all instances of CR, CRLF, and LF as end-of-line (ANY.EOLC above)")
+
+                      (TERPRI IMAGESTREAM))
+                 (LF                                         (* ; "Isolatedx LF, see comment at CR")
+                     (TERPRI IMAGESTREAM))
+                 (TAB (OR (LET* [(LEFTMARGIN (DSPLEFTMARGIN NIL IMAGESTREAM))
+                                 (TAB.WIDTH (TIMES (CHARWIDTH (CHARCODE SPACE)
+                                                          IMAGESTREAM)
+                                                   8))
+                                 (CURRENT.X (- (DSPXPOSITION NIL IMAGESTREAM)
+                                               LEFTMARGIN))
+                                 (CURRENT.STOP (- CURRENT.X (REMAINDER CURRENT.X TAB.WIDTH]
+                                (NLSETQ (RELMOVETO (- (+ CURRENT.STOP TAB.WIDTH)
+                                                      CURRENT.X)
+                                               0 IMAGESTREAM)))
+                          (\OUTCHAR IMAGESTREAM C)))
+                 (\OUTCHAR IMAGESTREAM C]
+     (SETFILEINFO INSTRM 'ENDOFSTREAMOP EOSP)
+     IMAGESTREAM])
+
+(TEXTTOIMAGEFILE
+  [LAMBDA (FILE IMAGEFILE IMAGETYPE OPTIONS)                 (* ; "Edited 19-Jan-2026 17:16 by rmk")
+
+    (* ;; "Old name, keep around just in case...")
+
+    (TEDIT.TO.IMAGEFILE FILE IMAGEFILE IMAGETYPE OPTIONS])
+)
+
+(FONTPROFILE.ADDDEVICE 'TEXT)
+
+(DEFAULT.IMAGETYPE.CONVERSIONS '(TEXT TEXT.TO.IMAGEFILE))
+
+
+
+(* ; "hack for printers that can't really BLTSHADE")
+
+(DEFINEQ
+
+(\BLTSHADE.GENERICPRINTER
+  [LAMBDA (TEXTURE STREAM DESTINATIONLEFT DESTINATIONBOTTOM WIDTH HEIGHT OPERATION CLIPPINGREGION 
+                 SHADESCALE)                                 (* ; "Edited 26-Aug-87 14:23 by Snow")
+    (PROG (FINALREGION SCRATCHBM BMWIDTH BMHEIGHT)
+
+     (* ;; "do the clipping to reduce the size of the scratch bitmap created.  This also keeps Press from doing the wrong thing.")
+                                                             (* ; 
+                                                       "don't do anything if clipped region is empty")
+          (OR (SETQ FINALREGION (INTERSECTREGIONS (CREATEREGION DESTINATIONLEFT DESTINATIONBOTTOM 
+                                                         WIDTH HEIGHT)
+                                       (DSPCLIPPINGREGION NIL STREAM)))
+              (RETURN))
+          (AND CLIPPINGREGION (OR (SETQ FINALREGION (INTERSECTREGIONS FINALREGION CLIPPINGREGION))
+                                  (RETURN)))
+          (COND
+             ([ZEROP (SETQ BMWIDTH (FIXR (FQUOTIENT (fetch (REGION WIDTH) of FINALREGION)
+                                                SHADESCALE]
+              (RETURN)))
+          (COND
+             ([ZEROP (SETQ BMHEIGHT (FIXR (FQUOTIENT (fetch (REGION HEIGHT) of FINALREGION)
+                                                 SHADESCALE]
+              (RETURN)))
+          (SETQ SCRATCHBM (BITMAPCREATE BMWIDTH BMHEIGHT))
+          (\BLTSHADE.BITMAP TEXTURE SCRATCHBM 0 0 NIL NIL 'REPLACE)
+          (BITBLT SCRATCHBM 0 0 STREAM (fetch (REGION LEFT) of FINALREGION)
+                 (fetch (REGION BOTTOM) of FINALREGION)
+                 NIL NIL 'INPUT OPERATION])
+)
+
+
+
+(* ; "stuff to support hardcopy streams on the display.")
+
+(DEFINEQ
+
+(MAKEHARDCOPYSTREAM
+  [LAMBDA (DISPLAYSTREAM IMAGETYPE)                          (* ; "Edited  9-Sep-2025 15:11 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:23 by Snow")
+
+(* ;;; 
+"creates a hardcopy stream from a display stream. Seems to be called only from SK.SET.HARDCOPY.MODE")
+
+    (DECLARE (GLOBALVARS \HDCPYDISPLAYIMAGEOPS))
+    (PROG [(DS (COND
+                  ((DISPLAYSTREAMP DISPLAYSTREAM))
+                  ((WINDOWP DISPLAYSTREAM)
+                   (WINDOWPROP DISPLAYSTREAM 'DSP))
+                  ((NULL DISPLAYSTREAM)
+                   (DSPCREATE))
+                  (T (\ILLEGAL.ARG DISPLAYSTREAM]
+          (replace (STREAM IMAGEOPS) of DS with \HDCPYDISPLAYIMAGEOPS)
+          [STREAMPROP DS 'HARDCOPYIMAGETYPE (OR IMAGETYPE (CAR (PRINTERPROP (PRINTERTYPE)
+                                                                      'CANPRINT]
+                                                             (* ; 
+               "set the bout fn to one that updates the mica fields and sets the position from them.")
+          (replace (STREAM STRMBOUTFN) of DS with (FUNCTION \HDCPYDSPPRINTCHAR))
+          (replace (STREAM OUTCHARFN) of DS with (FUNCTION \HDCPYDSPPRINTCHAR))
+                                                             (* ; 
+                       "set the parameters that are different to initialize the mica defined fields.")
+          (DSPFONT (DSPFONT NIL DS)
+                 DS)
+          (DSPXPOSITION 0 DS)
+          (DSPYPOSITION 0 DS)
+          (DSPRIGHTMARGIN (DSPRIGHTMARGIN NIL DS)
+                 DS)
+          (RETURN DS])
+
+(UNMAKEHARDCOPYSTREAM
+  [LAMBDA (DISPLAYSTREAM)                                    (* ; "Edited 26-Aug-87 14:23 by Snow")
+
+(* ;;; "returns a hardcopy stream to a display stream.")
+
+    (DECLARE (GLOBALVARS \DISPLAYIMAGEOPS))
+    (PROG [(DS (COND
+                  ((DISPLAYSTREAMP DISPLAYSTREAM))
+                  ((WINDOWP DISPLAYSTREAM)
+                   (WINDOWPROP DISPLAYSTREAM 'DSP))
+                  (T (\ILLEGAL.ARG DISPLAYSTREAM]
+          (COND
+             ((FMEMB 'HARDCOPY (IMAGESTREAMTYPE DS)))
+             (T (RETURN DS)))
+          (replace (STREAM IMAGEOPS) of DS with \DISPLAYIMAGEOPS)
+          (STREAMPROP DS 'HARDCOPYIMAGETYPE NIL)             (* ; "restore the bout fn")
+          (replace (STREAM STRMBOUTFN) of DS with (FUNCTION \DSPPRINTCHAR))
+          (replace (STREAM OUTCHARFN) of DS with (FUNCTION \DSPPRINTCHAR))
+          (RETURN DS])
+
+(HARDCOPYSTREAMTYPE
+  [LAMBDA (IMAGESTREAM)                                      (* ; "Edited  9-Sep-2025 13:40 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:24 by Snow")
+
+(* ;;; "returns the type of a hard copy stream.")
+
+    (LET ((STREAM (\OUTSTREAMARG IMAGESTREAM T)))
+         (AND STREAM (STREAMPROP STREAM 'HARDCOPYIMAGETYPE])
+
+(\CHARWIDTH.HDCPYDISPLAY
+  [LAMBDA (STREAM CHARCODE)                                  (* ; "Edited 10-Sep-2025 23:48 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:24 by Snow")
+                                                             (* ; 
+        "gets the width of a character code in a hardcopy stream.  Should be updated for spacefactor")
+    (IQUOTIENT (IPLUS (\FGETCHARIMAGEWIDTH (FONTCREATE (ffetch (\DISPLAYDATA DDFONT)
+                                                          of (ffetch IMAGEDATA of STREAM))
+                                                  NIL NIL NIL (STREAMPROP STREAM 'HARDCOPYIMAGETYPE))
+                             CHARCODE)
+                      IHALFMICASPERPT)
+           IMICASPERPT])
+
+(\DSPFONT.HDCPYDISPLAY
+  [LAMBDA (HDCPYDSTREAM FONT)                                (* ; "Edited 10-Sep-2025 23:48 by rmk")
+                                                             (* ; "Edited  2-Sep-2025 22:34 by rmk")
+                                                             (* ; "Edited 12-Jan-88 16:18 by jds")
+
+    (* ;; "changes the font of a hardcopy display stream.  Does what the display does then puts the hardcopy widths where they can be found {FOR NOW USE THE DDCHARIMAGEWIDTHS FIELD}")
+
+    (LET [(FD (AND FONT (FONTCREATE FONT NIL NIL NIL (STREAMPROP HDCPYDSTREAM 'HARDCOPYIMAGETYPE]
+         (PROG1 (\DSPFONT.DISPLAY HDCPYDSTREAM FD)
+             [AND FD (PROG ((DD (fetch IMAGEDATA of HDCPYDSTREAM)))
+                                                             (* ; 
+                            "For now, use a streamprop instead of a special field in the dispay data")
+                                                             (* ; "Scale widths to printer device units, so we don't have to fetch the constants to scale by for every char we print")
+                           (replace DDCHARIMAGEWIDTHS of DD
+                              with (PROG [W OLDWIDTH (SCALE (FONTPROP FD 'SCALE))
+                                            (CSINFO (\INSURECHARSETINFO FD (fetch (STREAM CHARSET)
+                                                                              of HDCPYDSTREAM]
+
+                                    (* ;; "set linefeed from scaled height.  This may be off by almost half a pixel per line but it is better than not doing so.")
+
+                                         [freplace DDLINEFEED of DD
+                                            with (IMINUS (FIXR (QUOTIENT (fetch \SFHeight
+                                                                            of FD)
+                                                                      SCALE]
+                                         [COND
+                                            ((EQP SCALE MICASPERPT)
+                                             (RETURN (fetch (CHARSETINFO WIDTHS) of CSINFO]
+                                         (SETQ W (\CREATECSINFOELEMENT))
+                                         (SETQ OLDWIDTH (fetch (CHARSETINFO WIDTHS) of CSINFO))
+                                         (SETQ SCALE (FQUOTIENT MICASPERPT SCALE))
+                                         [for I from 0 to \MAXTHINCHAR
+                                            do (\FSETWIDTH W I (FIXR (FTIMES (\FGETWIDTH OLDWIDTH I)
+                                                                            SCALE]
+                                         (RETURN W])])
+
+(\DSPRIGHTMARGIN.HDCPYDISPLAY
+  [LAMBDA (DISPLAYSTREAM XPOSITION)                          (* ; "Edited 10-Sep-2025 23:49 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:25 by Snow")
+
+(* ;;; "Sets the right margin that determines when a cr is inserted by print for the hardcopy display stream.")
+
+    (* ;; "mica right margin is kept accurately using 35.27778.  Since the updating at each character is done with 35, this may lead to a small error.")
+
+    (PROG1 (\DSPRIGHTMARGIN.DISPLAY DISPLAYSTREAM XPOSITION)
+        [AND XPOSITION (replace (\DISPLAYDATA DDMICARIGHTMARGIN) of (fetch IMAGEDATA of DISPLAYSTREAM
+                                                                           )
+                          with (FIX (FTIMES XPOSITION MICASPERPT])])
+
+(\DSPXPOSITION.HDCPYDISPLAY
+  [LAMBDA (HARDCOPYSTREAM XPOSITION)                         (* ; "Edited 26-Aug-87 14:25 by Snow")
+                                                             (* ; "updates the mica xposition too.")
+    (PROG1 (\DSPXPOSITION.DISPLAY HARDCOPYSTREAM XPOSITION)
+        (AND XPOSITION (\HDCPYDISPLAY.FIX.XPOS HARDCOPYSTREAM)))])
+
+(\DSPYPOSITION.HDCPYDISPLAY
+  [LAMBDA (HARDCOPYSTREAM YPOSITION)                         (* ; "Edited 26-Aug-87 14:25 by Snow")
+                                                             (* ; "updates the mica xposition too.")
+    (PROG1 (\DSPYPOSITION.DISPLAY HARDCOPYSTREAM YPOSITION)
+        (AND YPOSITION (\HDCPYDISPLAY.FIX.YPOS HARDCOPYSTREAM)))])
+
+(\STRINGWIDTH.HDCPYDISPLAY
+  [LAMBDA (STREAM STR RDTBL)                                 (* ; "Edited 10-Sep-2025 23:49 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:25 by Snow")
+                                                             (* ; 
+                   "Returns the width of for the current font/spacefactor in hardcopy stream STREAM.")
+    (LET [(HARDCOPYFD (FONTCREATE (ffetch (\DISPLAYDATA DDFONT) of (ffetch IMAGEDATA of STREAM))
+                             NIL NIL NIL (STREAMPROP STREAM 'HARDCOPYIMAGETYPE]
+         (IQUOTIENT (IPLUS (\STRINGWIDTH.GENERIC STR HARDCOPYFD RDTBL (\FGETCHARIMAGEWIDTH
+                                                                       HARDCOPYFD
+                                                                       (CHARCODE SPACE)))
+                           IHALFMICASPERPT)
+                IMICASPERPT])
+
+(\STRINGWIDTH.HCPYDISPLAYAUX
+  [LAMBDA (STR FONT RDTBL SPACEWIDTH)                        (* ; "Edited  2-Sep-2025 22:35 by rmk")
+                                                             (* ; "Edited  3-Apr-87 13:48 by jop")
+
+    (* ;; "Returns the width of STR with SPACEWIDTH for the width of spaces.  RDTBL has already been coerced, so no FLG is needed")
+
+    (* ;; "This is cloned in \STRINGWIDTH.HCPYDISPLAYAUX by straight substitution -- (PUTDEF (QUOTE \STRINGWIDTH.HCPYDISPLAYAUX) (QUOTE FNS) (SUBLIS (QUOTE ((IMAGEWIDTHS  . IMAGEWIDTHS) (\FGETIMAGEWIDTH  . \FGETIMAGEWIDTH) (\FGETCHARIMAGEWIDTH  . \FGETCHARIMAGEWIDTH))) (GETDEF (QUOTE \STRINGWIDTH.GENERIC))))")
+
+    (* ;; "\MAPPNAME uses WIDTHSBASE CSET TOTALWIDTH FONT SPACEWIDTH free, so these become special in bytecompiler")
+
+    (PROG NIL
+          [COND
+             [(LITATOM STR)
+              (if RDTBL
+                  then (GO SLOW)
+                else (RETURN (for C WIDTHSBASE CSET inatom STR
+                                sum [COND
+                                       ((NEQ CSET (\CHARSET C))
+                                        (SETQ CSET (\CHARSET C))
+                                        (SETQ WIDTHSBASE (ffetch (CHARSETINFO IMAGEWIDTHS)
+                                                            of (\INSURECHARSETINFO FONT CSET]
+                                    (COND
+                                       ((EQ C (CHARCODE SPACE))
+                                        SPACEWIDTH)
+                                       (T (\FGETIMAGEWIDTH WIDTHSBASE (\CHAR8CODE C]
+             ((STRINGP STR)
+              (RETURN
+               (LET ((TOTAL 0)
+                     ESC ESCWIDTH WIDTHSBASE CSET)
+                    [COND
+                       (RDTBL                                (* ; 
+                                                       "Count delimiting quotes and internal escapes")
+                              (SETQ TOTAL (UNFOLD (\FGETCHARIMAGEWIDTH FONT (CHARCODE %"))
+                                                 2))
+                              (SETQ ESC (fetch (READTABLEP ESCAPECHAR) of RDTBL))
+                              (SETQ ESCWIDTH (\FGETCHARIMAGEWIDTH FONT ESC]
+                    [for C instring STR
+                       do [COND
+                             ((NEQ (\CHARSET C)
+                                   CSET)                     (* ; 
+                                                       "Get the widths vector for this character set")
+                              (SETQ CSET (\CHARSET C))
+                              (SETQ WIDTHSBASE (ffetch (CHARSETINFO IMAGEWIDTHS)
+                                                  of (\INSURECHARSETINFO FONT CSET]
+                          (add TOTAL (COND
+                                        ((EQ C (CHARCODE SPACE))
+                                         SPACEWIDTH)
+                                        (T (IPLUS (\FGETIMAGEWIDTH WIDTHSBASE (\CHAR8CODE C))
+                                                  (COND
+                                                     ((AND RDTBL (OR (EQ C (CHARCODE %"))
+                                                                     (EQ C ESC)))
+                                                             (* ; "String char must be escaped")
+                                                      ESCWIDTH)
+                                                     (T 0]
+                    TOTAL]
+      SLOW
+                                                             (* ; "Do the general case here")
+          (RETURN (LET ((TOTALWIDTH 0)
+                        WIDTHSBASE CSET (FONT FONT)
+                        (SPACEWIDTH SPACEWIDTH))
+                       (DECLARE (SPECVARS TOTALWIDTH WIDTHSBASE CSET FONT SPACEWIDTH))
+                       (\MAPPNAME [FUNCTION (LAMBDA (DUMMY CC)
+                                              (add TOTALWIDTH (COND
+                                                                 ((EQ CC (CHARCODE SPACE))
+                                                                  SPACEWIDTH)
+                                                                 ((EQ CSET (\CHARSET CC))
+                                                                  (\FGETIMAGEWIDTH WIDTHSBASE
+                                                                         (\CHAR8CODE CC)))
+                                                                 (T (SETQ CSET (\CHARSET CC))
+                                                                    (SETQ WIDTHSBASE
+                                                                     (ffetch (CHARSETINFO IMAGEWIDTHS
+                                                                                    )
+                                                                        of (\INSURECHARSETINFO FONT 
+                                                                                  CSET)))
+                                                                    (\FGETIMAGEWIDTH WIDTHSBASE
+                                                                           (\CHAR8CODE CC]
+                              STR RDTBL RDTBL *PRINT-LEVEL* *PRINT-LENGTH*)
+                       TOTALWIDTH])
+
+(\HDCPYBLTCHAR
+  [LAMBDA (CHARCODE DISPLAYSTREAM DISPLAYDATA)               (* ; "Edited 10-Sep-2025 23:49 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:26 by Snow")
+
+    (* ;; "puts a character on a hardcopy display stream.  Much of the information needed by the BitBlt microcode is prestored by the routines that change it.  This is kept in the BitBltTable.")
+                                                             (* ; 
+                                                 "knows about the representation of a DisplayStream.")
+    (DECLARE (LOCALVARS . T))
+    (PROG (LOCAL1 RIGHT LEFT CURX (CHAR8CODE (\CHAR8CODE CHARCODE))
+                 MICARIGHT)
+          (COND
+             ((NEQ (ffetch DDCHARSET of DISPLAYDATA)
+                   (\CHARSET CHARCODE))
+              (\CHANGECHARSET.HDCPYDISPLAY DISPLAYDATA (\CHARSET CHARCODE)
+                     DISPLAYSTREAM)))
+          [COND
+             ((ffetch (\DISPLAYDATA DDSlowPrintingCase) of DISPLAYDATA)
+              (RETURN (\SLOWHDCPYBLTCHAR CHARCODE DISPLAYSTREAM]
+      CRLP
+          (SETQ CURX (ffetch DDXPOSITION of DISPLAYDATA))
+          [COND
+             ((IGREATERP (SETQ MICARIGHT (IPLUS (ffetch (\DISPLAYDATA DDMICAXPOS) of DISPLAYDATA)
+                                                (\FGETWIDTH (ffetch (\DISPLAYDATA DDCHARIMAGEWIDTHS)
+                                                               of DISPLAYDATA)
+                                                       CHAR8CODE)))
+                     (ffetch (\DISPLAYDATA DDMICARIGHTMARGIN) of DISPLAYDATA))
+                                                             (* ; 
+                                                             "would go past right margin, force a cr")
+              (COND
+                 ((IGREATERP CURX (ffetch DDLeftMargin of DISPLAYDATA))
+                                                             (* ; 
+         "don't bother CR if position is at left margin anyway.  This also serves to break the loop.")
+                  (\DSPPRINTCR/LF (CHARCODE EOL)
+                         DISPLAYSTREAM)                      (* ; 
+                         "reuse the code in the test of this conditional rather than repeat it here.")
+                  (GO CRLP]
+          (freplace (\DISPLAYDATA DDMICAXPOS) of DISPLAYDATA with MICARIGHT)
+
+     (* ;; "update the display stream x position.  Make sure that there is at least one point width for each character.")
+
+          (freplace DDXPOSITION of DISPLAYDATA with (IMAX (ADD1 CURX)
+                                                          (IQUOTIENT (IPLUS MICARIGHT IHALFMICASPERPT
+                                                                            )
+                                                                 IMICASPERPT)))
+                                                             (* ; 
+                                        "transforms an x coordinate into the destination coordinate.")
+          (SETQ CURX (IPLUS CURX (ffetch DDXOFFSET of DISPLAYDATA)))
+          (SETQ RIGHT (IPLUS CURX (\DSPGETCHARWIDTH CHAR8CODE DISPLAYDATA)))
+          (COND
+             ((IGREATERP RIGHT (SETQ LOCAL1 (ffetch DDClippingRight of DISPLAYDATA)))
+                                                             (* ; 
+                                                  "character overlaps right edge of clipping region.")
+              (SETQ RIGHT LOCAL1)))
+          (SETQ LEFT (COND
+                        ((IGREATERP CURX (SETQ LOCAL1 (ffetch DDClippingLeft of DISPLAYDATA)))
+                         CURX)
+                        (T LOCAL1)))
+          (RETURN (COND
+                     ((AND (ILESSP LEFT RIGHT)
+                           (NEQ (fetch PBTHEIGHT of (SETQ LOCAL1 (ffetch DDPILOTBBT of DISPLAYDATA)))
+                                0))
+                      (.WHILE.TOP.DS. DISPLAYSTREAM (freplace PBTDESTBIT of LOCAL1 with LEFT)
+                             (freplace PBTWIDTH of LOCAL1 with (IDIFFERENCE RIGHT LEFT))
+                             (freplace PBTSOURCEBIT of LOCAL1 with (IDIFFERENCE (IPLUS (
+                                                                                    \DSPGETCHAROFFSET
+                                                                                        CHAR8CODE 
+                                                                                        DISPLAYDATA)
+                                                                                       LEFT)
+                                                                          CURX))
+                             (\PILOTBITBLT LOCAL1 0))
+                      T])
+
+(\HDCPYDISPLAY.FIX.XPOS
+  [LAMBDA (HARDCOPYSTREAM)                                   (* ; "Edited 10-Sep-2025 23:49 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:26 by Snow")
+
+(* ;;; "updates the mica X position from the x position in the display stream.  This is called whenever the X position changes in a hardcopy stream.")
+
+    (PROG ((DD (fetch IMAGEDATA of HARDCOPYSTREAM)))
+          (replace (\DISPLAYDATA DDMICAXPOS) of DD with (FIX (FTIMES (fetch (\DISPLAYDATA DDXPOSITION
+                                                                                   ) of DD)
+                                                                    MICASPERPT])
+
+(\HDCPYDISPLAY.FIX.YPOS
+  [LAMBDA (HARDCOPYSTREAM)                                   (* ; "Edited 10-Sep-2025 23:49 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:26 by Snow")
+
+(* ;;; "updates the mica Y position from the Y position in the display stream.  This is called whenever the Y position changes in a hardcopy stream.")
+
+    (LET ((DD (fetch IMAGEDATA of HARDCOPYSTREAM)))
+         (replace (\DISPLAYDATA DDMICAYPOS) of DD with (FIX (FTIMES (fetch (\DISPLAYDATA DDYPOSITION)
+                                                                       of DD)
+                                                                   MICASPERPT])
+
+(\HDCPYDISPLAYINIT
+  [LAMBDA NIL                                                (* ; "Edited  9-Sep-2025 13:42 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:26 by Snow")
+
+(* ;;; "Initializes global variables for the hardcopy Display device.  This device appears to the user as a hardcopy device meaning units in micas but outputs to the screen.  Much of this code was borrowed from the display case.")
+
+    (DECLARE (GLOBALVARS \HDCPYDISPLAYIMAGEOPS))
+    (SETQ \HDCPYDISPLAYIMAGEOPS (create IMAGEOPS using \DISPLAYIMAGEOPS IMAGETYPE _
+                                                       '(HARDCOPY DISPLAY)
+                                                       IMFONT _ (FUNCTION \DSPFONT.HDCPYDISPLAY)
+                                                       IMRIGHTMARGIN _ (FUNCTION 
+                                                                        \DSPRIGHTMARGIN.HDCPYDISPLAY)
+                                                       IMXPOSITION _ (FUNCTION 
+                                                                      \DSPXPOSITION.HDCPYDISPLAY)
+                                                       IMYPOSITION _ (FUNCTION 
+                                                                      \DSPYPOSITION.HDCPYDISPLAY)
+                                                       IMSTRINGWIDTH _ (FUNCTION 
+                                                                        \STRINGWIDTH.HDCPYDISPLAY)
+                                                       IMCHARWIDTH _ (FUNCTION 
+                                                                      \CHARWIDTH.HDCPYDISPLAY])
+
+(\HDCPYDSPPRINTCHAR
+  [LAMBDA (STREAM CHARCODE)                                  (* ; "Edited 26-Aug-87 14:27 by Snow")
+
+(* ;;; "displays a character on a hardcopy display stream.  This uses a display font but updates the x position according to hardcopy widths.")
+
+    (PROG ((DD (fetch IMAGEDATA of STREAM)))
+          (\CHECKCARET STREAM)
+          (RETURN
+           (SELECTC (fetch CCECHO of (\SYNCODE \PRIMTERMSA CHARCODE))
+               (INDICATE.CCE [PROG ((CC CHARCODE))
+                                   (add (fetch CHARPOSITION of STREAM)
+                                        (IPLUS (COND
+                                                  ((IGREATERP CC 127)
+                                                             (* ; "META character")
+                                                   (\HDCPYBLTCHAR (CHARCODE %#)
+                                                          STREAM DD)
+                                                   (SETQ CC (LOGAND CC 127))
+                                                   1)
+                                                  (T 0))
+                                               (COND
+                                                  ((ILESSP CC 32)
+                                                             (* ; "CONTROL character")
+                                                   (\HDCPYBLTCHAR (CHARCODE ^)
+                                                          STREAM DD)
+                                                   (SETQ CC (LOGOR CC 64))
+                                                   1)
+                                                  (T 0))
+                                               (PROGN (\HDCPYBLTCHAR CC STREAM DD)
+                                                      1])
+               (SIMULATE.CCE (SELCHARQ CHARCODE
+                                  ((EOL CR LF) 
+                                       (\DSPPRINTCR/LF CHARCODE STREAM)
+                                       (replace CHARPOSITION of STREAM with 0))
+                                  (ESCAPE (\HDCPYBLTCHAR (CHARCODE $)
+                                                 STREAM DD)
+                                          (add (fetch CHARPOSITION of STREAM)
+                                               1))
+                                  (BELL                      (* ; 
+                       "make switching of bits uninterruptable but allow interrupts between flashes.")
+                                        (SELECTQ (MACHINETYPE)
+                                            (DANDELION [PLAYTUNE '((880 . 2500])
+                                            (FLASHWINDOW (WFROMDS STREAM))))
+                                  (TAB (PROG (TABWIDTH (SPACEWIDTH (CHARWIDTH (CHARCODE SPACE)
+                                                                          STREAM)))
+                                             (SETQ TABWIDTH (UNFOLD SPACEWIDTH 8))
+                                             (COND
+                                                ((IGREATERP
+                                                  (\DISPLAYSTREAMINCRXPOSITION
+                                                   (SETQ TABWIDTH
+                                                    (IDIFFERENCE TABWIDTH
+                                                           (MOD (IDIFFERENCE (fetch DDXPOSITION
+                                                                                of DD)
+                                                                       (ffetch DDLeftMargin
+                                                                          of DD))
+                                                                TABWIDTH)))
+                                                   DD)
+                                                  (ffetch DDRightMargin of DD))
+                                                             (* ; 
+                                                             "tab was past rightmargin, force cr.")
+                                                 (\DSPPRINTCR/LF (CHARCODE EOL)
+                                                        STREAM)))
+                                                             (* ; 
+                                                             "return the number of spaces taken.")
+                                             (add (fetch CHARPOSITION of STREAM)
+                                                  (IQUOTIENT TABWIDTH SPACEWIDTH))))
+                                  (PROGN                     (* ; 
+                                                             "this case was copied from \DSCCOUT.")
+                                         (\HDCPYBLTCHAR CHARCODE STREAM DD)
+                                         (add (fetch CHARPOSITION of STREAM)
+                                              1))))
+               (REAL.CCE (SELECTC CHARCODE
+                             ((CHARCODE (EOL CR LF)) 
+                                  (\DSPPRINTCR/LF CHARCODE STREAM)
+                                  (replace CHARPOSITION of STREAM with 0))
+                             (ERASECHARCODE (DSPBACKUP (CHARWIDTH (CHARCODE A)
+                                                              STREAM)
+                                                   STREAM)   (* ; 
+                         "line buffering routines have already taken care of backing up the position")
+                                            0)
+                             (PROGN (\HDCPYBLTCHAR CHARCODE STREAM DD)
+                                    (add (fetch CHARPOSITION of STREAM)
+                                         1))))
+               (IGNORE.CCE)
+               (SHOULDNT])
+
+(\SLOWHDCPYBLTCHAR
+  [LAMBDA (CHARCODE DISPLAYSTREAM)                           (* ; "Edited  2-Sep-2025 22:35 by rmk")
+                                                           (* ; "Edited  9-Nov-89 14:37 by gadener")
+
+(* ;;; 
+"IS THIS CODE JUST GOING TO DUPLICATE AND GET OUT OF SYNC WITH \SLOWBLTCHAR?  KBR 1-FEB-86.  *")
+
+(* ;;; 
+"THIS HAS BEEN SEPARATED OUT BUT HASN'T BEEN EDITTED TO DO CORRECT THING WRT UPDATING MICA FIELDS.")
+
+    (* ;; "case of BLTCHAR where either font is rotated or destination is a color bitmap.  DISPLAYSTREAM is known to be a hardcopy display stream.")
+
+    (PROG (ROTATION (CHAR8CODE (\CHAR8CODE CHARCODE))
+                 (DD (ffetch (STREAM IMAGEDATA) of DISPLAYSTREAM)))
+          (SETQ ROTATION (ffetch (FONTDESCRIPTOR ROTATION) of (ffetch (\DISPLAYDATA DDFONT)
+                                                                 of DD)))
+          (COND
+             [(EQ 0 ROTATION)
+              (PROG (NEWX LEFT RIGHT (CURX (ffetch (\DISPLAYDATA DDXPOSITION) of DD))
+                          PILOTBBT DESTBIT WIDTH SOURCEBIT)
+                    (SETQ NEWX (IPLUS CURX (\DSPGETCHARWIDTH CHAR8CODE DD)))
+                    [COND
+                       ((IGREATERP NEWX (ffetch (\DISPLAYDATA DDRightMargin) of DD))
+                                                             (* ; "past RIGHT margin, force eol")
+                        (\DSPPRINTCR/LF (CHARCODE EOL)
+                               DISPLAYSTREAM)
+                        (SETQ CURX (ffetch (\DISPLAYDATA DDXPOSITION) of DD))
+                        (SETQ NEWX (IPLUS CURX (\DSPGETCHARWIDTH CHAR8CODE DD]
+                                                             (* ; "update the x position.")
+                    (freplace (\DISPLAYDATA DDXPOSITION) of DD with NEWX)
+                    (SETQ CURX (\DSPTRANSFORMX CURX DD))
+                    (SETQ LEFT (IMAX (ffetch (\DISPLAYDATA DDClippingLeft) of DD)
+                                     CURX))
+                    (SETQ RIGHT (IMIN (ffetch (\DISPLAYDATA DDClippingRight) of DD)
+                                      (\DSPTRANSFORMX NEWX DD)))
+                    (SETQ PILOTBBT (ffetch (\DISPLAYDATA DDPILOTBBT) of DD))
+                    (COND
+                       ((AND (ILESSP LEFT RIGHT)
+                             (NEQ (ffetch (PILOTBBT PBTHEIGHT) of PILOTBBT)
+                                  0))
+                        (SETQ DESTBIT LEFT)
+                        (SETQ WIDTH (IDIFFERENCE RIGHT LEFT))
+                        (SETQ SOURCEBIT (IDIFFERENCE (IPLUS (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                                            LEFT)
+                                               CURX))
+                        (SELECTQ (ffetch (BITMAP BITMAPBITSPERPIXEL) of (ffetch (\DISPLAYDATA 
+                                                                                       DDDestination)
+                                                                           of DD))
+                            (1)
+                            (4 (SETQ DESTBIT (LLSH DESTBIT 2))
+                               (SETQ WIDTH (LLSH WIDTH 2))
+                               (SETQ SOURCEBIT (LLSH SOURCEBIT 2)))
+                            (8 (SETQ DESTBIT (LLSH DESTBIT 3))
+                               (SETQ WIDTH (LLSH WIDTH 3))
+                               (SETQ SOURCEBIT (LLSH SOURCEBIT 3)))
+                            (SHOULDNT))
+                        (.WHILE.TOP.DS. DISPLAYSTREAM (freplace (PILOTBBT PBTDESTBIT) of PILOTBBT
+                                                         with DESTBIT)
+                               (freplace (PILOTBBT PBTWIDTH) of PILOTBBT with WIDTH)
+                               (freplace (PILOTBBT PBTSOURCEBIT) of PILOTBBT with SOURCEBIT)
+                               (\PILOTBITBLT PILOTBBT 0))
+                        T]
+             (T                                              (* ; "handle rotated fonts")
+                (PROG (YPOS HEIGHTMOVED CSINFO)
+                      (SETQ YPOS (ffetch (\DISPLAYDATA DDYPOSITION) of DD))
+                      (SETQ HEIGHTMOVED (\DSPGETCHARWIDTH CHAR8CODE DD))
+                      (SETQ CSINFO (\INSURECHARSETINFO (ffetch (\DISPLAYDATA DDFONT) of DD)
+                                          (\CHARSET CHARCODE)))
+                      (COND
+                         ((EQ ROTATION 90)                   (* ; "don't force CR for rotated fonts.")
+                          (\DSPYPOSITION.DISPLAY DISPLAYSTREAM (IPLUS YPOS HEIGHTMOVED))
+                                                             (* ; 
+                                                             "update the display stream x position.")
+                          (BITBLT (ffetch (CHARSETINFO CHARSETBITMAP) of CSINFO)
+                                 0
+                                 (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                 DISPLAYSTREAM
+                                 (ADD1 (IDIFFERENCE (ffetch (\DISPLAYDATA DDXPOSITION) of DD)
+                                              (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)))
+                                 YPOS
+                                 (IPLUS (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 HEIGHTMOVED))
+                         ((EQ ROTATION 270)
+                          (\DSPYPOSITION.DISPLAY DISPLAYSTREAM (IDIFFERENCE YPOS HEIGHTMOVED))
+                          (BITBLT (ffetch (CHARSETINFO CHARSETBITMAP) of CSINFO)
+                                 0
+                                 (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                 DISPLAYSTREAM
+                                 (IDIFFERENCE (ffetch (\DISPLAYDATA DDXPOSITION) of DD)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 (ffetch (\DISPLAYDATA DDYPOSITION) of DD)
+                                 (IPLUS (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 HEIGHTMOVED))
+                         (T (ERROR "Not implemented to rotate by other than 0, 90 or 270"])
+
+(\CHANGECHARSET.HDCPYDISPLAY
+  [LAMBDA (DISPLAYDATA CHARSET HDCPYDSTREAM)                 (* ; "Edited 10-Sep-2025 23:50 by rmk")
+                                                             (* ; "Edited  2-Sep-2025 22:35 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:27 by Snow")
+
+    (* ;; "Called when the character set information cached in a display stream doesn't correspond to CHARSET Only sets those field that are different from the regular DISPLAY case and uses the regular display case to get the rest.")
+
+    (\CHANGECHARSET.DISPLAY DISPLAYDATA CHARSET)
+    (PROG [(FD (FONTCREATE (ffetch DDFONT of DISPLAYDATA)
+                      NIL NIL NIL (STREAMPROP HDCPYDSTREAM 'HARDCOPYIMAGETYPE]
+                                                             (* ; 
+                            "For now, use a streamprop instead of a special field in the dispay data")
+                                                             (* ; 
+ "Scale widths to micas, so we don't have to fetch the constants to scale by for every char we print")
+          (replace DDCHARIMAGEWIDTHS of DISPLAYDATA
+             with (PROG (W OLDWIDTH (SCALE (FONTPROP FD 'SCALE))
+                           (CSINFO (\INSURECHARSETINFO FD CHARSET)))
+                        (SETQ OLDWIDTH (fetch (CHARSETINFO WIDTHS) of CSINFO))
+                        (COND
+                           ((EQP SCALE MICASPERPT)
+                            (RETURN OLDWIDTH)))
+                        (SETQ W (\CREATECSINFOELEMENT))
+                        (SETQ SCALE (FQUOTIENT MICASPERPT SCALE))
+                        [for I from 0 to \MAXTHINCHAR
+                           do (\FSETWIDTH W I (FIXR (FTIMES (\FGETWIDTH OLDWIDTH I)
+                                                           SCALE]
+                        (RETURN W])
+)
+(DECLARE%: DONTCOPY DOEVAL@COMPILE 
+(* "FOLLOWING DEFINITIONS EXPORTED")(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS \MICASTOPTS MACRO ((MICAS)
+                             (QUOTIENT MICAS MICASPERPT)))
+)
+
+(* "END EXPORTED DEFINITIONS")
+
+)
+
+
+
+(* ; "Stuff to support MICA-unit hardcopy streams on the display")
+
+(DEFINEQ
+
+(MAKEHARDCOPYMODESTREAM
+  [LAMBDA (DISPLAYSTREAM IMAGETYPE)                          (* ; "Edited  9-Sep-2025 13:33 by rmk")
+                                                             (* ; "Edited  1-Apr-88 11:25 by jds")
+
+(* ;;; "Creates a hardcopy-mode display stream from a normal one.  That stream operates in units of micas, but displays on the screen as usual.")
+
+    (CL:UNLESS IMAGETYPE
+        [SETQ IMAGETYPE (CAR (PRINTERPROP (PRINTERTYPE)
+                                    'CANPRINT])
+    (LET* ([DS (COND
+                  ((DISPLAYSTREAMP DISPLAYSTREAM))
+                  ((WINDOWP DISPLAYSTREAM)
+                   (WINDOWPROP DISPLAYSTREAM 'DSP))
+                  ((NULL DISPLAYSTREAM)
+                   (DSPCREATE))
+                  (T (\ILLEGAL.ARG DISPLAYSTREAM]
+           (IMAGEOPSVAR (PACK* "\HCPYMODEDISPLAYIMAGEOPS." IMAGETYPE)))
+          (CL:UNLESS (type? IMAGEOPS (GETATOMVAL IMAGEOPSVAR))
+              (SETATOMVAL IMAGEOPSVAR (\HCPYDISPLAYIMAGEOPS IMAGETYPE)))
+          (replace (STREAM IMAGEOPS) of DS with (GETATOMVAL IMAGEOPSVAR))
+          (STREAMPROP DS 'HARDCOPYIMAGETYPE IMAGETYPE)       (* ; 
+               "set the bout fn to one that updates the mica fields and sets the position from them.")
+          (replace (STREAM STRMBOUTFN) of DS with (FUNCTION \HCPYMODEDSPPRINTCHAR))
+                                                             (* ; 
+                     "Set the character-printing functions for the stream to the hardcopy-mode ones.")
+          (replace (STREAM OUTCHARFN) of DS with (FUNCTION \HCPYMODEDSPPRINTCHAR))
+
+(* ;;; "set the parameters that are different to initialize the mica defined fields.")
+
+          (DSPFONT (DSPFONT NIL DS)
+                 DS)                                         (* ; 
+                                                            "Hardcopy version of the current font...")
+          (DSPXPOSITION 0 DS)                                (* ; "Reset the X and Y positions to 0")
+          (DSPYPOSITION 0 DS)
+          (STREAMPROP DS 'DSPRIGHTMARGIN (DSPRIGHTMARGIN NIL DS))
+                                                             (* ; 
+                                                "Stash the right margin in points for later restoral")
+          (DSPRIGHTMARGIN (FIXR (FTIMES (OR (DSPRIGHTMARGIN NIL DS)
+                                            (fetch WIDTH of (DSPCLIPPINGREGION NIL DS)))
+                                       MICASPERPT))
+                 DS)                                         (* ; "And reuse the right margin")
+          (DSPSPACEFACTOR 1 DS)
+          DS])
+
+(UNMAKEHARDCOPYMODESTREAM
+  [LAMBDA (DISPLAYSTREAM)                                    (* ; "Edited  9-Sep-2025 13:29 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:28 by Snow")
+
+(* ;;; "returns a hardcopy stream to a display stream.")
+
+    (DECLARE (GLOBALVARS \DISPLAYIMAGEOPS))
+    (LET [(DS (COND
+                 ((DISPLAYSTREAMP DISPLAYSTREAM))
+                 ((WINDOWP DISPLAYSTREAM)
+                  (WINDOWPROP DISPLAYSTREAM 'DSP))
+                 (T (\ILLEGAL.ARG DISPLAYSTREAM]
+         (CL:WHEN (FMEMB 'HARDCOPY (IMAGESTREAMTYPE DS))
+
+             (* ;; "Do nothing if it's not a hardcopy-mode stream")
+
+             (replace (STREAM IMAGEOPS) of DS with \DISPLAYIMAGEOPS)
+                                                             (* ; "Give it back the usual operations")
+             (STREAMPROP DS 'HARDCOPYIMAGETYPE NIL)          (* ; "restore the bout fn")
+             (replace (STREAM STRMBOUTFN) of DS with (FUNCTION \DSPPRINTCHAR))
+             (replace (STREAM OUTCHARFN) of DS with (FUNCTION \DSPPRINTCHAR))
+             (DSPXPOSITION 0 DS)
+             (DSPYPOSITION 0 DS)
+             (DSPRIGHTMARGIN (OR (STREAMPROP DISPLAYSTREAM 'DSPRIGHTMARGIN)
+                                 (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL DS)))
+                    NIL DS))                                 (* ; 
+                                                             "Reset the right margin back to points")
+         DS])
+
+(\HCPYDISPLAYIMAGEOPS
+  [LAMBDA (IMAGETYPE)                                        (* ; "Edited  9-Sep-2025 15:13 by rmk")
+
+    (* ;; "Same code for all types, except for the IMFONTCREATE function (used only for this purpose, or SK.CHOOSE.TEXT.FONT.")
+
+    (* ;; "This assumes a canonical name \[IMAGETYPE]IMAGEOPS for the IMAGEOPS of IMAGETYPE, so that it can get the IMSCALE function.")
+
+    (create IMAGEOPS using \DISPLAYIMAGEOPS IMAGETYPE _ '(HARDCOPY DISPLAY)
+                           IMFONT _ (FUNCTION \DSPFONT.HCPYMODE)
+                           IMRIGHTMARGIN _ (FUNCTION \DSPRIGHTMARGIN.HCPYMODE)
+                           IMLEFTMARGIN _ (FUNCTION \DSPLEFTMARGIN.HCPYMODE)
+                           IMLINEFEED _ (FUNCTION \DSPLINEFEED.HCPYMODE)
+                           IMDRAWLINE _ (FUNCTION \DRAWLINE.HCPYMODE)
+                           IMDRAWCURVE _ (FUNCTION \DRAWCURVE.HCPYMODE)
+                           IMDRAWCIRCLE _ (FUNCTION \DRAWCIRCLE.HCPYMODE)
+                           IMDRAWELLIPSE _ (FUNCTION \DRAWELLIPSE.HCPYMODE)
+                           IMFILLCIRCLE _ (FUNCTION \FILLCIRCLE.HCPYMODE)
+                           IMBLTSHADE _ (FUNCTION \BLTSHADE.HCPYMODE)
+                           IMBITBLT _ (FUNCTION \BITBLT.HCPYMODE)
+                           IMXPOSITION _ (FUNCTION \DSPXPOSITION.HCPYMODE)
+                           IMYPOSITION _ (FUNCTION \DSPYPOSITION.HCPYMODE)
+                           IMMOVETO _ (FUNCTION \MOVETO.HCPYMODE)
+                           IMSTRINGWIDTH _ (FUNCTION \STRINGWIDTH.HCPYMODE)
+                           IMCHARWIDTH _ (FUNCTION \CHARWIDTH.HCPYMODE)
+                           IMFONTCREATE _ (PACK* IMAGETYPE 'DISPLAY)
+                           IMSCALE _ (fetch (IMAGEOPS IMSCALE) of (GETATOMVAL (PACK* "\" IMAGETYPE 
+                                                                                     "IMAGEOPS")))
+                           IMNEWPAGE _ [FUNCTION (LAMBDA (STREAM)
+                                                   (LET ((WINDOW (AND \WINDOWWORLD (WFROMDS STREAM)))
+                                                         WINDOWFN)
+                                                        (COND
+                                                           ([AND WINDOW (SETQ WINDOWFN
+                                                                         (WINDOWPROP WINDOW
+                                                                                'PAGEFULLFN]
+                                                            (APPLY* WINDOWFN STREAM))
+                                                           (T (PAGEFULLFN STREAM)))
+                                                        (CLEARW STREAM]
+                           IMSPACEFACTOR _ (FUNCTION \DSPSPACEFACTOR.HCPYMODE])
+
+(\BLTSHADE.HCPYMODE
+  [LAMBDA (TEXTURE STREAM DESTINATIONLEFT DESTINATIONBOTTOM WIDTH HEIGHT OPERATION CLIPPINGREGION)
+                                                             (* ; "Edited 26-Aug-87 14:28 by Snow")
+
+(* ;;; "BLTSHADE to a hardcopy-mode display stream")
+                                                             (* ; 
+                                      "Just convert the coordinates and do the normal display thing.")
+    (\BLTSHADE.DISPLAY TEXTURE STREAM (\MICASTOPTS DESTINATIONLEFT)
+           (\MICASTOPTS DESTINATIONBOTTOM)
+           WIDTH HEIGHT OPERATION (\DASHINGCONVERT.HCPYMODE CLIPPINGREGION])
+
+(\BITBLT.HCPYMODE
+  [LAMBDA (SOURCEBITMAP SOURCELEFT SOURCEBOTTOM DESTSTRM DESTINATIONLEFT DESTINATIONBOTTOM WIDTH 
+                 HEIGHT SOURCETYPE OPERATION TEXTURE CLIPPINGREGION CLIPPEDSOURCELEFT 
+                 CLIPPEDSOURCEBOTTOM)                        (* ; "Edited 26-Aug-87 14:28 by Snow")
+
+    (* ;; "BITBLT to a hardcopy-mode display stream.  Convert the destination coordinates to micas and do the normal operation.")
+
+    (\BITBLT.DISPLAY SOURCEBITMAP SOURCELEFT SOURCEBOTTOM DESTSTRM (\MICASTOPTS DESTINATIONLEFT)
+           (\MICASTOPTS DESTINATIONBOTTOM)
+           WIDTH HEIGHT SOURCETYPE OPERATION TEXTURE (\DASHINGCONVERT.HCPYMODE CLIPPINGREGION)
+           CLIPPEDSOURCELEFT CLIPPEDSOURCEBOTTOM])
+
+(\BRUSHCONVERT.HCPYMODE
+  [LAMBDA (BRUSH)                                            (* ; "Edited 26-Aug-87 14:29 by Snow")
+                                                             (* ; 
+                                                   "Convert a brush description from points to micas")
+    (COND
+       ((LISTP BRUSH)
+        (FOR BB IN BRUSH COLLECT (COND
+                                    ((NUMBERP BB)
+                                     (\MICASTOPTS BB))
+                                    (T BB])
+
+(\CHANGECHARSET.HCPYMODE
+  [LAMBDA (DISPLAYDATA CHARSET)                              (* ; "Edited  2-Sep-2025 22:36 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:29 by Snow")
+                                                             (* ; 
+ "Called when the character set information cached in a display stream doesn't correspond to CHARSET")
+    (PROG (BM (PBT (ffetch DDPILOTBBT of DISPLAYDATA))
+              (CSINFO (\INSURECHARSETINFO (ffetch DDFONT of DISPLAYDATA)
+                             CHARSET))
+              (CSDINFO (\INSURECHARSETINFO (FONTCOPY (ffetch DDFONT of DISPLAYDATA)
+                                                  'DEVICE
+                                                  'DISPLAY)
+                              CHARSET)))
+          (UNINTERRUPTABLY
+              (freplace DDWIDTHSCACHE of DISPLAYDATA with (ffetch (CHARSETINFO WIDTHS) of CSINFO))
+              (freplace DDOFFSETSCACHE of DISPLAYDATA with (ffetch (CHARSETINFO OFFSETS) of CSINFO))
+              (freplace DDCHARIMAGEWIDTHS of DISPLAYDATA with (ffetch (CHARSETINFO IMAGEWIDTHS)
+                                                                 of CSINFO))
+              (freplace DDCHARSET of DISPLAYDATA with CHARSET)
+              (SETQ BM (ffetch CHARSETBITMAP of CSINFO))
+              (freplace PBTSOURCEBPL of PBT with (UNFOLD (ffetch BITMAPRASTERWIDTH of BM)
+                                                        BITSPERWORD))
+              [replace OTHERDEVICEFONTPROPS of (ffetch DDFONT of DISPLAYDATA)
+                 with (LIST 'WIDTHS (fetch (CHARSETINFO WIDTHS) of CSDINFO)
+                            'ASCENT
+                            (fetch (CHARSETINFO CHARSETASCENT) of CSDINFO)
+                            'DESCENT
+                            (fetch (CHARSETINFO CHARSETDESCENT) of CSDINFO)
+                            'HEIGHT
+                            (IPLUS (fetch (CHARSETINFO CHARSETASCENT) of CSDINFO)
+                                   (fetch (CHARSETINFO CHARSETDESCENT) of CSDINFO]
+
+              (* ;; "Cache the DISPLAY info, for the various X- and Y-position updating tasks that affect the display bitmap itself")
+
+              [COND
+                 ((OR (NEQ (ffetch DDCHARSETASCENT of DISPLAYDATA)
+                           (ffetch CHARSETASCENT of CSINFO))
+                      (NEQ (ffetch DDCHARSETDESCENT of DISPLAYDATA)
+                           (ffetch CHARSETDESCENT of CSINFO)))
+                  (\SFFixY.HCPYMODE DISPLAYDATA CSINFO))
+                 (T (freplace PBTSOURCE of PBT with (\ADDBASE (ffetch BITMAPBASE of BM)
+                                                           (ITIMES (ffetch BITMAPRASTERWIDTH
+                                                                      of BM)
+                                                                  (ffetch DDCHARHEIGHTDELTA
+                                                                     of DISPLAYDATA])])
+
+(\DASHINGCONVERT.HCPYMODE
+  [LAMBDA (DASHING)                                          (* ; "Edited 26-Aug-87 14:29 by Snow")
+
+    (* ;; "Convert a list of numbers from micas to points.  Usually this will be a dashing spec, but it might be a REGION as well.")
+
+    (for DD in DASHING collect (\MICASTOPTS DD])
+
+(\CHARWIDTH.HCPYMODE
+  [LAMBDA (STREAM CHARCODE)                                  (* ; "Edited 26-Aug-87 14:29 by Snow")
+                                                             (* ; 
+        "gets the width of a character code in a hardcopy stream.  Should be updated for spacefactor")
+    (\FGETWIDTH (ffetch (\DISPLAYDATA DDCHARIMAGEWIDTHS) of (fetch IMAGEDATA of STREAM))
+           CHARCODE])
+
+(\DRAWLINE.HCPYMODE
+  [LAMBDA (STREAM X1 Y1 X2 Y2 WIDTH OPERATION COLOR)         (* ; "Edited 26-Aug-87 14:29 by Snow")
+                                                             (* ; 
+                                                    "Do DRAWLINE for a hardcopy-mode display stream.")
+    (\DRAWLINE.DISPLAY STREAM (\MICASTOPTS X1)
+           (\MICASTOPTS Y1)
+           (\MICASTOPTS X2)
+           (\MICASTOPTS Y2)
+           (IMAX 1 (\MICASTOPTS WIDTH))
+           OPERATION COLOR])
+
+(\DRAWCURVE.HCPYMODE
+  [LAMBDA (STREAM KNOTS CLOSED BRUSH DASHING)                (* ; "Edited 26-Aug-87 14:30 by Snow")
+
+    (* ;; "Do DRAWCURVE for a hardcopy-mode displaystream.  Converts all the mica values to points and uses the usual display version.")
+
+    (\DRAWCURVE.DISPLAY STREAM [FOR KNOT IN KNOTS COLLECT (CONS (\MICASTOPTS (CAR KNOT))
+                                                                (\MICASTOPTS (CDR KNOT]
+           CLOSED
+           (\BRUSHCONVERT.HCPYMODE BRUSH)
+           (\DASHINGCONVERT.HCPYMODE DASHING])
+
+(\DRAWCIRCLE.HCPYMODE
+  [LAMBDA (STREAM CENTERX CENTERY RADIUS BRUSH DASHING)      (* ; "Edited 26-Aug-87 14:30 by Snow")
+
+    (* ;; "DRAWCIRCLE for a hardcopy-mode display stream.  Convert coordinates to points and use the display driver")
+
+    (\DRAWCIRCLE.DISPLAY STREAM (\MICASTOPTS CENTERX)
+           (\MICASTOPTS CENTERY)
+           (\MICASTOPTS RADIUS)
+           (\BRUSHCONVERT.HCPYMODE BRUSH)
+           (\DASHINGCONVERT.HCPYMODE DASHING])
+
+(\DRAWELLIPSE.HCPYMODE
+  [LAMBDA (STREAM CENTERX CENTERY SEMIMINORRADIUS SEMIMAJORRADIUS ORIENTATION BRUSH DASHING)
+                                                             (* ; "Edited 26-Aug-87 14:30 by Snow")
+
+    (* ;; "DRAWELLIPSE driver for hardcopy-mode displaystreams.  Convert all the values to points from micas, and use the display DRAWELLIPSE.")
+
+    (\DRAWELLIPSE.DISPLAY STREAM (\MICASTOPTS CENTERX)
+           (\MICASTOPTS CENTERY)
+           (\MICASTOPTS SEMIMINORRADIUS)
+           (\MICASTOPTS SEMIMAJORRADIUS)
+           ORIENTATION
+           (\BRUSHCONVERT.HCPYMODE BRUSH)
+           (\DASHINGCONVERT.HCPYMODE DASHING])
+
+(\DSPFONT.HCPYMODE
+  [LAMBDA (HDCPYDSTREAM FONT)                                (* ; "Edited 14-Jul-2025 23:00 by rmk")
+                                                             (* ; "Edited  5-Jul-2025 18:49 by rmk")
+                                                             (* ; "Edited 20-Apr-88 11:53 by jds")
+
+    (* ;; "changes the font of a hardcopy display stream.  Does what the display does then puts the hardcopy widths where they can be found {FOR NOW USE THE DDCHARIMAGEWIDTHS FIELD}")
+
+    (PROG (XFONT OLDFONT (DD (fetch IMAGEDATA of HDCPYDSTREAM)))
+                                                             (* ; 
+            "save old value to return, smash new value and update the bitchar portion of the record.")
+          (RETURN (PROG1 (SETQ OLDFONT (fetch DDFONT of DD))
+                      [COND
+                         (FONT (SETQ XFONT (OR (FONTCREATE FONT NIL NIL NIL
+                                                      (fetch IMFONTCREATE
+                                                         of (fetch IMAGEOPS of HDCPYDSTREAM))
+                                                      T)
+                                               (FONTCOPY (ffetch DDFONT of DD)
+                                                      FONT)))(* ; 
+    "updating font information is fairly expensive operation.  Don't bother unless font has changed.")
+                               (OR (EQ XFONT OLDFONT)
+                                   (UNINTERRUPTABLY
+                                       (freplace DDFONT of DD with XFONT)
+                                       (freplace DDLINEFEED of DD with (IMINUS (fetch \SFHeight
+                                                                                  of XFONT)))
+                                                             (* ; 
+                                                "Each line moves down by the font height, by default")
+                                       [freplace DDSPACEWIDTH of DD
+                                          with (FIXR (FTIMES (OR (ffetch DDMICAXPOS of DD)
+                                                                 1)
+                                                            (\FGETCHARWIDTH XFONT (CHARCODE SPACE]
+                                       (\SFFixFont HDCPYDSTREAM DD)
+                                                             (* ; 
+                                              "Fix up the font-dependent fields of the DISPLAYSTREAM")
+                                       )])])
+
+(\DSPLEFTMARGIN.HCPYMODE
+  [LAMBDA (DISPLAYSTREAM XPOSITION)                          (* ; "Edited 26-Aug-87 14:30 by Snow")
+
+(* ;;; "Sets the left margin that determines when a cr is inserted by print for the hardcopy display stream.")
+
+(* ;;; 
+"Sets the left margin for a hardcopy-mode displaystream, to determine where CR returns you to.")
+
+    (PROG1 [\DSPRIGHTMARGIN.DISPLAY DISPLAYSTREAM (AND XPOSITION (FIXR (FQUOTIENT XPOSITION 
+                                                                              MICASPERPT]
+
+           (* ;; "LATER, WHEN DDLEFTMARGINMICA EXISTS...  (AND XPOSITION (replace (\DISPLAYDATA DDMICARIGHTMARGIN) of (fetch IMAGEDATA of DISPLAYSTREAM) with XPOSITION))")
+
+           ])
+
+(\DSPLINEFEED.HCPYMODE
+  [LAMBDA (DISPLAYSTREAM DELTAY)                             (* ; "Edited 26-Aug-87 14:33 by Snow")
+                                                             (* ; 
+ "For a hardcopy-mode displaystream, sets the amount that a line feed increases the y coordinate by.")
+    (PROG1 (ffetch DDLINEFEED of (fetch IMAGEDATA of DISPLAYSTREAM))
+        [AND DELTAY (COND
+                       ((NUMBERP DELTAY)
+                        (freplace DDLINEFEED of (ffetch IMAGEDATA of DISPLAYSTREAM) with DELTAY))
+                       (T (\ILLEGAL.ARG DELTAY])])
+
+(\DSPRIGHTMARGIN.HCPYMODE
+  [LAMBDA (DISPLAYSTREAM XPOSITION)                          (* ; "Edited 26-Aug-87 14:32 by Snow")
+
+(* ;;; "Sets the right margin that determines when a cr is inserted by print for the hardcopy display stream.")
+
+    (PROG1 (fetch (\DISPLAYDATA DDMICARIGHTMARGIN) of (fetch IMAGEDATA of DISPLAYSTREAM))
+                                                             (* ; "Return the old mica value.")
+        [\DSPRIGHTMARGIN.DISPLAY DISPLAYSTREAM (AND XPOSITION (FIXR (FQUOTIENT XPOSITION MICASPERPT]
+                                                             (* ; 
+                                                             "Set the right margin in display units,")
+        (AND XPOSITION (replace (\DISPLAYDATA DDMICARIGHTMARGIN) of (fetch IMAGEDATA of DISPLAYSTREAM
+                                                                           ) with XPOSITION))
+                                                             (* ; "And set the new mica value")
+        )])
+
+(\DSPSPACEFACTOR.HCPYMODE
+  [LAMBDA (DISPLAYSTREAM FACTOR)                             (* ; "Edited  1-Apr-88 11:28 by jds")
+
+    (* ;; "Sets the space factor for a hardcopy-mode displaystream.")
+
+    (LET ((DDATA (fetch IMAGEDATA of DISPLAYSTREAM)))
+         (PROG1 (fetch (\DISPLAYDATA DDMICAXPOS) of DDATA)
+             (COND
+                [(NUMBERP FACTOR)
+                 (replace (\DISPLAYDATA DDMICAXPOS) of DDATA with FACTOR)
+                 (replace (\DISPLAYDATA DDSPACEWIDTH) of DDATA
+                    with (FIXR (FTIMES FACTOR (CHARWIDTH (CHARCODE SPACE)
+                                                     (fetch (\DISPLAYDATA DDFONT) of DDATA]
+                (T (\ILLEGAL.ARG FACTOR))))])
+
+(\DSPXPOSITION.HCPYMODE
+  [LAMBDA (HARDCOPYSTREAM XPOSITION)                         (* ; "Edited 26-Aug-87 14:32 by Snow")
+                                                             (* ; 
+                                  "Update the X position for a mica-unit hardcopy-mode displaystream")
+    (PROG1 (fetch (\DISPLAYDATA DDXPOSITION) of (fetch IMAGEDATA of HARDCOPYSTREAM))
+                                                             (* ; "Return the old value...")
+        [\DSPXPOSITION.DISPLAY HARDCOPYSTREAM (AND XPOSITION (FIXR (FQUOTIENT XPOSITION MICASPERPT]
+                                                             (* ; 
+                                                       "Set up the display right for this mica value")
+        (AND XPOSITION (replace (\DISPLAYDATA DDXPOSITION) of (fetch IMAGEDATA of HARDCOPYSTREAM)
+                          with XPOSITION))                   (* ; "And remember what it was.")
+        )])
+
+(\DSPYPOSITION.HCPYMODE
+  [LAMBDA (HARDCOPYSTREAM YPOSITION)                         (* ; "Edited 26-Aug-87 14:35 by Snow")
+                                                             (* ; "Move to a new mica Y position")
+    (LET* ((DD (fetch IMAGEDATA of HARDCOPYSTREAM))
+           (OLD-POS (ffetch DDYPOSITION of DD)))
+          (COND
+             ((NULL YPOSITION))
+             ((NUMBERP YPOSITION)
+              (UNINTERRUPTABLY
+                  (freplace DDYPOSITION of DD with YPOSITION))
+              (\INVALIDATEDISPLAYCACHE DD))
+             (T (\ILLEGAL.ARG YPOSITION)))
+          OLD-POS])
+
+(\MOVETO.HCPYMODE
+  [LAMBDA (STREAM X Y)                                       (* ; "Edited 26-Aug-87 14:36 by Snow")
+    (\DSPXPOSITION.HCPYMODE STREAM X)
+    (\DSPYPOSITION.HCPYMODE STREAM Y])
+
+(\FONTCREATE.HCPYMODE
+  [LAMBDA (FONTSPEC)                                         (* ; "Edited  2-Sep-2025 22:37 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:36 by Snow")
+
+(* ;;; "Create a font descriptor for a display stream that is mimicing a hardcopy device")
+
+    (LET* ((DFONT (FONTCREATE FONTSPEC NIL NIL NIL 'DISPLAY))
+           (HFONT (create FONTDESCRIPTOR using (FONTCREATE FONTSPEC)
+                                               FONTCHARSETVECTOR _ (\CREATEFONTCHARSETVECTOR)))
+           (CS0DINFO (\INSURECHARSETINFO DFONT \DEFAULTCHARSET)))
+          [replace OTHERDEVICEFONTPROPS of HFONT with (LIST 'WIDTHS (fetch (CHARSETINFO WIDTHS)
+                                                                       of CS0DINFO)
+                                                            'ASCENT
+                                                            (fetch (CHARSETINFO CHARSETASCENT)
+                                                               of CS0DINFO)
+                                                            'DESCENT
+                                                            (fetch (CHARSETINFO CHARSETDESCENT)
+                                                               of CS0DINFO)
+                                                            'HEIGHT
+                                                            (IPLUS (fetch (CHARSETINFO CHARSETASCENT)
+                                                                      of CS0DINFO)
+                                                                   (fetch (CHARSETINFO CHARSETDESCENT
+                                                                                 ) of CS0DINFO]
+
+          (* ;; "Cache the DISPLAY info, for the various X- and Y-position updating tasks that affect the display bitmap itself")
+
+          HFONT])
+
+(\CREATECHARSET.HCPYMODE
+  [LAMBDA (FONTSPEC FONT CHARSET)                            (* ; "Edited  9-Sep-2025 15:26 by rmk")
+                                                             (* ; "Edited  2-Sep-2025 22:37 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:37 by Snow")
+
+(* ;;; "Build the CHARSETINFO for a hardcopy display font, corresponding to the FONTSPEC's FSDEVICE.")
+
+    (LET* ((DFONT (FONTCREATE FONTSPEC NIL NIL NIL 'DISPLAY))
+           (HFONT (FONTCREATE FONTSPEC))
+           (CSDINFO (\INSURECHARSETINFO DFONT CHARSET))
+           (CSHINFO (\INSURECHARSETINFO HFONT CHARSET))
+           (CSINFO (CREATE CHARSETINFO USING CSHINFO)))
+          (replace (CHARSETINFO OFFSETS) of CSINFO with (fetch (CHARSETINFO OFFSETS) of CSDINFO))
+                                                             (* ; 
+  "Fill in the right offsets from the display font--into the hcpy font, and its Charset-0 info block")
+          (replace (CHARSETINFO CHARSETBITMAP) of CSINFO with (fetch (CHARSETINFO CHARSETBITMAP)
+                                                                 of CSDINFO))
+                                                             (* ; "Likewise the character rasters")
+          (replace (CHARSETINFO IMAGEWIDTHS) of CSINFO with (fetch (CHARSETINFO IMAGEWIDTHS)
+                                                               of CSDINFO))
+                                                             (* ; 
+                                   "And the raster widths (as distinct from the nominal mica widths)")
+          CSINFO])
+
+(\STRINGWIDTH.HCPYMODE
+  [LAMBDA (STREAM STR RDTBL)                                 (* ; "Edited 10-Sep-2025 23:50 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:38 by Snow")
+                                                             (* ; 
+                   "Returns the width of for the current font/spacefactor in hardcopy stream STREAM.")
+    (LET [(WIDTHSBASE (ffetch (\DISPLAYDATA DDCHARIMAGEWIDTHS) of (ffetch IMAGEDATA of STREAM]
+         (IQUOTIENT (IPLUS (\STRINGWIDTH.GENERIC STR WIDTHSBASE RDTBL (\FGETWIDTH WIDTHSBASE
+                                                                             (CHARCODE SPACE)))
+                           IHALFMICASPERPT)
+                IMICASPERPT])
+
+(\HCPYMODEBLTCHAR
+  [LAMBDA (CHARCODE DISPLAYSTREAM DISPLAYDATA)               (* ; "Edited  1-Apr-88 11:35 by jds")
+
+    (* ;; "puts a character on a hardcopy display stream.  Much of the information needed by the BitBlt microcode is prestored by the routines that change it.  This is kept in the BitBltTable.")
+                                                             (* ; 
+                                                 "knows about the representation of a DisplayStream.")
+    (DECLARE (LOCALVARS . T))
+    (PROG (LOCAL1 RIGHT LEFT CURX MICARIGHT (CHAR8CODE (\CHAR8CODE CHARCODE))
+                 CHARWIDTH)
+      CRLP
+          [COND
+             ((NEQ (ffetch DDCHARSET of DISPLAYDATA)
+                   (\CHARSET CHARCODE))
+              (\CHANGECHARSET.HCPYMODE DISPLAYDATA (\CHARSET CHARCODE]
+          [COND
+             ((ffetch (\DISPLAYDATA DDSlowPrintingCase) of DISPLAYDATA)
+              (RETURN (\SLOWHCPYMODEBLTCHAR CHARCODE DISPLAYSTREAM]
+          (SETQ CURX (FIXR (FQUOTIENT (ffetch DDXPOSITION of DISPLAYDATA)
+                                  MICASPERPT)))              (* ; 
+                                 "Convert the mica-position value to points only at the last minute.")
+          [SETQ CHARWIDTH (COND
+                             ((IEQP CHARCODE (CHARCODE SPACE))
+                              (FFETCH DDSPACEWIDTH OF DISPLAYDATA))
+                             (T (\DSPGETCHARWIDTH CHAR8CODE DISPLAYDATA]
+          [COND
+             ((IGREATERP (SETQ MICARIGHT (IPLUS (ffetch (\DISPLAYDATA DDXPOSITION) of DISPLAYDATA)
+                                                CHARWIDTH))
+                     (ffetch (\DISPLAYDATA DDMICARIGHTMARGIN) of DISPLAYDATA))
+                                                             (* ; 
+                                                             "would go past right margin, force a cr")
+              (COND
+                 ((IGREATERP CURX (ffetch DDLeftMargin of DISPLAYDATA))
+                                                             (* ; 
+         "don't bother CR if position is at left margin anyway.  This also serves to break the loop.")
+                  (\DSPPRINTCR/LF (CHARCODE EOL)
+                         DISPLAYSTREAM)                      (* ; 
+                         "reuse the code in the test of this conditional rather than repeat it here.")
+                  (GO CRLP]
+          (freplace (\DISPLAYDATA DDXPOSITION) of DISPLAYDATA with MICARIGHT)
+
+     (* ;; "update the display stream x position.  Make sure that there is at least one point width for each character.")
+
+          [SETQ CURX (IPLUS CURX (SETQ LOCAL1 (ffetch DDXOFFSET of DISPLAYDATA]
+                                                             (* ; 
+                                                          "Screen position of the window, generally.")
+          (SETQ RIGHT (IPLUS CURX (\FGETWIDTH (ffetch DDCHARIMAGEWIDTHS of DISPLAYDATA)
+                                         CHAR8CODE)))        (* ; 
+                                                             "Right edge of the character's image.")
+          (COND
+             ((IGREATERP RIGHT (SETQ LOCAL1 (ffetch DDClippingRight of DISPLAYDATA)))
+                                                             (* ; 
+                                                  "character overlaps right edge of clipping region.")
+              (SETQ RIGHT LOCAL1)))
+          (SETQ LEFT (COND
+                        ((IGREATERP CURX (SETQ LOCAL1 (ffetch DDClippingLeft of DISPLAYDATA)))
+                         CURX)
+                        (T LOCAL1)))                         (* ; 
+                                                          "Left edge of the character, as displayed.")
+          (RETURN (COND
+                     ((AND (ILESSP LEFT RIGHT)
+                           (NEQ (fetch PBTHEIGHT of (SETQ LOCAL1 (ffetch DDPILOTBBT of DISPLAYDATA)))
+                                0))                          (* ; 
+                                   "If the character will appear on screen at all, let's display it.")
+                      (.WHILE.TOP.DS. DISPLAYSTREAM (freplace PBTDESTBIT of LOCAL1 with LEFT)
+                                                             (* ; 
+                                      "Set up the destination bit with the screen-relative left edge")
+                             (freplace PBTWIDTH of LOCAL1 with (IDIFFERENCE RIGHT LEFT))
+                                                             (* ; 
+                                            "The display width from the clipped left and right edges")
+                             (freplace PBTSOURCEBIT of LOCAL1 with (IDIFFERENCE (IPLUS (
+                                                                                    \DSPGETCHAROFFSET
+                                                                                        CHAR8CODE 
+                                                                                        DISPLAYDATA)
+                                                                                       LEFT)
+                                                                          CURX))
+                                                             (* ; 
+                                                   "And the source bit-offset from the OFFSETs array")
+                             (\PILOTBITBLT LOCAL1 0)         (* ; "Do the BITBLT")
+                             )
+                      T])
+
+(\HCPYMODEDSPPRINTCHAR
+  [LAMBDA (STREAM CHARCODE)                                  (* ; "Edited 26-Aug-87 14:39 by Snow")
+
+(* ;;; "displays a character on a hardcopy display stream.  This uses a display font but updates the x position according to hardcopy widths.")
+
+    (PROG ((DD (fetch IMAGEDATA of STREAM)))
+          (\CHECKCARET STREAM)
+          (RETURN
+           (SELECTC (fetch CCECHO of (\SYNCODE \PRIMTERMSA CHARCODE))
+               (INDICATE.CCE [PROG ((CC CHARCODE))
+                                   (add (fetch CHARPOSITION of STREAM)
+                                        (IPLUS (COND
+                                                  ((IGREATERP CC 127)
+                                                             (* ; "META character")
+                                                   (\HCPYMODEBLTCHAR (CHARCODE %#)
+                                                          STREAM DD)
+                                                   (SETQ CC (LOGAND CC 127))
+                                                   1)
+                                                  (T 0))
+                                               (COND
+                                                  ((ILESSP CC 32)
+                                                             (* ; "CONTROL character")
+                                                   (\HCPYMODEBLTCHAR (CHARCODE ^)
+                                                          STREAM DD)
+                                                   (SETQ CC (LOGOR CC 64))
+                                                   1)
+                                                  (T 0))
+                                               (PROGN (\HCPYMODEBLTCHAR CC STREAM DD)
+                                                      1])
+               (SIMULATE.CCE (SELCHARQ CHARCODE
+                                  ((EOL CR LF) 
+                                       (\DSPPRINTCR/LF CHARCODE STREAM)
+                                       (replace CHARPOSITION of STREAM with 0))
+                                  (ESCAPE (\HCPYMODEBLTCHAR (CHARCODE $)
+                                                 STREAM DD)
+                                          (add (fetch CHARPOSITION of STREAM)
+                                               1))
+                                  (BELL                      (* ; 
+                       "make switching of bits uninterruptable but allow interrupts between flashes.")
+                                        (SELECTQ (MACHINETYPE)
+                                            (DANDELION [PLAYTUNE '((880 . 2500])
+                                            (FLASHWINDOW (WFROMDS STREAM))))
+                                  (TAB (PROG (TABWIDTH (SPACEWIDTH (CHARWIDTH (CHARCODE SPACE)
+                                                                          STREAM)))
+                                             (SETQ TABWIDTH (UNFOLD SPACEWIDTH 8))
+                                             (COND
+                                                ((IGREATERP
+                                                  (\DISPLAYSTREAMINCRXPOSITION
+                                                   (SETQ TABWIDTH
+                                                    (IDIFFERENCE TABWIDTH
+                                                           (MOD (IDIFFERENCE (fetch DDXPOSITION
+                                                                                of DD)
+                                                                       (ffetch DDLeftMargin
+                                                                          of DD))
+                                                                TABWIDTH)))
+                                                   DD)
+                                                  (ffetch DDRightMargin of DD))
+                                                             (* ; 
+                                                             "tab was past rightmargin, force cr.")
+                                                 (\DSPPRINTCR/LF (CHARCODE EOL)
+                                                        STREAM)))
+                                                             (* ; 
+                                                             "return the number of spaces taken.")
+                                             (add (fetch CHARPOSITION of STREAM)
+                                                  (IQUOTIENT TABWIDTH SPACEWIDTH))))
+                                  (PROGN                     (* ; 
+                                                             "this case was copied from \DSCCOUT.")
+                                         (\HCPYMODEBLTCHAR CHARCODE STREAM DD)
+                                         (add (fetch CHARPOSITION of STREAM)
+                                              1))))
+               (REAL.CCE (SELECTC CHARCODE
+                             ((CHARCODE (EOL CR LF)) 
+                                  (\DSPPRINTCR/LF CHARCODE STREAM)
+                                  (replace CHARPOSITION of STREAM with 0))
+                             (ERASECHARCODE (DSPBACKUP (CHARWIDTH (CHARCODE A)
+                                                              STREAM)
+                                                   STREAM)   (* ; 
+                         "line buffering routines have already taken care of backing up the position")
+                                            0)
+                             (PROGN (\HCPYMODEBLTCHAR CHARCODE STREAM DD)
+                                    (add (fetch CHARPOSITION of STREAM)
+                                         1))))
+               (IGNORE.CCE)
+               (SHOULDNT])
+
+(\SLOWHCPYMODEBLTCHAR
+  [LAMBDA (CHARCODE DISPLAYSTREAM)                           (* ; "Edited  2-Sep-2025 22:37 by rmk")
+                                                             (* ; "Edited 26-Aug-87 14:39 by Snow")
+
+(* ;;; 
+"IS THIS CODE JUST GOING TO DUPLICATE AND GET OUT OF SYNC WITH \SLOWBLTCHAR?  KBR 1-FEB-86.  *")
+
+(* ;;; 
+"THIS HAS BEEN SEPARATED OUT BUT HASN'T BEEN EDITTED TO DO CORRECT THING WRT UPDATING MICA FIELDS.")
+
+    (* ;; "case of BLTCHAR where either font is rotated or destination is a color bitmap.  DISPLAYSTREAM is known to be a hardcopy display stream.")
+
+    (PROG (ROTATION (CHAR8CODE (\CHAR8CODE CHARCODE))
+                 (DD (ffetch (STREAM IMAGEDATA) of DISPLAYSTREAM)))
+          (SETQ ROTATION (ffetch (FONTDESCRIPTOR ROTATION) of (ffetch (\DISPLAYDATA DDFONT)
+                                                                 of DD)))
+          (COND
+             [(EQ 0 ROTATION)
+              (PROG (NEWX LEFT RIGHT (CURX (ffetch (\DISPLAYDATA DDXPOSITION) of DD))
+                          PILOTBBT DESTBIT WIDTH SOURCEBIT)
+                    (SETQ NEWX (IPLUS CURX (\DSPGETCHARWIDTH CHAR8CODE DD)))
+                    [COND
+                       ((IGREATERP NEWX (ffetch (\DISPLAYDATA DDRightMargin) of DD))
+                                                             (* ; "past RIGHT margin, force eol")
+                        (\DSPPRINTCR/LF (CHARCODE EOL)
+                               DISPLAYSTREAM)
+                        (SETQ CURX (ffetch (\DISPLAYDATA DDXPOSITION) of DD))
+                        (SETQ NEWX (IPLUS CURX (\DSPGETCHARWIDTH CHAR8CODE DD]
+                                                             (* ; "update the x position.")
+                    (freplace (\DISPLAYDATA DDXPOSITION) of DD with NEWX)
+                    (SETQ CURX (\DSPTRANSFORMX CURX DD))
+                    (SETQ LEFT (IMAX (ffetch (\DISPLAYDATA DDClippingLeft) of DD)
+                                     CURX))
+                    (SETQ RIGHT (IMIN (ffetch (\DISPLAYDATA DDClippingRight) of DD)
+                                      (\DSPTRANSFORMX NEWX DD)))
+                    (SETQ PILOTBBT (ffetch (\DISPLAYDATA DDPILOTBBT) of DD))
+                    (COND
+                       ((AND (ILESSP LEFT RIGHT)
+                             (NEQ (ffetch (PILOTBBT PBTHEIGHT) of PILOTBBT)
+                                  0))
+                        (SETQ DESTBIT LEFT)
+                        (SETQ WIDTH (IDIFFERENCE RIGHT LEFT))
+                        (SETQ SOURCEBIT (IDIFFERENCE (IPLUS (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                                            LEFT)
+                                               CURX))
+                        (SELECTQ (ffetch (BITMAP BITMAPBITSPERPIXEL) of (ffetch (\DISPLAYDATA 
+                                                                                       DDDestination)
+                                                                           of DD))
+                            (1)
+                            (4 (SETQ DESTBIT (LLSH DESTBIT 2))
+                               (SETQ WIDTH (LLSH WIDTH 2))
+                               (SETQ SOURCEBIT (LLSH SOURCEBIT 2)))
+                            (8 (SETQ DESTBIT (LLSH DESTBIT 3))
+                               (SETQ WIDTH (LLSH WIDTH 3))
+                               (SETQ SOURCEBIT (LLSH SOURCEBIT 3)))
+                            (SHOULDNT))
+                        (.WHILE.TOP.DS. DISPLAYSTREAM (freplace (PILOTBBT PBTDESTBIT) of PILOTBBT
+                                                         with DESTBIT)
+                               (freplace (PILOTBBT PBTWIDTH) of PILOTBBT with WIDTH)
+                               (freplace (PILOTBBT PBTSOURCEBIT) of PILOTBBT with SOURCEBIT)
+                               (\PILOTBITBLT PILOTBBT 0))
+                        T]
+             (T                                              (* ; "handle rotated fonts")
+                (PROG (YPOS HEIGHTMOVED CSINFO)
+                      (SETQ YPOS (ffetch (\DISPLAYDATA DDYPOSITION) of DD))
+                      (SETQ HEIGHTMOVED (\DSPGETCHARWIDTH CHAR8CODE DD))
+                      (SETQ CSINFO (\INSURECHARSETINFO (ffetch (\DISPLAYDATA DDFONT) of DD)
+                                          (\CHARSET CHARCODE)))
+                      (COND
+                         ((EQ ROTATION 90)                   (* ; "don't force CR for rotated fonts.")
+                          (\DSPYPOSITION.DISPLAY DISPLAYSTREAM (IPLUS YPOS HEIGHTMOVED))
+                                                             (* ; 
+                                                             "update the display stream x position.")
+                          (BITBLT (ffetch (CHARSETINFO CHARSETBITMAP) of CSINFO)
+                                 0
+                                 (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                 DISPLAYSTREAM
+                                 (ADD1 (IDIFFERENCE (ffetch (\DISPLAYDATA DDXPOSITION) of DD)
+                                              (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)))
+                                 YPOS
+                                 (IPLUS (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 HEIGHTMOVED))
+                         ((EQ ROTATION 270)
+                          (\DSPYPOSITION.DISPLAY DISPLAYSTREAM (IDIFFERENCE YPOS HEIGHTMOVED))
+                          (BITBLT (ffetch (CHARSETINFO CHARSETBITMAP) of CSINFO)
+                                 0
+                                 (\DSPGETCHAROFFSET CHAR8CODE DD)
+                                 DISPLAYSTREAM
+                                 (IDIFFERENCE (ffetch (\DISPLAYDATA DDXPOSITION) of DD)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 (ffetch (\DISPLAYDATA DDYPOSITION) of DISPLAYSTREAM)
+                                 (IPLUS (ffetch (CHARSETINFO CHARSETASCENT) of CSINFO)
+                                        (ffetch (CHARSETINFO CHARSETDESCENT) of CSINFO))
+                                 HEIGHTMOVED))
+                         (T (ERROR "Not implemented to rotate by other than 0, 90 or 270"])
+
+(\SFFixY.HCPYMODE
+  [LAMBDA (DISPLAYDATA CSINFO)                               (* ; "Edited 26-Aug-87 14:40 by Snow")
+
+    (* ;; "makes that part of the bitblt table of a display stream which deals with the Y information consistent.  This is called whenever any of the information which effects it changes by the DSPFn eg DSPPosition.  If the change affected the clipping region, \SFFixClippingRegion should be called before \SFFixY.HCPYMODE")
+                                                             (* ; 
+                                                 "assumes DISPLAYDATA has already been type checked.")
+    (PROG ((PBT (ffetch DDPILOTBBT of DISPLAYDATA))
+           (FONT (ffetch DDFONT of DISPLAYDATA))
+           (Y (\DSPTRANSFORMY (\MICASTOPTS (ffetch DDYPOSITION of DISPLAYDATA))
+                     DISPLAYDATA))
+           TOP CHARTOP BM)
+          [SETQ CHARTOP (IPLUS Y (LISTGET (fetch OTHERDEVICEFONTPROPS of FONT)
+                                        'ASCENT]
+          [freplace PBTDEST of PBT with (\ADDBASE (fetch BITMAPBASE of (SETQ BM (ffetch DDDestination
+                                                                                   of DISPLAYDATA)))
+                                               (ITIMES (ffetch BITMAPRASTERWIDTH of BM)
+                                                      (\SFInvert BM
+                                                             (SETQ TOP
+                                                              (IMAX (IMIN (ffetch DDClippingTop
+                                                                             of DISPLAYDATA)
+                                                                          CHARTOP)
+                                                                    0]
+          [freplace PBTSOURCE of PBT with (\ADDBASE (ffetch BITMAPBASE of (SETQ BM
+                                                                           (ffetch (CHARSETINFO
+                                                                                    CHARSETBITMAP)
+                                                                              of CSINFO)))
+                                                 (ITIMES (ffetch BITMAPRASTERWIDTH of BM)
+                                                        (freplace DDCHARHEIGHTDELTA of DISPLAYDATA
+                                                           with (IMIN (IMAX (IDIFFERENCE CHARTOP TOP)
+                                                                            0)
+                                                                      MAX.SMALL.INTEGER]
+          (freplace PBTHEIGHT of PBT
+             with (IMAX (IDIFFERENCE TOP (IMAX [IDIFFERENCE Y (freplace DDCHARSETDESCENT of 
+                                                                                          DISPLAYDATA
+                                                                 with (LISTGET (fetch 
+                                                                                 OTHERDEVICEFONTPROPS
+                                                                                  of FONT)
+                                                                             'DESCENT]
+                                               (ffetch DDClippingBottom of DISPLAYDATA)))
+                        0])
+)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS 
+
+(ADDTOVAR NLAMA )
+
+(ADDTOVAR NLAML )
+
+(ADDTOVAR LAMA )
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (6665 19390 (MakeMenuOfPrinters 6675 . 8164) (PRINTERS.WHENSELECTEDFN 8166 . 10097) (
+MakeMenuOfImageTypes 10099 . 10918) (GetNewPrinterFromUser 10920 . 11476) (PopUpWindowAndGetAtom 11478
+ . 12929) (PopUpWindowAndGetList 12931 . 14501) (NewPrinter 14503 . 16117) (GetPrinterName 16119 . 
+16407) (GetImageFile 16409 . 19388)) (19445 37555 (HARDCOPYW 19455 . 20928) (LISTFILES1 20930 . 21107)
+ (PRINTERPROP 21109 . 21359) (PRINTERSTATUS 21361 . 21636) (PRINTERTYPE 21638 . 24874) (PRINTERNAME 
+24876 . 26243) (PRINTFILETYPE 26245 . 26618) (PRINTERTYPEP 26620 . 26845) (SEND.FILE.TO.PRINTER 26847
+ . 33096) (FIND.PRINTER.FOR.IMAGETYPE 33098 . 35752) (CAN.PRINT.SOMEHOW 35754 . 37126) (
+CAN.PRINT.DIRECTLY 37128 . 37553)) (37556 47168 (PRINTERDEVICE 37566 . 39175) (PRINTERDEVICE.OPENFN 
+39177 . 43150) (PRINTERDEVICE.CLOSEFN 43152 . 44871) (PRINTERDEVICEP 44873 . 45797) (PRINTERNAME 45799
+ . 47166)) (47230 49654 (DEFAULTPRINTERS 47240 . 49652)) (50053 51350 (VIEWERPRINT 50063 . 51348)) (
+51468 52026 (SCALEREGION 51478 . 52024)) (52509 60331 (TEXT.TO.IMAGEFILE 52519 . 53732) (
+COPY.TEXT.TO.IMAGE 53734 . 60082) (TEXTTOIMAGEFILE 60084 . 60329)) (60483 62226 (
+\BLTSHADE.GENERICPRINTER 60493 . 62224)) (62293 99459 (MAKEHARDCOPYSTREAM 62303 . 64019) (
+UNMAKEHARDCOPYSTREAM 64021 . 64951) (HARDCOPYSTREAMTYPE 64953 . 65360) (\CHARWIDTH.HDCPYDISPLAY 65362
+ . 66182) (\DSPFONT.HDCPYDISPLAY 66184 . 68979) (\DSPRIGHTMARGIN.HDCPYDISPLAY 68981 . 69836) (
+\DSPXPOSITION.HDCPYDISPLAY 69838 . 70213) (\DSPYPOSITION.HDCPYDISPLAY 70215 . 70590) (
+\STRINGWIDTH.HDCPYDISPLAY 70592 . 71547) (\STRINGWIDTH.HCPYDISPLAYAUX 71549 . 76889) (\HDCPYBLTCHAR 
+76891 . 81788) (\HDCPYDISPLAY.FIX.XPOS 81790 . 82547) (\HDCPYDISPLAY.FIX.YPOS 82549 . 83290) (
+\HDCPYDISPLAYINIT 83292 . 84982) (\HDCPYDSPPRINTCHAR 84984 . 90897) (\SLOWHDCPYBLTCHAR 90899 . 97515) 
+(\CHANGECHARSET.HDCPYDISPLAY 97517 . 99457)) (99774 149325 (MAKEHARDCOPYMODESTREAM 99784 . 102505) (
+UNMAKEHARDCOPYMODESTREAM 102507 . 104097) (\HCPYDISPLAYIMAGEOPS 104099 . 106919) (\BLTSHADE.HCPYMODE 
+106921 . 107587) (\BITBLT.HCPYMODE 107589 . 108337) (\BRUSHCONVERT.HCPYMODE 108339 . 108888) (
+\CHANGECHARSET.HCPYMODE 108890 . 112152) (\DASHINGCONVERT.HCPYMODE 112154 . 112495) (
+\CHARWIDTH.HCPYMODE 112497 . 112934) (\DRAWLINE.HCPYMODE 112936 . 113465) (\DRAWCURVE.HCPYMODE 113467
+ . 114054) (\DRAWCIRCLE.HCPYMODE 114056 . 114541) (\DRAWELLIPSE.HCPYMODE 114543 . 115227) (
+\DSPFONT.HCPYMODE 115229 . 117913) (\DSPLEFTMARGIN.HCPYMODE 117915 . 118657) (\DSPLINEFEED.HCPYMODE 
+118659 . 119292) (\DSPRIGHTMARGIN.HCPYMODE 119294 . 120362) (\DSPSPACEFACTOR.HCPYMODE 120364 . 121139)
+ (\DSPXPOSITION.HCPYMODE 121141 . 122159) (\DSPYPOSITION.HCPYMODE 122161 . 122811) (\MOVETO.HCPYMODE 
+122813 . 123027) (\FONTCREATE.HCPYMODE 123029 . 124986) (\CREATECHARSET.HCPYMODE 124988 . 126711) (
+\STRINGWIDTH.HCPYMODE 126713 . 127508) (\HCPYMODEBLTCHAR 127510 . 133260) (\HCPYMODEDSPPRINTCHAR 
+133262 . 139196) (\SLOWHCPYMODEBLTCHAR 139198 . 145827) (\SFFixY.HCPYMODE 145829 . 149323)))))
+STOP

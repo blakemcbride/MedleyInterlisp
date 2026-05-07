@@ -1,0 +1,245 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "12-Nov-2025 15:49:07" {WMEDLEY}<lispusers>TEDIT-PF-SEE.;156 13422  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (VARS TEDIT-PF-SEECOMS)
+
+      :PREVIOUS-DATE "26-Sep-2025 22:53:59" {WMEDLEY}<lispusers>TEDIT-PF-SEE.;155)
+
+
+(PRETTYCOMPRINT TEDIT-PF-SEECOMS)
+
+(RPAQQ TEDIT-PF-SEECOMS
+       [(FNS PF-TEDIT PF-TEDIT-FROM-TEXT)
+        (COMMANDS ts tf tc tv tr)
+        (FILES (SYSLOAD)
+               REGIONMANAGER VERSIONDEFS)
+        (ALISTS (TEDIT.CHARACTIONS :TEDIT-PF)
+               (TEDIT.CHARBINDINGS :TEDIT-PF))
+        (P (MOVD? 'PFCOPYBYTES 'PFI.MAYBE.PP.DEFINITION)
+           (MOVD? 'NILL (FUNCTION TEDIT.SETFUNCTION))
+           (TEDIT.INSTALL.CHARBINDINGS))
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS (ADDVARS (NLAMA)
+                                                                             (NLAML)
+                                                                             (LAMA])
+(DEFINEQ
+
+(PF-TEDIT
+  [LAMBDA (ITEM IFILES VERSION REPRINT TYPE)                 (* ; "Edited 23-Sep-2025 11:24 by rmk")
+                                                             (* ; "Edited 20-Sep-2025 08:56 by rmk")
+                                                             (* ; "Edited 29-Jul-2025 22:01 by rmk")
+                                                             (* ; "Edited 29-Jun-2025 16:18 by rmk")
+                                                             (* ; "Edited 14-Apr-2025 22:00 by rmk")
+                                                             (* ; "Edited 26-Mar-2025 10:08 by rmk")
+                                                             (* ; "Edited 18-Feb-2025 23:39 by rmk")
+                                                             (* ; "Edited  6-Dec-2024 19:15 by rmk")
+                                                             (* ; "Edited 27-Aug-2024 13:03 by rmk")
+                                                             (* ; "Edited 27-Mar-2024 23:45 by rmk")
+                                                             (* ; "Edited 25-Dec-2023 12:24 by rmk")
+                                                             (* ; "Edited  5-Dec-2023 23:50 by rmk")
+                                                             (* ; "Edited 12-Oct-2023 00:19 by rmk")
+                                                             (* ; "Edited 14-Sep-2023 22:33 by rmk")
+                                                             (* ; "Edited 14-Jul-2023 00:14 by rmk")
+                                                             (* ; "Edited  5-May-2022 23:11 by rmk")
+                                                             (* ; "Edited 12-Jan-2022 13:15 by rmk")
+                                                             (* ; "Edited 30-Dec-2021 23:17 by rmk")
+
+    (* ;; "Shows ITEM of type TYPE in a scrollable read-only TEDIT window.  First argument is the item name, second if given is the input file.")
+
+    (* ;; "Calling again with REPRINT=T  (or ITEM=T) will read and reprint the same item.  And, calling again with no arguments at all will also reprint the last item in the same window")
+
+    (SETQ IFILES (MKLIST IFILES))
+    (CL:WHEN (INTERSECTION TYPE '(FNS FUNCTIONS))
+           (SETQ TYPE NIL))
+    (CL:WHEN (INTERSECTION TYPE '(FNS FUNCTIONS))
+           (SETQ TYPE NIL))
+    (SELECTQ ITEM
+        ((t T NIL) 
+             (SETQ REPRINT T)
+             (SETQ ITEM LASTWORD))
+        (if (VERSIONP ITEM)
+            then (SETQ IFILES (CONS ITEM))
+                 (SETQ ITEM LASTWORD)
+          else (SETQ LASTWORD ITEM)))
+    (CL:UNLESS ITEM (ERROR "No function to print"))
+    (CL:WHEN (AND (VERSIONP IFILES)
+                  (NULL VERSION))
+        (SETQ VERSION IFILES)
+        (SETQ IFILES NIL))
+    (CL:WHEN (INTERSECTION '(T t)
+                    IFILES)
+        (SETQ REPRINT T)
+        [SETQ IFILES (LDIFFERENCE IFILES '(t T])
+    (CL:UNLESS IFILES
+        [SETQ IFILES (OR (WHEREIS ITEM TYPE T)
+                         (AND (NULL TYPE)
+                              (WHEREIS ITEM 'MACROS T])
+    (if IFILES
+        then (for IFILE TSTREAM DEF TFPROP WINDOW inside IFILES
+                eachtime (SETQ IFILE (if (CL:IF (VERSIONP IFILE)
+                                             (FINDFILEVERSION (CAR (WHEREIS ITEM TYPE T))
+                                                    IFILE)
+                                             (FINDFILE IFILE T))
+                                       else (printout T "file " IFILE " not found." T)
+                                            (GO $$ITERATE))) unless (MEMB (FILENAMEFIELD IFILE
+                                                                                 'EXTENSION)
+                                                                          *COMPILED-EXTENSIONS*)
+                do (CL:UNLESS [SETQ DEF (CL:IF TYPE
+                                            (GETDEF ITEM TYPE IFILE 'NOERROR)
+                                            (OR (GETDEF ITEM 'FNS IFILE 'NOERROR)
+                                                (GETDEF ITEM 'FUNCTIONS IFILE 'NOERROR)
+                                                (GETDEF ITEM 'MACROS IFILE 'NOERROR)))]
+                       (printout T ITEM " not found on " IFILE "." T)
+                       (GO $$ITERATE)) 
+
+                   (* ;; "We found ITEM of TYPE on IFILE")
+
+                   (SETQ TFPROP (LIST ITEM TYPE IFILE))
+                   [SETQ WINDOW (find W in (OPENWINDOWS)
+                                   suchthat (AND (EQUAL TFPROP (WINDOWPROP W 'TF))
+                                                 (TEXTSTREAM W T]
+                   (CL:WHEN (AND WINDOW (NOT REPRINT))
+
+                       (* ;; 
+                     "If already an open  window on this item in this file, just raise it to the top")
+
+                       (TOTOPW WINDOW)
+                       (RETURN))
+                   [SETQ TSTREAM (OPENTEXTSTREAM NIL NIL
+                                        `(PARABREAKCHARS NIL OPENWIDTH
+                                                ,(TIMES TEDIT.SOURCE.LINELENGTH (CHARWIDTH
+                                                                                 (CHARCODE SPACE)
+                                                                                 DEFAULTFONT]
+                   (CL:WITH-OPEN-FILE (ISTREAM IFILE :DIRECTION :INPUT)
+                                                             (* ; "Print the reader environment")
+                          (PRINTOUT TSTREAM .FONT DEFAULTFONT 5)
+                          (PRINT-READER-ENVIRONMENT (LISPSOURCEFILEP ISTREAM)
+                                 TSTREAM))
+                   (DSPFONT DEFAULTFONT TSTREAM)
+                   [if (FNTYP DEF)
+                       then (PRINTOUT TSTREAM "(" .FONT BOLDFONT .P2 ITEM " " .FONT DEFAULTFONT)
+                            (PRINTDEF DEF 3 T NIL NIL TSTREAM)
+                            (PRIN3 ")" TSTREAM)
+                     elseif (SELECTQ (CAR DEF)
+                                ((CL:DEFUN DEFMACRO)         (* ; "Could look at :DEFINITION-NAME for definers in general, but we still have to pick out the arguments here (CADDR).")
+                                     (PRINTOUT TSTREAM "(" .P2 (CAR DEF)
+                                            " " .FONT BOLDFONT .P2 (CADR DEF)
+                                            .FONT DEFAULTFONT " " .P2 (CADDR DEF))
+                                     (PRINTDEF (CDDDR DEF)
+                                            3 T T NIL TSTREAM)
+                                     (PRIN3 ")" TSTREAM))
+                                (if (EQ ITEM (CAR DEF))
+                                    then (PRINTOUT TSTREAM "(" .FONT BOLDFONT .P2 ITEM .FONT 
+                                                DEFAULTFONT)
+                                         (PRINTDEF (CADR DEF)
+                                                3
+                                                (NOT TYPE)
+                                                NIL NIL TSTREAM)
+                                         (PRIN3 ")" TSTREAM)
+                                  elseif (EQ ITEM (CADR DEF))
+                                    then (PRINTOUT TSTREAM "(" .P2 (CAR DEF)
+                                                " " .FONT BOLDFONT .P2 ITEM .FONT DEFAULTFONT)
+                                         (PRINTDEF (CDDR DEF)
+                                                3
+                                                (NEQ TYPE 'VARS)
+                                                T NIL TSTREAM)
+                                         (PRIN3 ")" TSTREAM)
+                                  else (PRINTOUT TSTREAM .FONT BOLDFONT .P2 ITEM ":" .FONT 
+                                              DEFAULTFONT)
+                                       (PRINTDEF DEF 3 (NOT TYPE)
+                                              NIL NIL TSTREAM]
+                   (TERPRI TSTREAM) 
+
+                   (* ;; "Since we are creating readonly Tedits, try to keep the TTY where it is.")
+
+                   [TEDIT TSTREAM (OR WINDOW 'TF)
+                          NIL
+                          `(READONLY T TITLE ,(CONCAT ITEM "  from " IFILE)
+                                  ITEM-NAME
+                                  ,ITEM BOUNDTABLE ,(TEDIT.ATOMBOUND.READTABLE *READTABLE*] 
+
+                   (* ;; "The windowprop allows for reprinting as a window action, or reprinting from a command that can find and reuse the previous (presumably unprettied) window.")
+
+                   (WINDOWPROP (WFROMDS TSTREAM)
+                          'TF TFPROP)
+                   (TOTOPW (WFROMDS TSTREAM)))
+             (SETQ *LAST-DF* ITEM)
+      else (PRINTOUT T ITEM " has no " (CL:IF TYPE
+                                           (L-CASE TYPE)
+                                           "function")
+                  " definition" T])
+
+(PF-TEDIT-FROM-TEXT
+  [LAMBDA (TSTREAM TEXTOBJ SEL)                              (* ; "Edited 23-Sep-2025 23:28 by rmk")
+                                                             (* ; "Edited 14-Apr-2025 21:59 by rmk")
+                                                             (* ; "Edited  7-Apr-2025 23:03 by rmk")
+                                                             (* ; "Edited  5-Dec-2024 22:20 by rmk")
+                                                             (* ; "Edited 26-Aug-2024 23:13 by rmk")
+
+    (* ;; "The function key for the meta,T and meta,t keys.  This shows in a separate Tedit window the definition in TSTREAM of the function named by the selection SEL. If this TEDIT is open on a source file that contains the selected function, that definition is used.  Otherwise, the first file that WHEREIS returns.")
+
+    (SETQ TSTREAM (TEXTSTREAM TSTREAM))
+    (CL:UNLESS SEL
+        (SETQ SEL (TEDIT.GETSEL TSTREAM)))
+    (LET ([THISFILE (OR (TEXTPROP TSTREAM 'FILENAME)
+                        (AND (\TEDIT.PRIMARYPANE TSTREAM)
+                             (CADR (WINDOWPROP (\TEDIT.PRIMARYPANE TSTREAM TSTREAM)
+                                          'TF]
+          (FN (MKATOM (TEDIT.SEL.AS.STRING TSTREAM SEL)))
+          ALLFILES)
+         (if (EQ 0 (NCHARS FN))
+             then (TEDIT.PROMPTPRINT TSTREAM "Please select a function to display" T)
+           elseif (SETQ ALLFILES (WHEREIS FN '(FNS FUNCTIONS MACROS)
+                                        T))
+             then (PF-TEDIT FN (CAR (OR (MEMB (FILENAMEFIELD THISFILE)
+                                              ALLFILES)
+                                        ALLFILES)))
+           else (TEDIT.PROMPTPRINT TSTREAM (CONCAT FN " not found")
+                       T])
+)
+
+(DEFCOMMAND ts (FILE VERSION WINDOW FORMAT) (CL:WHEN (WINDOWP VERSION)
+                                                (SETQ WINDOW VERSION)
+                                                (SETQ VERSION -1))
+   (CL:UNLESS VERSION (SETQ VERSION -1))
+   (TEDIT-SEE (FINDFILEVERSION (OR (FINDFILE-WITH-EXTENSIONS FILE NIL
+                                          '(NIL TEDIT TED TXT TEXT TEX))
+                                   (ERROR "FILE NOT FOUND" FILE))
+                     VERSION)
+          (OR WINDOW 'SEE)
+          FORMAT))
+
+(DEFCOMMAND tf (FN FILE VERSION) (PF-TEDIT FN FILE VERSION))
+
+(DEFCOMMAND tc (ITEM FILE VERSION) (PF-TEDIT (FILECOMS ITEM)
+                                          FILE VERSION T 'VARS))
+
+(DEFCOMMAND tv (ITEM FILE VERSION) (PF-TEDIT ITEM FILE VERSION T 'VARS))
+
+(DEFCOMMAND tr (ITEM FILE VERSION) (PF-TEDIT ITEM FILE VERSION T 'RECORDS))
+
+(FILESLOAD (SYSLOAD)
+       REGIONMANAGER VERSIONDEFS)
+
+(ADDTOVAR TEDIT.CHARACTIONS (:TEDIT-PF PF-TEDIT-FROM-TEXT))
+
+(ADDTOVAR TEDIT.CHARBINDINGS (:TEDIT-PF "Meta,t" "Meta,T"))
+
+(MOVD? 'PFCOPYBYTES 'PFI.MAYBE.PP.DEFINITION)
+
+(MOVD? 'NILL (FUNCTION TEDIT.SETFUNCTION))
+
+(TEDIT.INSTALL.CHARBINDINGS)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS 
+
+(ADDTOVAR NLAMA )
+
+(ADDTOVAR NLAML )
+
+(ADDTOVAR LAMA )
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1018 12068 (PF-TEDIT 1028 . 10218) (PF-TEDIT-FROM-TEXT 10220 . 12066)))))
+STOP

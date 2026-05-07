@@ -1,0 +1,2930 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED " 9-Feb-2026 09:10:43" {WMEDLEY}<library>tedit>TEDIT-MENU.;510 183027 
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (FNS \TEDIT.PAGEMENU.CREATE)
+
+      :PREVIOUS-DATE "27-Jan-2026 10:42:09" {WMEDLEY}<library>tedit>TEDIT-MENU.;508)
+
+
+(PRETTYCOMPRINT TEDIT-MENUCOMS)
+
+(RPAQQ TEDIT-MENUCOMS
+       [
+        (* ;; "TEdit-specific menus and support")
+
+        (DECLARE%: DOEVAL@COMPILE DONTCOPY (RECORDS MARGINBAR))
+                                                             (* ; "Middle button in title")
+        [COMS                                                (* ; "Menu interfacing")
+              (FNS TEDIT.ADD.MENUITEM TEDIT.DEFAULT.MENUFN TEDIT.REMOVE.MENUITEM \TEDIT.CREATEMENU 
+                   \TEDIT.MENU.WHENHELDFN \TEDIT.MENU.WHENSELECTEDFN)
+              (GLOBALVARS TEDIT.DEFAULT.MENU)
+              (VARS \TEDIT.DEFAULTMENU.ITEMS)
+              (DECLARE%: DONTEVAL@LOAD DOCOPY (VARS (TEDIT.DEFAULT.MENU (\TEDIT.CREATEMENU
+                                                                         (COPY 
+                                                                             \TEDIT.DEFAULTMENU.ITEMS
+                                                                               ]
+        [COMS                                                (* ; "MARGINBAR")
+              (FNS DRAWMARGINSCALE MARGINBAR MARGINBAR.CREATE MB.MARGINBAR.BUTTONEVENTINFN 
+                   MB.MARGINBAR.SELFN.TABS MB.MARGINBAR.SELFN.TABS.KIND MARGINBAR.GETSTATEFN 
+                   MARGINBAR.SETSTATEFN MARGINBAR.NEUTRALIZE MARGINBAR.LOOKS MB.MARGINBAR.SIZEFN 
+                   MB.MARGINBAR.DISPLAYFN MDESCALE MSCALE MB.MARGINBAR.SHOWTAB MB.MARGINBAR.TABTRACK
+                   MARGINBAR.INIT \TEDIT.PARALOOKS.TO.MARBAR)
+              (BITMAPS \TEDIT.LEFTTAB \TEDIT.CENTERTAB \TEDIT.RIGHTTAB \TEDIT.DECIMALTAB 
+                     \TEDIT.DOTTED.LEFTTAB \TEDIT.DOTTED.CENTERTAB \TEDIT.DOTTED.RIGHTTAB 
+                     \TEDIT.DOTTED.DECIMALTAB TEDIT.EXTENDEDRIGHTMARK)
+              (DECLARE%: DONTEVAL@LOAD DOCOPY (P (MARGINBAR.INIT]
+        (COMS (FNS TEDIT.MENUSTREAM TEDITMENUP \TEDIT.MENU.START \TEDIT.MENU.OPEN? 
+                   \TEDIT.MENU.BUTTONEVENTFN)
+              (BITMAPS TEXTMENUICON TEXTMENUICONMASK))
+                                                             (* ; "Generic support for Tedit menus")
+        (FNS \TEDIT.MENU.CREATE \TEDIT.MENU.PARSE \TEDIT.MENU.NEUTRALIZE 
+             \TEDITMENU.RECORD.UNFORMATTED)
+        
+        (* ;; "")
+
+        
+        (* ;; "")
+
+                                                             (* ; "EXPANDEDMENU")
+        (FNS \TEDIT.EXPANDEDMENU.CREATE \TEDIT.EXPANDEDMENU.START \TEDIT.EXPANDEDMENU.FN 
+             \TEDIT.EXPANDEDMENU.ACTIONFN)
+        
+        (* ;; "")
+
+        
+        (* ;; "")
+
+                                                             (* ; "PARAMENU")
+        (FNS \TEDIT.PARAMENU.CREATE \TEDIT.PARAMENU.START \TEDIT.APPLY.PARALOOKS 
+             \TEDIT.SHOW.PARALOOKS \TEDIT.PARAMENU.FILLIN \TEDIT.PARAMENU.RESHAPEFN)
+        
+        (* ;; "")
+
+        
+        (* ;; "")
+
+                                                             (* ; "CHARMENU")
+        [INITVARS (TEDIT.FONTDEVICES '(DISPLAY PDF))
+               (TEDIT.FONTFAMILIES '(Classic Modern Terminal Helvetica TimesRoman Gacha]
+        (FNS \TEDIT.CHARMENU.CREATE \TEDIT.CHARMENU.START \TEDIT.CHARMENU.SPEC \TEDIT.CHARMENU.PARSE
+             \TEDIT.CHARMENU.FILLIN \TEDIT.SHOW.CHARLOOKS \TEDIT.APPLY.CHARLOOKS 
+             \TEDIT.OFFSETTYPE.STATEFN \TEDIT.OTHER.STATECHANGEFN \TEDIT.OTHER.SELECTFN)
+        
+        (* ;; "")
+
+        
+        (* ;; "")
+
+                                                             (* ; "PAGEMENU")
+        (FNS \TEDIT.PAGEMENU.CREATE \TEDIT.PAGEMENU.START \TEDIT.SHOW.PAGELOOKS 
+             \TEDIT.PAGEMENU.FILLIN \TEDIT.PAGEREGION.UNPARSE \TEDIT.APPLY.PAGELOOKS 
+             \TEDIT.CHANGE.PAGELOOKS \TEDIT.PAGEMENU.CHARLOOKS.STATEFN)
+        (FNS \TEDIT.PAGEMENU.CREATE.HEADINGS \TEDIT.PAGEMENU.HEADINGS.SETSTATEFN 
+             \TEDIT.PAGEMENU.HEADINGS.STATEFN)
+        (DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS (ADDVARS (NLAMA)
+                                                                             (NLAML)
+                                                                             (LAMA])
+
+
+
+(* ;; "TEdit-specific menus and support")
+
+(DECLARE%: DOEVAL@COMPILE DONTCOPY 
+(DECLARE%: EVAL@COMPILE
+
+(RECORD MARGINBAR (MARL1 MARLN MARR MARTABS MARUNIT MARTABTYPE MARBARWIDTH)
+                  [TYPE? (AND (IMAGEOBJP DATUM)
+                              (EQ (IMAGEOBJPROP DATUM 'DISPLAYFN)
+                                  'MB.MARGINBAR.DISPLAYFN])
+)
+)
+
+
+
+(* ; "Middle button in title")
+
+
+
+
+(* ; "Menu interfacing")
+
+(DEFINEQ
+
+(TEDIT.ADD.MENUITEM
+  [LAMBDA (MENU ITEM)                                        (* ; "Edited 13-Apr-2025 19:53 by rmk")
+                                                             (* jds " 9-AUG-83 09:55")
+    (CL:UNLESS (MEMBER ITEM (fetch ITEMS of MENU))           (* ; "Do nothing--it's already there ")
+        (LET (OLDITM)
+             (if [AND (LISTP ITEM)
+                      (SETQ OLDITM (SASSOC (CAR ITEM)
+                                          (fetch ITEMS of MENU]
+                 then                                        (* ; 
+                                     "The menu item exists.  Make sure the thing behind it is right.")
+                      (RPLACD OLDITM (CDR ITEM))
+               else                                          (* ; "Not there, add it")
+                    (replace ITEMS of MENU with (NCONC1 (fetch ITEMS of MENU)
+                                                       ITEM))
+                    (if (EQ (fetch MENUCOLUMNS of MENU)
+                            1)
+                        then                                 (* ; 
+                             "If there is only one column, force a re-figuring of the number of rows")
+                             (replace MENUROWS of MENU with NIL)
+                      elseif (EQ (fetch MENUROWS of MENU)
+                                 1)
+                        then                                 (* ; 
+                                                   "There's only one row, so recompute # of columns.")
+                             (replace MENUCOLUMNS of MENU with NIL))
+                    (replace ITEMWIDTH of MENU with 10000)
+                    (replace ITEMHEIGHT of MENU with 10000)
+                    (replace IMAGE of MENU with NIL)         (* ; 
+                                                             "Force it to create a new menu image.")
+                    (UPDATE/MENU/IMAGE MENU))))])
+
+(TEDIT.DEFAULT.MENUFN
+  [LAMBDA (PANE)                                             (* ; "Edited 28-May-2025 23:54 by rmk")
+                                                             (* ; "Edited 14-Apr-2025 22:09 by rmk")
+                                                             (* ; "Edited 13-Apr-2025 13:28 by rmk")
+                                                             (* ; "Edited 17-Mar-2025 17:28 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 16:40 by rmk")
+                                                             (* ; "Edited 12-Feb-2025 16:26 by rmk")
+                                                             (* ; "Edited  9-Feb-2025 21:28 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 23:46 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 20:24 by rmk")
+                                                             (* ; "Edited 30-Jun-2024 12:38 by rmk")
+                                                             (* ; "Edited 18-May-2024 16:50 by rmk")
+                                                             (* ; "Edited 24-Apr-2024 09:47 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 18:35 by rmk")
+                                                             (* ; "Edited 22-Sep-2023 20:14 by rmk")
+                                                             (* ; "Edited  6-May-2023 17:28 by rmk")
+                                                             (* ; "Edited 30-May-91 23:35 by jds")
+
+    (* ;; 
+    "Default MENU Fn for editor windows--displays a menu of items & acts on the commands received.")
+
+    (PROG* ((TSTREAM (TEXTSTREAM PANE))
+            (TEXTOBJ (FTEXTOBJ TSTREAM))
+            (WMENU (WINDOWPROP PANE 'TEDIT.MENU))
+            THISMENU ITEM)
+           (CL:WHEN (FGETTOBJ TEXTOBJ EDITOPACTIVE)
+
+               (* ;; "We're busy doing something, tell him to wait.  Unfortunately, this string will overwrite whatever may be in the Tedit promptwindow (e.g. a GETINPUT calling TTYINPROMPTFORWORD for a meta-F command), obscuring what the user has already typed.   Maybe an interface that tests to see if the promptwindow is in use, and enlarges it with an extra line above the current type-in?")
+
+               (TEDIT.PROMPTPRINT TEXTOBJ (CONCAT (CL:IF (EQ T (FGETTOBJ TEXTOBJ EDITOPACTIVE))
+                                                      "Edit"
+                                                      (FGETTOBJ TEXTOBJ EDITOPACTIVE))
+                                                 " operation in progress; please wait")
+                      T)
+               (RETURN NIL))
+           (SETQ THISMENU (if WMENU
+                            elseif (SETQ WMENU (WINDOWPROP PANE 'TEDIT.MENU.COMMANDS))
+                              then (PROG1 (SETQ WMENU (\TEDIT.CREATEMENU WMENU))
+                                       (WINDOWPROP PANE 'TEDIT.MENU WMENU))
+                            else TEDIT.DEFAULT.MENU))
+           (SETQ ITEM (CAR (MENU THISMENU)))
+           (ERSETQ (RESETLST
+                       [SELECTQ ITEM
+                           ((Put |Put Formatted Document|) 
+                                (TEDIT.PUT TEXTOBJ NIL NIL (GETTEXTPROP TEXTOBJ 'CLEARPUT)))
+                           (Plain-Text (TEDIT.PUT TEXTOBJ NIL NIL T))
+                           ((Get |Get Formatted Document|)   (* ; 
+                                                 "Get a new file (overwriting the one being edited.)")
+                                (TEDIT.GET TEXTOBJ NIL (GETTEXTPROP TEXTOBJ 'CLEARGET)))
+                           (Unformatted% Get 
+                                (TEDIT.GET TEXTOBJ NIL T))
+                           (Include                          (* ; "Insert a file where the caret is")
+                                    (TEDIT.INCLUDE TEXTOBJ))
+                           (Quit                             (* ; "OK to stop this session?")
+                                 (\TEDIT.FINISHEDIT? TEXTOBJ))
+                           (Substitute                       (* ; "Search-and-replace")
+                                       (RESETLST
+                                           (RESETSAVE (CURSOR WAITINGCURSOR))
+                                           (TEDIT.SUBSTITUTE TEXTOBJ)))
+                           (Find                             (* ; 
+                                                      "Case sensitive search, with * and # wildcards")
+                                 (\TEDIT.KEY.FIND TSTREAM))
+                           (Hardcopy                         (* ; "Print this document")
+                                     (TEDIT.HARDCOPY TEXTOBJ))
+                           (Expanded% Menu                   (* ; 
+                                                             "Open the expanded operations menu.")
+                                (\TEDIT.EXPANDEDMENU.START TSTREAM))
+                           (Character% Looks                 (* ; 
+                                                          "Open the menu for setting character looks")
+                                (\TEDIT.CHARMENU.START TSTREAM))
+                           (Paragraph% Formatting            (* ; 
+                                                             "Open the paragraph formatting menu")
+                                (\TEDIT.PARAMENU.START TSTREAM))
+                           (Page% Layout                     (* ; "Open the page-layout menu")
+                                         (\TEDIT.PAGEMENU.START TSTREAM))
+                           (Buttons (TEDIT.BUTTONS.BUILD))
+                           (Split% Window (\TEDIT.SPLITW (OR (GETTOBJ TEXTOBJ SELPANE)
+                                                             PANE)
+                                                 T))
+                           (Unsplit% Window 
+                                (\TEDIT.UNSPLITW (OR (GETTOBJ TEXTOBJ SELPANE)
+                                                     PANE)))
+                           (CL:WHEN ITEM                     (* ; 
+                                                  "Apply a user-supplied function to the text stream")
+                               [RESETSAVE (\TEDIT.MARKACTIVE TEXTOBJ T)
+                                      '(PROGN (\TEDIT.MARKINACTIVE OLDVALUE]
+                               (APPLY* ITEM (TEXTSTREAM PANE)))])])
+
+(TEDIT.REMOVE.MENUITEM
+  [LAMBDA (MENU ITEM)                                        (* gbn "26-Apr-84 04:06")
+    (PROG (ITEMLIST)
+          [COND
+             ((OR (LITATOM ITEM)
+                  (STRINGP ITEM))
+              (for X in (fetch ITEMS of MENU) do (COND
+                                                    ((AND (LISTP X)
+                                                          (EQUAL (CAR X)
+                                                                 ITEM))
+                                                     (RETURN (SETQ ITEM X]
+          (RETURN (COND
+                     ((MEMBER ITEM (SETQ ITEMLIST (fetch ITEMS of MENU)))
+                      (replace ITEMS of MENU with (REMOVE ITEM ITEMLIST))
+                      (replace MENUCOLUMNS of MENU with NIL)
+                      (replace MENUROWS of MENU with NIL)
+                      (UPDATE/MENU/IMAGE MENU))
+                     (T NIL])
+
+(\TEDIT.CREATEMENU
+  [LAMBDA (ITEMS)                                            (* ; "Edited  3-Apr-2024 13:30 by rmk")
+                                                             (* ; "Edited 16-Oct-87 14:21 by jds")
+
+    (* ;; "Create a TEdit command menu, given a list of menu items.")
+
+    (create MENU
+           ITEMS _ ITEMS
+           CENTERFLG _ T
+           MENUFONT _ (FONTCREATE 'HELVETICA 10 'BOLD)
+           WHENHELDFN _ (FUNCTION \TEDIT.MENU.WHENHELDFN)
+           WHENSELECTEDFN _ (FUNCTION \TEDIT.MENU.WHENSELECTEDFN])
+
+(\TEDIT.MENU.WHENHELDFN
+  [LAMBDA (ITEM MENU BUTTON)                                 (* ; "Edited  4-Oct-2022 09:17 by rmk")
+                                                             (* jds "10-Apr-84 15:14")
+    (COND
+       ((ATOM ITEM)
+        (CLRPROMPT)
+        (PROMPTPRINT (SELECTQ ITEM
+                         (Put "Sends the document to a file")
+                         (Get "Gets a new file as the document to edit.")
+                         (Looks "Changes the font/size/etc. of characters")
+                         (Find "Searches for a string")
+                         (Quit "Ends the edit session")
+                         (Hardcopy "Formats and sends the file to a printer.")
+                         (Hardcopy% File 
+                              "Creates a hardcopy-format file of the document.")
+                         "")))
+       (T (DEFAULTMENUHELDFN ITEM])
+
+(\TEDIT.MENU.WHENSELECTEDFN
+  [LAMBDA (ITEM MENU BUTTON)                                 (* ; "Edited 16-Oct-87 14:21 by jds")
+
+    (* ;; "A Selection fn for preserving the button pressed, for special handling in PUT, e.g.")
+
+    (CONS (DEFAULTWHENSELECTEDFN ITEM MENU BUTTON)
+          BUTTON])
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS TEDIT.DEFAULT.MENU)
+)
+
+(RPAQQ \TEDIT.DEFAULTMENU.ITEMS
+       ((Put 'Put NIL (SUBITEMS |Put Formatted Document| Plain-Text))
+        (Get 'Get NIL (SUBITEMS |Get Formatted Document| Unformatted% Get))
+        Include Find Substitute (Buttons 'Buttons "Display action buttons")
+        (Split% Window 'Split% Window "Split the last-selected window")
+        (Unsplit% Window 'Unsplit% Window "Unsplit the last-selected window")
+        Quit
+        (Expanded% Menu 'Expanded% Menu NIL (SUBITEMS Expanded% Menu Character% Looks 
+                                                   Paragraph% Formatting Page% Layout))))
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(RPAQ TEDIT.DEFAULT.MENU (\TEDIT.CREATEMENU (COPY \TEDIT.DEFAULTMENU.ITEMS)))
+)
+
+
+
+(* ; "MARGINBAR")
+
+(DEFINEQ
+
+(DRAWMARGINSCALE
+  [LAMBDA (W UNIT)                                           (* ; "Edited 20-Nov-2023 14:49 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:59 by mitani")
+
+    (* ;; " Draw the margin-bar scale -- the markings across the bottom of the margin bar that show you the margin values.  Draws the scale in window W, according to UNIT = 1 for points, or 12 for picas.")
+
+    (PROG ((WREG (DSPCLIPPINGREGION NIL W))
+           (OLDOP (DSPOPERATION 'REPLACE W)))
+          (DSPFILL (create REGION
+                          LEFT _ 0
+                          BOTTOM _ 0
+                          WIDTH _ (fetch (REGION WIDTH) of WREG)
+                          HEIGHT _ 24)
+                 WHITESHADE
+                 'REPLACE W)                                 (* ; "CLEAR IT OUT FIRST.")
+          (SELECTQ UNIT
+              (1                                             (* ; "Straight Points")
+                 [for X from 4 by 3 to (fetch (REGION WIDTH) of WREG)
+                    do 
+                       (* ;; "Put a tick every 3 points, with a number every inch.")
+
+                       (COND
+                          ((ZEROP (IREMAINDER (IDIFFERENCE X 4)
+                                         72))
+                           (BLTSHADE BLACKSHADE W X 8 1 16 'REPLACE)
+                           (MOVETO (IDIFFERENCE X (LRSH (STRINGWIDTH (IDIFFERENCE X 4))
+                                                        1))
+                                  10 W)
+                           (PRIN1 (IDIFFERENCE X 4)
+                                  W))
+                          (T (BLTSHADE BLACKSHADE W X 20 1 4 'REPLACE])
+              (12                                            (* ; "Picas")
+                  (for X from 4 by 12 to (fetch (REGION WIDTH) of WREG) as NOMX from 0
+                     do 
+                        (* ;; "Put a tick every half-pica, with a number every inch.")
+
+                        [COND
+                           ((ZEROP (IREMAINDER NOMX 6))
+                            (BLTSHADE BLACKSHADE W X 8 1 16 'REPLACE)
+                            (MOVETO (IDIFFERENCE X (LRSH (STRINGWIDTH NOMX)
+                                                         1))
+                                   10 W)
+                            (PRIN1 NOMX W))
+                           (T (BLTSHADE BLACKSHADE W X 20 1 4 'REPLACE]
+                        (BLTSHADE BLACKSHADE W (IPLUS X 6)
+                               22 1 2 'REPLACE)))
+              NIL)
+          (BLTSHADE BLACKSHADE W 4 23 (fetch (REGION WIDTH) of WREG)
+                 1
+                 'REPLACE)
+          (MOVETO 0 0 W)
+          (RELDRAWTO (IDIFFERENCE (fetch (REGION WIDTH) of WREG)
+                            2)
+                 0 1 'PAINT W)
+          (RELDRAWTO 0 (IDIFFERENCE (fetch (REGION HEIGHT) of WREG)
+                              2)
+                 1
+                 'PAINT W)
+          (RELDRAWTO (IMINUS (IDIFFERENCE (fetch (REGION WIDTH) of WREG)
+                                    2))
+                 0 1 'PAINT W)
+          (RELDRAWTO 0 (IMINUS (IDIFFERENCE (fetch (REGION HEIGHT) of WREG)
+                                      2))
+                 1
+                 'PAINT W)
+          (DSPOPERATION OLDOP W])
+
+(MARGINBAR
+  [LAMBDA (W L1 LN R TABS UNIT UPDATE RIGHTLIM)              (* ; "Edited 21-Oct-2024 00:26 by rmk")
+                                                             (* ; "Edited 23-Jul-2024 00:41 by rmk")
+                                                             (* ; "Edited 20-Nov-2023 20:34 by rmk")
+                                                             (* ; "Edited  2-Oct-2022 00:01 by rmk")
+                                                             (* ; "Edited  9-Sep-2022 22:38 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:59 by mitani")
+                                                             (* ; 
+                                    "Given a set of margins and a unit, show the margin bar properly")
+    (PROG ((OLDOP (DSPOPERATION 'ERASE W))
+           (SCALEDL1 (MSCALE L1 UNIT))
+           (SCALEDLN (MSCALE LN UNIT))
+           (SCALEDR (MSCALE R UNIT))
+           (FLOATINGRIGHT NIL)
+           (EXTENDEDRIGHT NIL)
+           UNSETL1 UNSETLN)
+          (CL:UNLESS RIGHTLIM (\TEDIT.THELP))
+          (CL:UNLESS UPDATE (DRAWMARGINSCALE W UNIT))
+          (DSPFONT (FONTCREATE 'TERMINAL 10)
+                 W)
+          (SETQ L1 (MKSTRING (ABS L1)))
+          (SETQ LN (MKSTRING (ABS LN)))
+          (SETQ R (MKSTRING (ABS R)))
+          [COND
+             [(ILESSP SCALEDR 4)                             (* ; 
+                                       "Unset right margin.  Show specially, but at its usual place.")
+              (SETQ FLOATINGRIGHT T)
+              (SETQ SCALEDR (IPLUS 4 (IDIFFERENCE 4 SCALEDR]
+             ((ILEQ SCALEDR 4)                               (* ; 
+                                                          "Floating right margin => marked specially")
+              (SETQ FLOATINGRIGHT T)
+              (SETQ SCALEDR RIGHTLIM))
+             ((IGREATERP SCALEDR RIGHTLIM)                   (* ; 
+                                  "Not floating, so just limit it to the rightmost that can be seen.")
+              (SETQ EXTENDEDRIGHT T)
+              (SETQ SCALEDR (IDIFFERENCE RIGHTLIM 8]
+          (CL:WHEN (ILESSP SCALEDL1 4)                       (* ; 
+                            "Unset right FIRST LEFT margin.  Show specially, but at its usual place.")
+              (SETQ UNSETL1 T)
+              (SETQ SCALEDL1 (IPLUS 4 (IDIFFERENCE 4 SCALEDL1))))
+          (CL:WHEN (ILESSP SCALEDLN 4)                       (* ; 
+                                        "Unset LEFT margin.  Show specially, but at its usual place.")
+              (SETQ UNSETLN T)
+              (SETQ SCALEDLN (IPLUS 4 (IDIFFERENCE 4 SCALEDLN))))
+          (BLTSHADE WHITESHADE W 1 26 (IDIFFERENCE (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL W)
+                                                          )
+                                             3)
+                 32
+                 'REPLACE)
+          (BLTSHADE BLACKSHADE W SCALEDL1 42 (IDIFFERENCE SCALEDR SCALEDL1)
+                 16
+                 'REPLACE)
+          (BLTSHADE BLACKSHADE W SCALEDLN 26 (IDIFFERENCE SCALEDR SCALEDLN)
+                 16
+                 'REPLACE)
+          (COND
+             (UNSETL1                                        (* ; 
+                                    "1st left margin isn't set, tho it has a value.  Mark it neutral")
+                    (BLTSHADE EDITGRAY W SCALEDL1 42 (IPLUS (STRINGWIDTH L1 W)
+                                                            2)
+                           16
+                           'REPLACE)
+                    (DSPOPERATION 'PAINT W)
+                    (MOVETO (IPLUS SCALEDL1 2)
+                           44 W)
+                    (PRIN1 L1 W)
+                    (DSPOPERATION 'ERASE W))
+             (T (MOVETO (IPLUS SCALEDL1 2)
+                       44 W)
+                (PRIN1 L1 W)))
+          (COND
+             (UNSETLN                                        (* ; 
+                                        "left margin isn't set, tho it has a value.  Mark it neutral")
+                    (BLTSHADE EDITGRAY W SCALEDLN 26 (IPLUS (STRINGWIDTH LN W)
+                                                            2)
+                           16
+                           'REPLACE)
+                    (DSPOPERATION 'PAINT W)
+                    (MOVETO (IPLUS SCALEDLN 2)
+                           28 W)
+                    (PRIN1 LN W)
+                    (DSPOPERATION 'ERASE W))
+             (T (MOVETO (IPLUS SCALEDLN 2)
+                       28 W)
+                (PRIN1 LN W)))
+          [COND
+             (FLOATINGRIGHT                                  (* ; 
+                                             "Floating right margin is marked by a light gray marker")
+                    (BLTSHADE EDITGRAY W (IDIFFERENCE SCALEDR (IPLUS (STRINGWIDTH R W)
+                                                                     2))
+                           26
+                           (IPLUS (STRINGWIDTH R W)
+                                  2)
+                           32
+                           'REPLACE)
+                    (DSPOPERATION 'PAINT W))
+             (EXTENDEDRIGHT                                  (* ; 
+                          "A non-visible right margin is marked by two wavy lines indicating a break")
+                    (BITBLT TEDIT.EXTENDEDRIGHTMARK 0 0 W SCALEDR 26 8 32 'INPUT 'REPLACE]
+          (MOVETO (IDIFFERENCE SCALEDR (IPLUS (STRINGWIDTH R W)
+                                              2))
+                 36 W)
+          (PRIN1 R W)
+          (DSPOPERATION OLDOP W)
+          (COND
+             ((EQ TABS 'NEUTRAL)                             (* ; 
+                           "All tabs have been neutralized.  Just lay down a grey pattern over them.")
+              (DSPFILL (create REGION
+                              LEFT _ 2
+                              BOTTOM _ 1
+                              HEIGHT _ 8
+                              WIDTH _ (IDIFFERENCE (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL W)
+                                                          )
+                                             4))
+                     EDITGRAY
+                     'REPLACE W))
+             (T (DSPFILL (create REGION
+                                LEFT _ 2
+                                BOTTOM _ 1
+                                HEIGHT _ 8
+                                WIDTH _ (IDIFFERENCE (fetch (REGION WIDTH) of (DSPCLIPPINGREGION
+                                                                               NIL W))
+                                               4))
+                       WHITESHADE
+                       'REPLACE W)
+                (for TAB in TABS do                          (* ; 
+                                                     "Run thru the tabs, putting them down in place.")
+                                    (MB.MARGINBAR.SHOWTAB W TAB UNIT 'PAINT])
+
+(MARGINBAR.CREATE
+  [LAMBDA (MARL1 MARLN MARR MARTABS MARUNIT MARTABTYPE MAINTSTREAM/WIDTH)
+                                                             (* ; "Edited 19-Oct-2025 15:13 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited  4-Aug-2024 22:36 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 10:13 by rmk")
+                                                             (* ; "Edited 28-Jul-2024 09:18 by rmk")
+                                                             (* ; "Edited 25-Jul-2024 16:10 by rmk")
+                                                             (* ; "Edited 22-Jul-2024 11:54 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:59 by mitani")
+
+    (* ;; "Create an instance of the margin-setting ruler for TEdit's use. ")
+
+    (PROG ((BOX (create IMAGEBOX
+                       XSIZE _ (IDIFFERENCE (OR (FIXP MAINTSTREAM/WIDTH)
+                                                (AND MAINTSTREAM/WIDTH (\TEDIT.PRIMARYPANE 
+                                                                              MAINTSTREAM/WIDTH)
+                                                     (PANEWIDTH (\TEDIT.PRIMARYPANE MAINTSTREAM/WIDTH
+                                                                       )))
+                                                SCREENWIDTH)
+                                      18)
+                       YSIZE _ 62
+                       YDESC _ 0
+                       XKERN _ 4))
+           OBJ OBJDATUM BITMAP DS)
+          (SETQ OBJ
+           (IMAGEOBJCREATE (SETQ OBJDATUM
+                            (create MARGINBAR
+                                   MARL1 _ MARL1
+                                   MARLN _ MARLN
+                                   MARR _ MARR
+                                   MARTABS _ MARTABS
+                                   MARUNIT _ MARUNIT
+                                   MARTABTYPE _ MARTABTYPE
+                                   MARBARWIDTH _ (fetch (IMAGEBOX XSIZE) of BOX)))
+                  MARGINBARIMAGEFNS))                        (* ; 
+               "Create an IMAGEOBJ, containing an instance of the record to hold margin and tab info")
+          (SETQ BITMAP (BITMAPCREATE (fetch XSIZE of BOX)
+                              (fetch YSIZE of BOX)))         (* ; 
+                                                             "A cache for the ruler's screen image")
+          (IMAGEOBJPROP OBJ 'BITCACHE BITMAP)
+          (SETQ DS (DSPCREATE BITMAP))                       (* ; 
+                                                       "And a displaystream for modifying that image")
+          (IMAGEOBJPROP OBJ 'DSPCACHE DS)
+          (DSPXOFFSET 0 DS)
+          (DSPYOFFSET 0 DS)
+          (DSPCLIPPINGREGION (create REGION
+                                    LEFT _ 0
+                                    BOTTOM _ 0
+                                    WIDTH _ (fetch XSIZE of BOX)
+                                    HEIGHT _ (fetch YSIZE of BOX))
+                 DS)
+          (MARGINBAR DS (fetch (MARGINBAR MARL1) of OBJDATUM)
+                 (fetch (MARGINBAR MARLN) of OBJDATUM)
+                 (fetch (MARGINBAR MARR) of OBJDATUM)
+                 (fetch (MARGINBAR MARTABS) of OBJDATUM)
+                 (fetch (MARGINBAR MARUNIT) of OBJDATUM)
+                 NIL
+                 (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL DS)))
+
+     (* ;; "Fill in the cache with the original value This does the time-consuming part of drawing the ticks on the ruler and such, which would make drawing it on the fly unbearable.")
+
+          (IMAGEOBJPROP OBJ 'IDENTIFIER 'MARGINBAR)
+          (IMAGEOBJPROP OBJ 'STATEFN (FUNCTION MARGINBAR.GETSTATEFN))
+          (IMAGEOBJPROP OBJ 'SETSTATEFN (FUNCTION MARGINBAR.SETSTATEFN))
+          (RETURN OBJ])
+
+(MB.MARGINBAR.BUTTONEVENTINFN
+  [LAMBDA (OBJ MENUDS SEL RELX RELY MENUTSTREAM)             (* ; "Edited 26-Apr-2025 11:52 by rmk")
+                                                             (* ; "Edited 11-Jan-2025 21:28 by rmk")
+                                                             (* ; "Edited  7-Dec-2024 21:21 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:12 by rmk")
+                                                             (* ; "Edited  1-Aug-2024 22:56 by rmk")
+                                                             (* ; "Edited 23-Jul-2024 00:44 by rmk")
+                                                             (* ; "Edited 18-Jul-2024 17:08 by rmk")
+                                                             (* ; "Edited 26-Feb-2024 11:44 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:59 by mitani")
+    (TEDIT.PROMPTCLEAR MENUTSTREAM)
+
+    (* ;; "Let the user adjust margins and tabs using the mouse.  Do the adjustment based on the region of the margin bar that mouse starts out in:  left marging, first line, right margin, tabs")
+
+    (LET* ((OBJDATUM (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+           (IMAGEBOX (OR (IMAGEOBJPROP OBJ 'BOUNDBOX)
+                         (IMAGEBOX OBJ MENUTSTREAM)))
+           (L1 (fetch MARL1 of OBJDATUM))
+           (OL1 L1)
+           (LN (fetch MARLN of OBJDATUM))
+           (OLN LN)
+           (RMARG (fetch MARR of OBJDATUM))
+           (OLDRMARG RMARG)
+           (TABS (fetch MARTABS of OBJDATUM))
+           (UNIT (fetch MARUNIT of OBJDATUM))
+           (CLIP (create REGION
+                        LEFT _ 0
+                        BOTTOM _ 0
+                        WIDTH _ (fetch XSIZE of IMAGEBOX)
+                        HEIGHT _ (fetch YSIZE of IMAGEBOX)))
+           (PWIDTH (PANEWIDTH (WFROMDS MENUDS)))
+           (RIGHTLIM (IDIFFERENCE PWIDTH 4)))
+          [if (INSIDE? (create REGION
+                              LEFT _ (IDIFFERENCE (MSCALE (ABS L1)
+                                                         UNIT)
+                                            2)
+                              BOTTOM _ 42
+                              WIDTH _ 16
+                              HEIGHT _ 16)
+                     RELX RELY)
+              then                                           (* ; "Move the 1st-line left margin.")
+                   (while (AND (MOUSESTATE (OR LEFT MIDDLE RIGHT))
+                               (INSIDE? CLIP (LASTMOUSEX MENUTSTREAM)
+                                      (LASTMOUSEY MENUTSTREAM)))
+                      do (SETQ L1 (MAX 0 (MDESCALE (LASTMOUSEX MENUTSTREAM)
+                                                UNIT)))
+                         (CL:WHEN (\TEDIT.MOUSESTATE RIGHT)  (* ; 
+                                                             "Right mouse button UNsets the margin.")
+                             (SETQ L1 (MINUS L1)))
+                         (CL:UNLESS (EQP OL1 L1)
+                             (MARGINBAR MENUTSTREAM L1 LN RMARG TABS UNIT T RIGHTLIM)
+                             (SETQ OL1 L1)))
+            elseif (INSIDE? (create REGION
+                                   LEFT _ (IDIFFERENCE (MSCALE (ABS LN)
+                                                              UNIT)
+                                                 2)
+                                   BOTTOM _ 26
+                                   WIDTH _ 16
+                                   HEIGHT _ 16)
+                          RELX RELY)
+              then                                           (* ; "Move the skirt's left margin")
+                   (while (AND (MOUSESTATE (OR LEFT MIDDLE RIGHT))
+                               (INSIDE? CLIP (LASTMOUSEX MENUTSTREAM)
+                                      (LASTMOUSEY MENUTSTREAM)))
+                      do (SETQ LN (MAX 0 (MDESCALE (LASTMOUSEX MENUTSTREAM)
+                                                UNIT)))
+                         (CL:WHEN (\TEDIT.MOUSESTATE RIGHT)  (* ; 
+                                                             "Right mouse button UNsets the margin.")
+                             (SETQ LN (MINUS LN)))
+                         (CL:UNLESS (EQP OLN LN)
+                             (MARGINBAR MENUTSTREAM L1 LN RMARG TABS UNIT T RIGHTLIM)
+                             (SETQ OLN LN)))
+            elseif (OR (INSIDE? (create REGION
+                                       LEFT _ (IDIFFERENCE (IMIN (MSCALE (ABS RMARG)
+                                                                        UNIT)
+                                                                 (fetch XSIZE of IMAGEBOX)
+                                                                 PWIDTH)
+                                                     16)
+                                       BOTTOM _ 26
+                                       WIDTH _ 16
+                                       HEIGHT _ 32)
+                              RELX RELY)
+                       (AND (ZEROP (IABS (FIXR RMARG)))
+                            (INSIDE? (create REGION
+                                            LEFT _ (IDIFFERENCE (IMIN (fetch XSIZE of IMAGEBOX)
+                                                                      PWIDTH)
+                                                          16)
+                                            BOTTOM _ 26
+                                            WIDTH _ 16
+                                            HEIGHT _ 32)
+                                   RELX RELY)))
+              then                                           (* ; "Move the right margin")
+                   (while (AND (MOUSESTATE (OR LEFT MIDDLE RIGHT))
+                               (INSIDE? CLIP (LASTMOUSEX MENUTSTREAM)
+                                      (LASTMOUSEY MENUTSTREAM)))
+                      do (SETQ RMARG (MAX 0 (MDESCALE (LASTMOUSEX MENUTSTREAM)
+                                                   UNIT)))
+                         (CL:WHEN (\TEDIT.MOUSESTATE RIGHT)  (* ; 
+                                                             "Right mouse button UNsets the margin.")
+                             (SETQ RMARG (MINUS RMARG)))
+                         (CL:UNLESS (EQP OLDRMARG RMARG)
+                             (MARGINBAR MENUTSTREAM L1 LN RMARG TABS UNIT T RIGHTLIM)
+                             (SETQ OLDRMARG RMARG)))
+            elseif (INSIDE? (create REGION
+                                   LEFT _ 0
+                                   BOTTOM _ 0
+                                   WIDTH _ (fetch (REGION WIDTH) of CLIP)
+                                   HEIGHT _ 16)
+                          RELX RELY)
+              then                                           (* ; "We're in the tab ruler region")
+                   (if (AND (MOUSESTATE MIDDLE)
+                            (EQ 'OFF (MB.GET 'TABTYPE MENUTSTREAM 'STATE NIL T)))
+                       then (TEDIT.PROMPTPRINT MENUTSTREAM "Please choose one of the tab types" T)
+                     else (replace MARTABS of OBJDATUM with (MB.MARGINBAR.SELFN.TABS OBJDATUM MENUDS
+                                                                   MENUTSTREAM]
+          (replace MARL1 of OBJDATUM with L1)
+          (replace MARLN of OBJDATUM with LN)
+          (replace MARR of OBJDATUM with RMARG)
+          (TEDIT.BACKTOMAIN MENUTSTREAM))
+    'DON'T])
+
+(MB.MARGINBAR.SELFN.TABS
+  [LAMBDA (OBJDATUM SELWINDOW STREAM)                        (* ; "Edited 11-Jan-2025 10:47 by rmk")
+                                                             (* ; "Edited 24-Aug-2024 21:40 by rmk")
+                                                             (* ; "Edited  2-Aug-2024 08:18 by rmk")
+
+    (* ;; "Mouse is down in the tab region of the marginbar.  Creates, moves, or deletes a tab, depending on the mouse button. Returns the modified TABS list. UNIT was only partially implemented, tabs are assumed to be in piecas and are scaled to points (PTSPERPICA=12).")
+
+    (LET* ((TABS (fetch MARTABS of OBJDATUM))
+           (UNIT (fetch MARUNIT of OBJDATUM))
+           [SCALEDTABS (for TAB in (LISTP (fetch MARTABS of OBJDATUM))
+                          collect (MSCALE (fetch TABX of TAB)
+                                         (fetch MARUNIT of OBJDATUM]
+           TAB TABX)                                         (* ; 
+                                 "Only scale the tabs if there are any, and they're not neutralized.")
+          [if (MOUSESTATE LEFT)
+              then                                           (* ; "MOVE a tab")
+                   [SETQ TAB (for TABX in SCALEDTABS as TAB in TABS
+                                smallest (ABS (IDIFFERENCE TABX (LASTMOUSEX STREAM]
+                   (CL:WHEN TAB (MB.MARGINBAR.TABTRACK STREAM OBJDATUM TAB))
+            elseif (MOUSESTATE MIDDLE)
+              then                                           (* ; "ADD/CHANGE a tab")
+                   (CL:WHEN (EQ (fetch MARTABS of OBJDATUM)
+                                'NEUTRAL)                    (* ; 
+                              "The tabs used to be NEUTRAL.  Clear the tab region, and start afresh.")
+                       (replace MARTABS of OBJDATUM with NIL)(* ; "So we don't come this way again.")
+
+                       (* ;; 
+                       "Make the tab region look non-neutral, too, so that tabs look OK on it. ")
+
+                       (DSPFILL (CREATEREGION 2 1 8 (IDIFFERENCE (fetch (REGION WIDTH)
+                                                                    of (DSPCLIPPINGREGION NIL 
+                                                                              SELWINDOW))
+                                                           4))
+                              WHITESHADE
+                              'REPLACE SELWINDOW))
+                   (if (AND [SETQ TAB (for TABX in SCALEDTABS as TAB in TABS
+                                         smallest (ABS (IDIFFERENCE TABX (LASTMOUSEX STREAM]
+                            (SETQ TABX (MSCALE (CAR TAB)
+                                              UNIT))
+                            (IGEQ (LASTMOUSEX STREAM)
+                                  (IDIFFERENCE TABX 2))
+                            (ILEQ (LASTMOUSEX STREAM)
+                                  (IPLUS TABX 2)))
+                       then (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT 'ERASE)
+                            (replace (TAB TABKIND) of TAB with (MB.MARGINBAR.SELFN.TABS.KIND 
+                                                                      SELWINDOW))
+                            (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT 'PAINT)
+                            (MB.MARGINBAR.TABTRACK STREAM OBJDATUM TAB)
+                     elseif [NOT (AND TAB (EQP (fetch TABX of TAB)
+                                               (MDESCALE (LASTMOUSEX STREAM)
+                                                      UNIT]
+                       then                                  (* ; "Really create a new tab")
+                            (SETQ TAB (create TAB
+                                             TABX _ (MDESCALE (LASTMOUSEX STREAM)
+                                                           UNIT)
+                                             TABKIND _ (MB.MARGINBAR.SELFN.TABS.KIND SELWINDOW)))
+                            (SETQ TABS (CONS TAB TABS))
+                            (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT 'PAINT)
+                            (MB.MARGINBAR.TABTRACK STREAM OBJDATUM TAB))
+            elseif (MOUSESTATE RIGHT)
+              then                                           (* ; "DELETE a tab.")
+                   (CL:WHEN (AND [SETQ TAB (for TABX in SCALEDTABS as TAB in TABS
+                                              smallest (ABS (IDIFFERENCE TABX (LASTMOUSEX STREAM]
+                                 (SETQ TABX (MSCALE (CAR TAB)
+                                                   UNIT))
+                                 (IGEQ (LASTMOUSEX STREAM)
+                                       (IDIFFERENCE TABX 2))
+                                 (ILEQ (LASTMOUSEX STREAM)
+                                       (IPLUS TABX 2)))
+                       (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT 'ERASE)
+                       (SETQ TABS (REMOVE TAB TABS)))]
+          TABS])
+
+(MB.MARGINBAR.SELFN.TABS.KIND
+  [LAMBDA (SELWINDOW)                                        (* ; "Edited 22-Oct-2024 13:03 by rmk")
+                                                             (* ; "Edited 28-Aug-2024 19:15 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 23:47 by rmk")
+                                                             (* ; "Edited 24-Aug-2024 21:49 by rmk")
+
+    (* ;; "Look backward through SELWINDOW to find the TABTYPE and DOTTEDLEADER buttons, use them to produce the current TABKIND")
+
+    (LET* [(STATES (MB.GET '(DOTTEDLEADER TABTYPE)
+                          SELWINDOW
+                          'STATE NIL T))
+           (TABTYPE (OR (LISTGET STATES 'TABTYPE)
+                        'LEFT]
+          (CL:IF (EQ 'ON (LISTGET STATES 'DOTTEDLEADER))
+              (PACK* 'DOTTED TABTYPE)
+              TABTYPE)])
+
+(MARGINBAR.GETSTATEFN
+  [LAMBDA (PC OBJ TEXTOBJ)                                   (* ; "Edited 26-May-2025 20:10 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 12:26 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 11:39 by rmk")
+                                                             (* ; "Edited 29-Aug-2024 09:32 by rmk")
+                                                             (* ; "Edited 12-Aug-2024 10:43 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 22:24 by rmk")
+                                                             (* ; "Edited  4-Aug-2024 22:40 by rmk")
+                                                             (* ; "Edited  1-Aug-2024 00:12 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 11:01 by rmk")
+
+    (* ;; "This gets the current state of the marginbar's image object in the menu, for applying.")
+                                                             (* ; "Edited 25-Jul-2024 16:18 by rmk")
+    (LET* ((OBJDATUM (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+           (MARUNIT (fetch (MARGINBAR MARUNIT) of OBJDATUM))
+           (L1 (FIXR (TIMES (fetch (MARGINBAR MARL1) of OBJDATUM)
+                            MARUNIT)))
+           (LN (FIXR (TIMES (fetch (MARGINBAR MARLN) of OBJDATUM)
+                            MARUNIT)))
+           (R (FIXR (TIMES (fetch (MARGINBAR MARR) of OBJDATUM)
+                           MARUNIT)))
+           (MARTABS (fetch (MARGINBAR MARTABS) of OBJDATUM))
+           LOOKS)
+          (CL:WHEN (IGEQ L1 0)                               (* ; 
+                                                         "The 1stleftmargin is set, and non-neutral.")
+              (push LOOKS '1STLEFTMARGIN L1))
+          (CL:WHEN (IGEQ LN 0)                               (* ; 
+                                                            "The LEFTMARGIN is set, and non-neutral.")
+              (push LOOKS 'LEFTMARGIN LN))
+          (CL:WHEN (IGEQ R 0)                                (* ; 
+                                                           "The RIGHTMARGIN is set, and non-neutral.")
+              (push LOOKS 'RIGHTMARGIN R))
+          (CL:UNLESS (EQ MARTABS 'NEUTRAL)                   (* ; 
+                                            "If the tab settings are neutral, don't change anything.")
+
+              (* ;; 
+         "Convert from incoming tab units (picas?) to points.  The default tab is already in points.")
+
+              [push LOOKS 'TABS (SORT (\TEDIT.SCALE.TABS MARTABS MARUNIT)
+                                      (FUNCTION (LAMBDA (A B)
+                                                  (ILEQ (CAR A)
+                                                        (CAR B])
+
+          (* ;; "Toggle the dotted-leader state of the margin bar tab-setter.")
+
+          (change (fetch (MARGINBAR MARTABTYPE) of OBJDATUM)
+                 (SELECTQ (MB.GET 'DOTTEDLEADER TEXTOBJ 'STATE PC T)
+                     (ON (SELECTQ (OR DATUM 'LEFT)
+                             (LEFT 'DOTTEDLEFT)
+                             (CENTERED 'DOTTEDCENTERED)
+                             (RIGHT 'DOTTEDRIGHT)
+                             (DECIMAL 'DOTTEDDECIMAL)
+                             NIL))
+                     (OFF (SELECTQ DATUM
+                              (DOTTEDLEFT 'LEFT)
+                              (DOTTEDCENTERED 
+                                   'CENTERED)
+                              (DOTTEDRIGHT 'RIGHT)
+                              (DOTTEDDECIMAL 'DECIMAL)
+                              NIL))
+                     NIL))
+          (IMAGEOBJPROP OBJ 'STATE (CONS LOOKS))
+          PC])
+
+(MARGINBAR.SETSTATEFN
+  [LAMBDA (PC NEWVALUE TSTREAM)                              (* ; "Edited  3-Aug-2024 23:55 by rmk")
+    (IMAGEOBJPROP (PCONTENTS PC)
+           'OBJECTDATUM NEWVALUE)
+    PC])
+
+(MARGINBAR.NEUTRALIZE
+  [LAMBDA (OBJ)                                              (* ; "Edited 22-Oct-2025 12:55 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 12:14 by rmk")
+
+    (* ;; "Neutralizes the settings of the marginbar")
+
+    (create MARGINBAR smashing (IMAGEOBJPROP OBJ 'OBJECTDATUM)
+                            MARL1 _ -0.5 MARLN _ -0.5 MARR _ -39.5 MARTABS _ 'NEUTRAL MARUNIT _ 12 
+                            MARTABTYPE _ NIL MARBARWIDTH _ (fetch (MARGINBAR MARBARWIDTH)
+                                                              of (IMAGEOBJPROP OBJ 'OBJECTDATUM])
+
+(MARGINBAR.LOOKS
+  [LAMBDA (OBJ DOTTEDLEADER)                                 (* ; "Edited 20-Oct-2024 15:27 by rmk")
+                                                             (* ; "Edited 28-Jul-2024 21:17 by rmk")
+                                                             (* ; "Edited 25-Jul-2024 16:18 by rmk")
+    (LET* ((OBJDATUM (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+           (MARUNIT (fetch (MARGINBAR MARUNIT) of OBJDATUM))
+           (L1 (FIXR (TIMES (fetch (MARGINBAR MARL1) of OBJDATUM)
+                            MARUNIT)))
+           (LN (FIXR (TIMES (fetch (MARGINBAR MARLN) of OBJDATUM)
+                            MARUNIT)))
+           (R (FIXR (TIMES (fetch (MARGINBAR MARR) of OBJDATUM)
+                           MARUNIT)))
+           (MARTABS (fetch (MARGINBAR MARTABS) of OBJDATUM))
+           LOOKS)
+          (CL:WHEN (IGEQ L1 0)                               (* ; 
+                                                         "The 1stleftmargin is set, and non-neutral.")
+              (push LOOKS '1STLEFTMARGIN L1))
+          (CL:WHEN (IGEQ LN 0)                               (* ; 
+                                                            "The LEFTMARGIN is set, and non-neutral.")
+              (push LOOKS 'LEFTMARGIN LN))
+          (CL:WHEN (IGEQ R 0)                                (* ; 
+                                                           "The RIGHTMARGIN is set, and non-neutral.")
+              (push LOOKS 'RIGHTMARGIN R))
+          (CL:UNLESS (MEMB MARTABS '(NIL NEUTRAL))           (* ; 
+                                            "If the tab settings are neutral, don't change anything.")
+
+              (* ;; 
+         "Convert from incoming tab units (picas?) to points.  The default tab is already in points.")
+
+              [push LOOKS 'TABUNIT MARUNIT 'TABS (SORT (\TEDIT.SCALE.TABS MARTABS MARUNIT)
+                                                       (FUNCTION (LAMBDA (A B)
+                                                                   (ILEQ (CAR A)
+                                                                         (CAR B])
+
+          (* ;; "Toggle the dotted-leader state of the margin bar tab-setter.")
+
+          (change (fetch (MARGINBAR MARTABTYPE) of OBJDATUM)
+                 (SELECTQ DOTTEDLEADER
+                     (ON (SELECTQ (OR DATUM 'LEFT)
+                             (LEFT 'DOTTEDLEFT)
+                             (CENTERED 'DOTTEDCENTERED)
+                             (RIGHT 'DOTTEDRIGHT)
+                             (DECIMAL 'DOTTEDDECIMAL)
+                             NIL))
+                     (OFF (SELECTQ DATUM
+                              (DOTTEDLEFT 'LEFT)
+                              (DOTTEDCENTERED 
+                                   'CENTERED)
+                              (DOTTEDRIGHT 'RIGHT)
+                              (DOTTEDDECIMAL 'DECIMAL)
+                              NIL))
+                     NIL))
+          LOOKS])
+
+(MB.MARGINBAR.SIZEFN
+  [LAMBDA (OBJ)                                              (* ; "Edited 19-Oct-2025 09:47 by rmk")
+                                                             (* ; "Edited  3-Dec-2024 20:03 by rmk")
+                                                             (* jds " 5-Sep-84 14:10")
+
+    (* ;; "YDESC is 2 so that selecting the bar and highlighting doesn't wipe out the bottom line. Although you shouldn't be able to select it")
+
+    (LET ((BOX (create IMAGEBOX
+                      XSIZE _ (fetch (MARGINBAR MARBARWIDTH) of (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+                      YSIZE _ 62
+                      YDESC _ 2
+                      XKERN _ 4)))
+         (IMAGEOBJPROP OBJ 'BOUNDBOX BOX)
+         BOX])
+
+(MB.MARGINBAR.DISPLAYFN
+  [LAMBDA (OBJ STREAM)                                       (* ; "Edited 29-Jul-2024 12:01 by rmk")
+                                                             (* ; "Edited 23-Jul-2024 00:42 by rmk")
+                                                             (* ; "Edited 18-Jul-2024 17:04 by rmk")
+                                                             (* ; "Edited  9-Sep-2022 22:37 by rmk")
+                                                            (* ; "Edited 12-Jun-90 18:59 by mitani")
+                                                             (* ; 
+                                                             "Display the innards of a menu button")
+    (PROG ((IMAGEBOX (OR (IMAGEOBJPROP OBJ 'BOUNDBOX)
+                         (IMAGEBOX OBJ STREAM)))
+           (OBJDATUM (IMAGEOBJPROP OBJ 'OBJECTDATUM))
+           (BITMAP (IMAGEOBJPROP OBJ 'BITCACHE))
+           (DS (DSPCREATE)))
+          (COND
+             [BITMAP 
+
+                    (* ;; "The marginbar existed already as an image.  Don't bother re-creating it, and remember that we're allowed to MODIFY the old image instead of creating a new one.")
+
+                    (SETQ DS (IMAGEOBJPROP OBJ 'DSPCACHE]
+             (T                                              (* ; 
+                                                         "Have to create an image for the margin bar")
+                (SETQ BITMAP (BITMAPCREATE (fetch XSIZE of IMAGEBOX)
+                                    (fetch YSIZE of IMAGEBOX)))
+                                                             (* ; "Create a cache bitmap")
+                (IMAGEOBJPROP OBJ 'BITCACHE BITMAP)
+                (SETQ DS (DSPCREATE BITMAP))
+                (IMAGEOBJPROP OBJ 'DSPCACHE DS)
+                (DSPXOFFSET 0 DS)
+                (DSPYOFFSET 0 DS)
+                (DSPCLIPPINGREGION (create REGION
+                                          LEFT _ 0
+                                          BOTTOM _ 0
+                                          WIDTH _ (fetch XSIZE of IMAGEBOX)
+                                          HEIGHT _ (fetch YSIZE of IMAGEBOX))
+                       DS)))
+          (MARGINBAR DS (fetch (MARGINBAR MARL1) of OBJDATUM)
+                 (fetch (MARGINBAR MARLN) of OBJDATUM)
+                 (fetch (MARGINBAR MARR) of OBJDATUM)
+                 (fetch (MARGINBAR MARTABS) of OBJDATUM)
+                 (fetch (MARGINBAR MARUNIT) of OBJDATUM)
+                 NIL
+                 (fetch (REGION WIDTH) of (DSPCLIPPINGREGION NIL STREAM)))
+                                                             (* ; "Update the image, if it needs it")
+          (BITBLT BITMAP 0 0 STREAM (IDIFFERENCE (DSPXPOSITION NIL STREAM)
+                                           4)
+                 (IDIFFERENCE (DSPYPOSITION NIL STREAM)
+                        (fetch YDESC of IMAGEBOX])
+
+(MDESCALE
+  [LAMBDA (VAL UNIT)                                         (* jds " 4-NOV-83 17:29")
+                                                             (* Convert a value from screen offset 
+                                                             units to marginbar units)
+    (COND
+       ((IEQP UNIT 12)
+        (QUOTIENT (IQUOTIENT (LLSH (IDIFFERENCE VAL 4)
+                                   1)
+                         UNIT)
+               2.0))
+       (T (QUOTIENT (DIFFERENCE VAL 4)
+                 UNIT])
+
+(MSCALE
+  [LAMBDA (VAL UNIT)                                         (* jds " 4-NOV-83 17:31")
+                                                             (* Convert from marginbar units to a 
+                                                             screen X offset)
+    (IPLUS 4 (FIXR (TIMES VAL (OR UNIT 1])
+
+(MB.MARGINBAR.SHOWTAB
+  [LAMBDA (W TAB UNIT MODE)                                  (* jds "22-Mar-85 17:36")
+                                                             (* Paint/erase/otherwise display the 
+                                                             sign for a TAB in window WINDOW, using 
+                                                             units UNIT)
+    (PROG ((TABX (MSCALE (fetch TABX of TAB)
+                        UNIT)))
+          (SELECTQ (fetch TABKIND of TAB)
+              (LEFT                                          (* Flush-left tab.)
+                    (BITBLT \TEDIT.LEFTTAB 0 0 W (IDIFFERENCE TABX 2)
+                           1 NIL NIL 'INPUT MODE))
+              (CENTERED                                      (* Centered Tab)
+                        (BITBLT \TEDIT.CENTERTAB 0 0 W (IDIFFERENCE TABX 5)
+                               1 NIL NIL 'INPUT MODE))
+              (RIGHT                                         (* Flush-right Tab)
+                     (BITBLT \TEDIT.RIGHTTAB 0 0 W (IDIFFERENCE TABX 7)
+                            1 NIL NIL 'INPUT MODE))
+              (DECIMAL                                       (* Decimal aligned tab)
+                       (BITBLT \TEDIT.DECIMALTAB 0 0 W (IDIFFERENCE TABX 7)
+                              1 NIL NIL 'INPUT MODE))
+              (DOTTEDLEFT                                    (* Decimal aligned tab)
+                          (BITBLT \TEDIT.DOTTED.LEFTTAB 0 0 W (IDIFFERENCE TABX 7)
+                                 1 NIL NIL 'INPUT MODE))
+              (DOTTEDCENTERED                                (* Decimal aligned tab)
+                   (BITBLT \TEDIT.DOTTED.CENTERTAB 0 0 W (IDIFFERENCE TABX 7)
+                          1 NIL NIL 'INPUT MODE))
+              (DOTTEDRIGHT                                   (* Decimal aligned tab)
+                           (BITBLT \TEDIT.DOTTED.RIGHTTAB 0 0 W (IDIFFERENCE TABX 7)
+                                  1 NIL NIL 'INPUT MODE))
+              (DOTTEDDECIMAL                                 (* Decimal aligned tab)
+                             (BITBLT \TEDIT.DOTTED.DECIMALTAB 0 0 W (IDIFFERENCE TABX 7)
+                                    1 NIL NIL 'INPUT MODE))
+              NIL])
+
+(MB.MARGINBAR.TABTRACK
+  [LAMBDA (STREAM OBJ TAB)                                   (* ; "Edited 20-Nov-2023 10:51 by rmk")
+                                                             (* jds " 8-Feb-84 20:38")
+
+    (* ;; "Given that the mouse is down over a tab, track the tab as the mouse moves.")
+
+    (bind X (UNIT _ (fetch MARUNIT of OBJ))
+          (CLIP _ (DSPCLIPPINGREGION NIL STREAM))
+          (OLDX _ (MSCALE (fetch TABX of TAB)
+                         (fetch MARUNIT of OBJ))) while (AND (MOUSESTATE (OR LEFT MIDDLE RIGHT))
+                                                             (INSIDE? CLIP (LASTMOUSEX STREAM)
+                                                                    (LASTMOUSEY STREAM)))
+       unless (IEQP OLDX (SETQ X (LASTMOUSEX STREAM))) do (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT
+                                                                 'ERASE)
+                                                          (replace TABX of TAB
+                                                             with (MDESCALE X UNIT))
+                                                          (MB.MARGINBAR.SHOWTAB STREAM TAB UNIT
+                                                                 'PAINT)
+                                                          (SETQ OLDX X])
+
+(MARGINBAR.INIT
+  [LAMBDA NIL                                                (* ; "Edited 11-Jan-2025 13:11 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 22:48 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:11 by rmk")
+                                                             (* ; "Edited 17-Jul-2024 21:58 by rmk")
+                                                             (* jds " 9-Feb-86 15:18")
+    (DECLARE (GLOBALVARS MARGINBARIMAGEFNS))
+    (SETQ MARGINBARIMAGEFNS (IMAGEFNSCREATE (FUNCTION MB.MARGINBAR.DISPLAYFN)
+                                   (FUNCTION MB.MARGINBAR.SIZEFN)
+                                   (FUNCTION MB.MARGINBAR.PUTFN)
+                                   (FUNCTION MB.MARGINBAR.GETFN)
+                                   (FUNCTION MB.COPYFN)
+                                   (FUNCTION MB.MARGINBAR.BUTTONEVENTINFN)
+                                   (FUNCTION MB.DON'T)
+                                   (FUNCTION MB.DON'T)
+                                   'NILL
+                                   (FUNCTION MB.DON'T)
+                                   (FUNCTION MB.DON'T)
+                                   'NILL
+                                   'NILL
+                                   'MarginRuler])
+
+(\TEDIT.PARALOOKS.TO.MARBAR
+  [LAMBDA (PARALOOKS UNIT)                                   (* ; "Edited 22-Oct-2025 12:29 by rmk")
+                                                             (* ; "Edited 19-Feb-2025 13:25 by rmk")
+                                                             (* ; "Edited  8-Feb-2025 21:08 by rmk")
+                                                             (* ; "Edited  4-Aug-2024 22:50 by rmk")
+
+    (* ;; "Creates a margin bar reflecting the properties of PARALOOKS, for PARAMENU display.  Assumes that UNIT is the conversion factor (presumably PTSPERPICA) that takes PARALOOKS screen-point numbers into MARGINBAR numbers.  No rounding.")
+
+    (* ;; "Hardcopy scaling isn't relevant for menus.")
+
+    (create MARGINBAR
+           MARL1 _ (FQUOTIENT (FGETPLOOKS PARALOOKS 1STLEFTMAR)
+                          UNIT)
+           MARLN _ (FQUOTIENT (FGETPLOOKS PARALOOKS LEFTMAR)
+                          UNIT)
+           MARR _ (FQUOTIENT (FGETPLOOKS PARALOOKS RIGHTMAR)
+                         UNIT)
+           MARUNIT _ UNIT
+           MARTABS _ (for TAB in (FGETPLOOKS PARALOOKS FMTTABS)
+                        collect (create TAB using TAB TABX _ (QUOTIENT (fetch (TAB TABX) of TAB)
+                                                                    UNIT)))
+           MARBARWIDTH _ (FGETPLOOKS PARALOOKS RIGHTMAR])
+)
+
+(RPAQQ \TEDIT.LEFTTAB #*(10 8)B@@@B@@@G@@@JH@@B@@@B@@@CN@@@@@@)
+
+(RPAQQ \TEDIT.CENTERTAB #*(10 8)@D@@@D@@@N@@AE@@@D@@@D@@AO@@@@@@)
+
+(RPAQQ \TEDIT.RIGHTTAB #*(10 8)@A@@@A@@@CH@@ED@@A@@@A@@AO@@@@@@)
+
+(RPAQQ \TEDIT.DECIMALTAB #*(10 8)@A@@@A@@@CH@@ED@@A@@@CH@@CH@@@@@)
+
+(RPAQQ \TEDIT.DOTTED.LEFTTAB #*(16 8)@@H@@@H@@AL@@BJ@@@H@CFH@CFOH@@@@)
+
+(RPAQQ \TEDIT.DOTTED.CENTERTAB #*(16 8)@@A@@@A@@@CH@@ED@@A@CFA@CFGL@@@@)
+
+(RPAQQ \TEDIT.DOTTED.RIGHTTAB #*(16 8)@@@D@@@D@@@N@@AE@@@DCF@DCFGL@@@@)
+
+(RPAQQ \TEDIT.DOTTED.DECIMALTAB #*(16 8)@@@D@@@D@@@N@@AE@@@D@MHN@MHN@@@@)
+
+(RPAQQ TEDIT.EXTENDEDRIGHTMARK #*(8 32)FF@@FF@@FF@@FF@@LL@@LL@@LL@@LL@@LL@@LL@@LL@@LL@@FF@@FF@@FF@@FF@@CC@@CC@@CC@@CC@@CC@@CC@@CC@@CC@@FF@@FF@@FF@@FF@@LL@@LL@@LL@@LL@@
+)
+(DECLARE%: DONTEVAL@LOAD DOCOPY 
+
+(MARGINBAR.INIT)
+)
+(DEFINEQ
+
+(TEDIT.MENUSTREAM
+  [LAMBDA (TSTREAM TITLE)                                    (* ; "Edited 14-Mar-2025 16:14 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 15:29 by rmk")
+                                                             (* ; "Edited 28-Aug-2024 15:48 by rmk")
+                                                             (* ; "Edited 10-Apr-2023 09:53 by rmk")
+                                                             (* jds "13-Aug-84 14:10")
+
+    (* ;; "returns the textstream of the teditmenu attached to this stream if any, or TSTREAM if it is that teditmenu")
+
+    (CL:UNLESS TITLE (SETQ TITLE "TEdit Menu"))
+    (for W MTSTREAM in (CONS (\TEDIT.PRIMARYPANE TSTREAM)
+                             (ATTACHEDWINDOWS (\TEDIT.MAINW TSTREAM)))
+       when (AND (STRING.EQUAL TITLE (WINDOWPROP W 'TITLE))
+                 (SETQ MTSTREAM (TEXTSTREAM W T))) do (RETURN MTSTREAM])
+
+(TEDITMENUP
+  [LAMBDA (TSTREAM TITLE)                                    (* ; "Edited 14-Mar-2025 16:31 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 15:39 by rmk")
+                                                             (* ; "Edited  7-Dec-2023 21:06 by rmk")
+                                                             (* ; "Edited 20-Sep-2023 22:36 by rmk")
+                                                             (* ; "Edited 10-Apr-2023 10:14 by rmk")
+    (CL:WHEN (AND (SETQ TSTREAM (TEXTSTREAM TSTREAM T))
+                  (GETTOBJ (GETTSTR TSTREAM TEXTOBJ)
+                         MENUFLG)
+                  (\TEDIT.PRIMARYPANE TSTREAM)
+                  (CL:IF TITLE
+                      (STRING.EQUAL TITLE (WINDOWPROP (\TEDIT.PRIMARYPANE TSTREAM)
+                                                 'TITLE))
+                      T))
+           TSTREAM])
+
+(\TEDIT.MENU.START
+  [LAMBDA (MENUSTREAM TSTREAM TITLE HEIGHT TYPE)             (* ; "Edited 14-Mar-2025 16:13 by rmk")
+                                                             (* ; "Edited 28-Jun-2024 23:08 by rmk")
+                                                             (* ; "Edited 19-Apr-2024 10:53 by rmk")
+                                                             (* ; "Edited 10-Apr-2024 23:04 by rmk")
+                                                             (* ; "Edited 27-Feb-2024 08:12 by rmk")
+                                                             (* ; "Edited  3-Nov-2023 22:23 by rmk")
+                                                             (* ; "Edited 31-Oct-2023 08:59 by rmk")
+                                                             (* ; "Edited 10-Apr-2023 09:46 by rmk")
+                                                            (* ; "Edited 26-Oct-2021 08:43 by rmk:")
+                                                             (* ; 
+                                                        "Edited  4-Jun-93 11:59 by sybalsky:mv:envos")
+
+    (* ;; "Create a TEdit-based menu for a given main window. Creates a Tedit process and window for the menu, attaches it to MAINWINDOW and cause it to share the main windows prompt (so messages will come out in the right place).")
+
+    (* ;; "RMK: Add MAX/MINSIZE so menus don't grow vertically when the main window is reshaped.  Not sure why HEIGHT is passed in or defaults to 133, but either way, the original window height should persist")
+
+    (* ;; "RMK: Added TYPE argument to be used in renaming the menu's process")
+
+    (* ;; "")
+
+    (* ;; "Pretext:  menu windows can't have menu windows.")
+
+    (CL:UNLESS TITLE (SETQ TITLE "TEdit Menu"))
+    (CL:UNLESS (TEDIT.MENUSTREAM TSTREAM TITLE)
+        (LET ((MAINWINDOW (\TEDIT.PRIMARYPANE TSTREAM))
+              (MENUTEXTOBJ (GETTSTR MENUSTREAM TEXTOBJ))
+              WREG MENUW)
+             (SETQ WREG (WINDOWPROP MAINWINDOW 'REGION))
+             (SETQ MENUW (CREATEW (create REGION
+                                         LEFT _ (fetch (REGION LEFT) of WREG)
+                                         BOTTOM _ (fetch (REGION TOP) of WREG)
+                                         WIDTH _ (fetch (REGION WIDTH) of WREG)
+                                         HEIGHT _ (OR HEIGHT 133))
+                                TITLE))
+             (WINDOWADDPROP MENUW 'CLOSEFN (FUNCTION FREEATTACHEDWINDOW))
+             (WINDOWPROP MENUW 'TEDITMENU (OR TITLE "TEdit Menu"))
+                                                             (* ; "Mark this as a TEDIT MENU window")
+             (ATTACHWINDOW MENUW MAINWINDOW 'TOP 'JUSTIFY 'LOCALCLOSE)
+             [SETQ HEIGHT (FETCH (REGION HEIGHT) OF (WINDOWPROP MENUW 'REGION]
+             (WINDOWPROP MENUW 'MAXSIZE (CONS 64000 HEIGHT))
+             (WINDOWPROP MENUW 'MINSIZE (CONS 0 HEIGHT))
+             (SETTOBJ MENUTEXTOBJ MENUFLG T)
+
+             (* ;; "The mainwindow's PROMPTWINDOW is also the menus prompt window")
+
+             (WINDOWPROP MENUW 'PROMPTWINDOW (WINDOWPROP MAINWINDOW 'PROMPTWINDOW))
+             [TEDIT MENUSTREAM MENUW NIL `(TITLEMENUFN DON'T NOTSPLITTABLE T PROMPTWINDOW
+                                                 ,(GETTOBJ (TEXTOBJ TSTREAM)
+                                                         PROMPTWINDOW]
+             (PROCESSPROP (WINDOWPROP MENUW 'PROCESS)
+                    'NAME
+                    (PACK* "TEdit-" (CL:IF TYPE
+                                        (L-CASE TYPE T)
+                                        "Menu")))
+
+             (* ;; "No caret now, let the buttonevent fn bring it up")
+
+             (\TEDIT.UPCARET (GETPANEPROP (PANEPROPS (FGETTOBJ MENUTEXTOBJ PRIMARYPANE))
+                                    PCARET)
+                    -10 -10)
+             (WINDOWPROP MENUW 'BUTTONEVENTFN (FUNCTION \TEDIT.MENU.BUTTONEVENTFN))
+             (SETSEL (TEXTSEL MENUTEXTOBJ)
+                    SET NIL)                                 (* ; 
+                                                           "Have to click to get the selection going")
+             (TEDIT.BACKTOMAIN MENUSTREAM)
+             MENUW))])
+
+(\TEDIT.MENU.OPEN?
+  [LAMBDA (MENUTITLE MAINSTREAM)                             (* ; "Edited 28-May-2025 23:40 by rmk")
+
+    (* ;; "True if a menu with MENUTITLE is already open")
+
+    (find W in (ATTACHEDWINDOWS (\TEDIT.PRIMARYPANE MAINSTREAM))
+       suchthat (AND (STREQUAL MENUTITLE (WINDOWPROP W 'TEDITMENU))
+                     (OPENWP W])
+
+(\TEDIT.MENU.BUTTONEVENTFN
+  [LAMBDA (MENUW)                                            (* ; "Edited 28-Jun-2024 23:09 by rmk")
+                                                             (* ; "Edited 25-Sep-2023 12:53 by rmk")
+
+    (* ;; "Entry for menus that allows for any special menu actions. In particular, turns on the caret blinking if it wasn't on before.")
+
+    (replace (TEDITCARET TCFORCEUP) of (GETPANEPROP (PANEPROPS MENUW)
+                                              PCARET) with NIL)
+    (\TEDIT.BUTTONEVENTFN MENUW])
+)
+
+(RPAQQ TEXTMENUICON #*(16 24)@@@@@@@@@@@@H@@@L@@AK@@GHLAIHCFAJ@HAKFKIJJJAJBKIJBJAH@KIJDHAKDJIJLJIJDJIJDJIH@KIF@HFAHIH@FN@@@H@
+)
+
+(RPAQQ TEXTMENUICONMASK #*(16 24)@@@@@@@@@@@@H@@@L@@AO@@GOLAOOOGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOGOONAOOH@GN@@@H@
+)
+
+
+
+(* ; "Generic support for Tedit menus")
+
+(DEFINEQ
+
+(\TEDIT.MENU.CREATE
+  [LAMBDA (MENUDESC MENUPROPS MAINTSTREAM)                   (* ; "Edited 19-Oct-2025 10:36 by rmk")
+                                                             (* ; "Edited 17-Dec-2024 08:53 by rmk")
+                                                             (* ; "Edited 22-Aug-2024 11:09 by rmk")
+                                                             (* ; "Edited 21-Aug-2024 09:54 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 09:40 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 16:01 by rmk")
+                                                             (* ; "Edited  3-Aug-2024 12:35 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 12:10 by rmk")
+                                                             (* ; "Edited 19-Sep-2023 14:36 by rmk")
+                                                             (* ; "Edited 16-Sep-2023 13:03 by rmk")
+                                                             (* ; "Edited 13-Aug-2022 23:11 by rmk")
+                                                             (* ; "Edited 31-Jan-2022 22:48 by rmk")
+                                                            (* ; "Edited 12-Jun-90 19:00 by mitani")
+
+    (* ;; "Create the TEXTSTREAM for a menu, given a menu description.  That stream is marked as a menu and passed to \TEDIT.MENU.START to get the menu up on screen")
+
+    (LET [(MENUTSTREAM (OPENTEXTSTREAM NIL NIL NIL NIL (OR MENUPROPS '(FONT (MODERN 10]
+         (MB.ADD MENUDESC MENUTSTREAM NIL NIL MAINTSTREAM)
+         (SETSEL (TEXTSEL (GETTSTR MENUTSTREAM TEXTOBJ))
+                SET NIL)
+         (SETTOBJ (GETTSTR MENUTSTREAM TEXTOBJ)
+                MENUFLG T)
+         MENUTSTREAM])
+
+(\TEDIT.MENU.PARSE
+  [LAMBDA (MENUTEXTSTREAM STARTPIECE STOPIDENTIFIER)         (* ; "Edited 22-Oct-2024 00:28 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:34 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:55 by rmk")
+                                                             (* ; "Edited  7-Sep-2024 13:07 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 14:06 by rmk")
+                                                             (* ; "Edited 29-Aug-2024 11:08 by rmk")
+                                                             (* ; "Edited 21-Aug-2024 12:13 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 08:40 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 00:13 by rmk")
+
+    (* ;; "This is the generic parsing function for Tedit menus.  It collects all of the specifications currently installed in the menu, and returns them in plist format.  The IDENTIFIER and STATEFN of each menu imageobject determines its contribution to the result.")
+
+    (* ;; "The STATEFN is given the PC containing its image object, and it returns the last PC that went into formulating the state property.")
+
+    (* ;; "If the STATE after running the STATEFN is a list  whose CAR looks like a property list, that is merged in to the top level.  So this function can itself be used as a STATEFN for menu items that combine the information of other image objects.")
+
+    (* ;; "Optional STARTPIEC and STOPIDENTIFIER permit confining the parse to a subregon of the menu. The parsing begins at STARTPIECE and ends after examining the first object with that identifier. The piece containing that identifier is stored as a property of the STARTPIECE object..")
+
+    (for PC OBJ PROP STATE STATEFN inpieces (CL:IF STARTPIECE
+                                                (NEXTPIECE STARTPIECE)
+                                                (\TEDIT.FIRSTPIECE (fetch (TEXTSTREAM TEXTOBJ)
+                                                                      of MENUTEXTSTREAM)))
+       when [SETQ PROP (AND (SETQ OBJ (POBJ PC))
+                            (IMAGEOBJPROP OBJ 'IDENTIFIER] unless (IMAGEOBJPROP OBJ 'IGNORE)
+       join (CL:WHEN (SETQ STATEFN (IMAGEOBJPROP OBJ 'STATEFN))
+                (SETQ PC (APPLY* STATEFN PC OBJ MENUTEXTSTREAM)))
+            (CL:UNLESS (IMAGEOBJPROP OBJ 'IGNORE)            (* ; "Skip if DONTAPPLY or empty")
+                (SETQ STATE (IMAGEOBJPROP OBJ 'STATE))       (* ; 
+                                                             " LISTP CAR means a sub-property list")
+                (CL:UNLESS (EQ '**EMPTY** STATE)
+                    (CL:IF (LISTP (CAR STATE))
+                        (APPEND (CAR STATE))
+                        (LIST PROP STATE)))) repeatuntil (CL:WHEN (AND STOPIDENTIFIER
+                                                                       (EQ STOPIDENTIFIER PROP)
+                                                                       (EQ OBJECT.PTYPE (PTYPE 
+                                                                                           STARTPIECE
+                                                                                               )))
+                                                             (IMAGEOBJPROP (PCONTENTS STARTPIECE)
+                                                                    'PARSEENDPIECE PC))])
+
+(\TEDIT.MENU.NEUTRALIZE
+  [LAMBDA (OBJ MENUWINDOW MENUSEL MENUSTREAM)                (* ; "Edited 12-Jan-2025 13:05 by rmk")
+                                                             (* ; "Edited  1-Jan-2025 10:53 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 09:18 by rmk")
+                                                             (* ; "Edited 19-Oct-2024 09:16 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:40 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 11:29 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 13:58 by rmk")
+                                                             (* ; "Edited 22-Aug-2024 08:35 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 08:35 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 12:16 by rmk")
+
+    (* ;; "Set all the fields of a PARAGRAPH LOOKS menu to neutral settings.")
+
+    (RESETLST
+        (TEDIT.DEFER.UPDATES MENUSTREAM)                     (* ; "Turn of the NEUTRAL button")
+        (for PC OBJ inpieces (\TEDIT.FIRSTPIECE MENUSTREAM) when (SETQ OBJ (POBJ PC))
+           do (SELECTQ (IMAGEOBJPROP OBJ 'IMAGECLASSNAME)
+                  (3StateMenuButton 
+                       (IMAGEOBJPROP OBJ 'STATE 'NEUTRAL))
+                  (FieldPrefixButton 
+                       (SETQ PC (MB.FIELD.SETSTATEFN PC (OR (IMAGEOBJPROP OBJ 'INITSTATE)
+                                                            '**EMPTY**)
+                                       MENUSTREAM)))
+                  (ToggleButton (IMAGEOBJPROP OBJ 'STATE 'OFF))
+                  (NWayButton (MB.NWAY.SELECT OBJ T))
+                  (MarginRuler (MARGINBAR.NEUTRALIZE OBJ))
+                  NIL))
+        (TEDIT.BACKTOMAIN MENUSTREAM))])
+
+(\TEDITMENU.RECORD.UNFORMATTED
+  [LAMBDA (BUTTON NEWSTATE TEXTSTREAM)                       (* ; "Edited 22-Sep-2023 20:06 by rmk")
+                                                             (* jds " 7-Feb-85 09:44")
+    (PUTTEXTPROP (TEXTOBJ TEXTSTREAM)
+           'UNFORMATTEDPUT/GET
+           (EQ NEWSTATE 'ON])
+)
+
+
+
+(* ;; "")
+
+
+
+
+(* ;; "")
+
+
+
+
+(* ; "EXPANDEDMENU")
+
+(DEFINEQ
+
+(\TEDIT.EXPANDEDMENU.CREATE
+  [LAMBDA NIL                                                (* ; "Edited 25-Jan-2026 10:52 by rmk")
+                                                             (* ; "Edited 29-May-2025 09:31 by rmk")
+                                                             (* ; "Edited  8-Mar-2025 12:27 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 16:05 by rmk")
+                                                             (* ; "Edited  8-Nov-2024 08:35 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 10:48 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 22:51 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited  2-Sep-2024 23:48 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 12:19 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 09:34 by rmk")
+                                                             (* ; "Edited 11-Aug-2024 11:43 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 21:09 by rmk")
+                                                             (* ; "Edited 24-Jul-2024 18:34 by rmk")
+                                                             (* gbn "27-Sep-84 01:04")
+
+    (* ;; "Creates the TEdit Expanded Menu")
+
+    (PROGN 
+           (* ;; "Hack so Masterscope knows that these otherwise quoted functions are here.")
+
+           (FUNCTION \TEDIT.EXPANDEDMENU.FN))
+    (\TEDIT.MENU.CREATE `((ACTION (LABEL "Quit")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          12
+                          (ACTION (IDENTIFIER PAGELAYOUT)
+                                 (LABEL "Page layout")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          5
+                          (ACTION (IDENTIFIER CHARLOOKS)
+                                 (LABEL "Char looks")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          5
+                          (ACTION (IDENTIFIER PARALOOKS)
+                                 (LABEL "Para looks")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          12
+                          (ACTION (LABEL "Select All")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          EOL
+                          (ACTION (LABEL "Get")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          (FIELD (IDENTIFIER GETFILE)
+                                 (FIELDTYPE SYMBOL)
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          TAB
+                          (ACTION (LABEL "Put")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          (FIELD (IDENTIFIER PUTFILE)
+                                 (FIELDTYPE SYMBOL)
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          TAB
+                          (ACTION (LABEL "Include")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          (FIELD (IDENTIFIER INCLUDEFILE)
+                                 (FIELDTYPE SYMBOL)
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          5
+                          (TOGGLE (LABEL "Unformatted"))
+                          EOL
+                          (ACTION (LABEL "Find")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          (FIELD (IDENTIFIER FINDPATTERN)
+                                 (FIELDTYPE STRING))
+                          TAB
+                          (ACTION (LABEL "Substitute")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          (FIELD (IDENTIFIER REPLACEMENT)
+                                 (FIELDTYPE SELECTION))
+                          (FIELD (IDENTIFIER PATTERN)
+                                 (PRELABEL "for")
+                                 (FIELDTYPE STRING))
+                          3
+                          (TOGGLE (LABEL "Confirm"))
+                          3
+                          (TOGGLE (IDENTIFIER USENEWLOOKS)
+                                 (LABEL "Use New Looks"))
+                          EOL
+                          (ACTION (LABEL "Hardcopy")
+                                 (SELECTFN \TEDIT.EXPANDEDMENU.FN))
+                          TAB
+                          (FIELD (IDENTIFIER SERVER)
+                                 (PRELABEL "server:")
+                                 (FIELDTYPE SYMBOL)
+                                 (EMPTYVALUE NIL))
+                          (FIELD (IDENTIFIER COPIES)
+                                 (PRELABEL "copies:")
+                                 (EMPTYVALUE 1)
+                                 (FIELDTYPE POSITIVENUMBER))
+                          3
+                          (TOGGLE (IDENTIFIER DOUBLE-SIDED)
+                                 (LABEL "Double-sided"))
+                          EOL TAB TAB (FIELD (IDENTIFIER MESSAGE/PHONE#)
+                                             (PRELABEL "Message/Phone#:")
+                                             (FIELDTYPE STRING])
+
+(\TEDIT.EXPANDEDMENU.START
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 28-May-2025 23:44 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 15:41 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 16:43 by rmk")
+                                                             (* ; "Edited 20-Aug-2024 15:46 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 27-Feb-2024 08:11 by rmk")
+                                                             (* ; "Edited 22-Sep-2023 20:00 by rmk")
+                                                             (* ; "Edited 19-Sep-2023 08:51 by rmk")
+                                                             (* ; "Edited 20-Aug-87 16:51 by jds")
+                                                             (* ; "'27-Sep-84 01:04' gbn")
+    (CL:UNLESS (\TEDIT.MENU.OPEN? "TEdit Menu" TSTREAM)
+        (LET (EXPANDEDMENU (TEXTOBJ (TEXTOBJ TSTREAM)))
+             (\TEDIT.MENU.START (SETQ EXPANDEDMENU (\TEDIT.EXPANDEDMENU.CREATE))
+                    TSTREAM "TEdit Menu" (HEIGHTIFWINDOW 60 T)
+                    'EXPANDED)
+             (CL:WHEN (OR (GETTEXTPROP TEXTOBJ 'CLEARGET)
+                          (GETTEXTPROP TEXTOBJ 'CLEARPUT))   (* ; "initialize the button")
+                 (MB.SET.TOGGLE 'UNFORMATTED 'ON EXPANDEDMENU))))])
+
+(\TEDIT.EXPANDEDMENU.FN
+  [LAMBDA (OBJ MENUSEL MENUW MENUSTREAM)                     (* ; "Edited  7-Jan-2025 17:44 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 10:02 by rmk")
+                                                             (* ; "Edited 26-Aug-2024 09:32 by rmk")
+                                                             (* ; "Edited 11-Aug-2024 11:31 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 11:42 by rmk")
+                                                             (* ; "Edited 20-Mar-2024 11:03 by rmk")
+                                                             (* ; "Edited  9-Mar-2024 11:43 by rmk")
+                                                             (* ; "Edited 22-Feb-2024 23:26 by rmk")
+                                                             (* ; "Edited  7-Feb-2024 23:07 by rmk")
+                                                             (* ; "Edited 29-Jan-2024 17:22 by rmk")
+                                                             (* ; "Edited 21-Oct-2022 18:46 by rmk")
+                                                             (* ; "Edited 30-Mar-94 15:46 by jds")
+
+    (* ;; "MBFN for the items of the default TEdit menu (the %"expanded%" menu).  This sets up the context to call the \TEDIT.DEFAULTMENU.ACTIONFN, which actually interprets the button.")
+
+    (PROG* ((MAINTEXTSTREAM (\TEDIT.MAINSTREAM MENUSTREAM))
+            (EDITOPACTIVE (GETTOBJ (GETTSTR MAINTEXTSTREAM TEXTOBJ)
+                                 EDITOPACTIVE))
+            FORM PROC)
+           (if (EQ EDITOPACTIVE T)
+               then (TEDIT.PROMPTPRINT MAINTEXTSTREAM "Edit operation in progress; please wait." T)
+                    (RETURN)
+             elseif EDITOPACTIVE
+               then (TEDIT.PROMPTPRINT MAINTEXTSTREAM (CONCAT EDITOPACTIVE 
+                                                             " operation in progress; please wait.")
+                           T)
+                    (CL:UNLESS (EQ EDITOPACTIVE (IMAGEOBJPROP OBJ 'LABEL))
+                           (RETURN)))
+           (SETQ FORM (LIST (FUNCTION \TEDIT.EXPANDEDMENU.ACTIONFN)
+                            OBJ MENUSEL MENUW MENUSTREAM MAINTEXTSTREAM))
+           (if [PROCESSP (SETQ PROC (WINDOWPROP (WINDOWPROP MENUW 'MAINWINDOW)
+                                           'PROCESS]
+               then 
+                    (* ;; 
+                    "The MAIN window has a live process behind it;  Evaluate the button fn there.")
+
+                    (PROCESS.EVAL PROC FORM)
+             elseif [PROCESSP (SETQ PROC (WINDOWPROP MENUW 'PROCESS]
+               then 
+                    (* ;; 
+                    "This menu window has a live process behind it;  Evaluate the button fn here.")
+
+                    (PROCESS.EVAL PROC FORM)
+             else (ADD.PROCESS FORM))
+           (TEDIT.BACKTOMAIN MENUSTREAM)
+
+     (* ;; "Tell the menu button handler not to turn off this button--it's still active and will turn itself off.")
+
+           (RETURN 'DON'T])
+
+(\TEDIT.EXPANDEDMENU.ACTIONFN
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM MAINSTREAM)     (* ; "Edited 25-Jan-2026 11:05 by rmk")
+                                                             (* ; "Edited 29-May-2025 09:29 by rmk")
+                                                             (* ; "Edited 11-May-2025 15:01 by rmk")
+                                                             (* ; "Edited  6-Apr-2025 14:39 by rmk")
+                                                             (* ; "Edited 18-Mar-2025 23:54 by rmk")
+                                                             (* ; "Edited 26-Nov-2024 23:30 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 10:54 by rmk")
+                                                             (* ; "Edited  2-Sep-2024 23:29 by rmk")
+                                                             (* ; "Edited 12-Aug-2024 10:23 by rmk")
+                                                             (* ; "Edited  2-May-2024 13:48 by rmk")
+                                                             (* ; "Edited 27-Feb-2024 07:54 by rmk")
+                                                             (* ; "Edited 14-Dec-2023 21:03 by rmk")
+                                                             (* ; "Edited 20-Sep-2023 23:14 by rmk")
+                                                             (* ; "Edited  6-May-2023 23:11 by rmk")
+                                                             (* ; "Edited 18-Apr-2023 23:58 by rmk")
+                                                             (* ; "Edited 30-Mar-94 16:04 by jds")
+                                                             (* ; 
+                                                          "MBFN for TEdit default menu item buttons.")
+    (ERSETQ (RESETLST
+                (RESETSAVE NIL (LIST [FUNCTION (LAMBDA (SEL)
+                                                 (FSETSEL SEL SET NIL]
+                                     MENUSEL))
+                (LET ((MENUTEXTOBJ (FTEXTOBJ MENUSTREAM))
+                      STATES STATE)
+                     (SELECTQ (IMAGEOBJPROP OBJ 'IDENTIFIER)
+                         (QUIT                               (* ; "Is it OK to quit the main edit?")
+                               (\TEDIT.FINISHEDIT? MAINSTREAM))
+                         (PAGELAYOUT                         (* ; "Page layout menu")
+                                     (\TEDIT.PAGEMENU.START MAINSTREAM))
+                         (PARALOOKS                          (* ; "Page layout menu")
+                                    (\TEDIT.PARAMENU.START MAINSTREAM))
+                         (CHARLOOKS                          (* ; "Page layout menu")
+                                    (\TEDIT.CHARMENU.START MAINSTREAM))
+                         (SELECT% ALL                        (* ; "Select the entire document.")
+                                      (TEDIT.SETSEL MAINSTREAM 1 (TEXTLEN (TEXTOBJ MAINSTREAM))
+                                             'LEFT))
+                         (PUT                                (* ; 
+                                                       "Only try this if he really typed a file name")
+                              (SETQ STATES (MB.GET '(PUTFILE UNFORMATTED)
+                                                  MENUSTREAM
+                                                  'STATE MENUSEL))
+                              (SETQ STATE (LISTGET STATES 'PUTFILE))
+                                                             (* ; "STATE is the file name")
+                              (if STATE
+                                  then [TEDIT.PUT MAINSTREAM STATE NIL
+                                              (OR (EQ 'ON (LISTGET STATES 'UNFORMATTED))
+                                                  (GETTEXTPROP MAINSTREAM 'UNFORMATTEDPUT/GET]
+                                else (TEDIT.PROMPTPRINT MAINSTREAM "Put file not specified" T)))
+                         (GET (SETQ STATES (MB.GET '(GETFILE UNFORMATTED)
+                                                  MENUSTREAM
+                                                  'STATE MENUSEL))
+                              (SETQ STATE (LISTGET STATES 'GETFILE))
+                              (if STATE
+                                  then [TEDIT.GET MAINSTREAM STATE (OR (EQ 'ON (LISTGET STATES
+                                                                                      'UNFORMATTED))
+                                                                       (GETTEXTPROP MAINSTREAM
+                                                                              'UNFORMATTEDPUT/GET]
+                                else (TEDIT.PROMPTPRINT MAINSTREAM "Get file not specified" T)))
+                         (INCLUDE (SETQ STATES (MB.GET '(PUTFILE UNFORMATTED)
+                                                      MENUSTREAM
+                                                      'STATE MENUSEL))
+                                  (SETQ STATE (LISTGET STATES 'PUTFILE))
+                                  (if STATE
+                                      then [TEDIT.INCLUDE MAINSTREAM STATE NIL NIL NIL
+                                                  (OR (EQ 'ON (LISTGET STATES 'UNFORMATTED))
+                                                      (GETTEXTPROP MAINSTREAM 'UNFORMATTEDPUT/GET]
+                                    else (TEDIT.PROMPTPRINT MAINSTREAM "Include file not specified" T
+                                                )))
+                         (FIND (SETQ STATE (MB.GET 'FINDPATTERN MENUSTREAM 'STATE MENUSEL))
+                               (if (IGEQ (NCHARS STATE)
+                                         1)
+                                   then (\TEDIT.KEY.FIND MAINSTREAM NIL NIL STATE)
+                                 else (TEDIT.PROMPTPRINT MAINSTREAM "Search pattern not specified" T)
+                                   ))
+                         (SUBSTITUTE (SETQ STATES (MB.GET '(REPLACEMENT PATTERN CONFIRM USENEWLOOKS)
+                                                         MENUSTREAM
+                                                         'STATE MENUSEL))
+                                     [LET [(REPLACEMENT (LISTGET STATES 'REPLACEMENT))
+                                           (PATTERN (LISTGET STATES 'PATTERN]
+                                          (CL:UNLESS (ZEROP (NCHARS PATTERN))
+                                              (SETQ REPLACEMENT (CL:IF (EQ 'ON (LISTGET STATES
+                                                                                      'USENEWLOOKS))
+                                                                    (\TEDIT.SELPIECES MENUTEXTOBJ 
+                                                                           REPLACEMENT NIL 
+                                                                           MENUTEXTOBJ)
+                                                                    (TEDIT.SEL.AS.STRING MENUSTREAM 
+                                                                           REPLACEMENT)))
+                                              [TEDIT.SUBSTITUTE MAINSTREAM PATTERN (OR REPLACEMENT ""
+                                                                                       )
+                                                     (EQ 'ON (LISTGET STATES 'CONFIRM))
+                                                     (EQ 'ON (LISTGET STATES 'USENEWLOOKS])])
+                         (HARDCOPY (SETQ STATES (MB.GET '(SERVER COPIES DOUBLE-SIDED MESSAGE/PHONE#)
+                                                       MENUSTREAM
+                                                       'STATE MENUSEL))
+                                   (LET ((COPIES (LISTGET STATES 'COPIES))
+                                         (MSG (LISTGET STATES 'MESSAGE/PHONE#))
+                                         PRINTOPTIONS)
+                                        (CL:WHEN COPIES
+                                            (SETQ PRINTOPTIONS (LIST '%#COPIES COPIES)))
+                                        (CL:WHEN (LISTGET STATES 'DOUBLE-SIDED)
+                                            (push PRINTOPTIONS '%#SIDES 2))
+                                        (CL:WHEN MSG
+                                            (push PRINTOPTIONS 'MESSAGE (\TEDIT.MAKEFILENAME MSG)))
+                                        (SEND.FILE.TO.PRINTER MAINSTREAM (LISTGET STATES 'SERVER)
+                                               PRINTOPTIONS)))
+                         (SHOULDNT))))])
+)
+
+
+
+(* ;; "")
+
+
+
+
+(* ;; "")
+
+
+
+
+(* ; "PARAMENU")
+
+(DEFINEQ
+
+(\TEDIT.PARAMENU.CREATE
+  [LAMBDA (MAINTSTREAM)                                      (* ; "Edited 19-Oct-2025 15:12 by rmk")
+                                                             (* ; "Edited 13-Jul-2025 22:35 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 15:48 by rmk")
+                                                             (* ; "Edited  8-Nov-2024 08:35 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 23:46 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:35 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 14:54 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 23:47 by rmk")
+                                                             (* ; "Edited 24-Aug-2024 21:45 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 12:17 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 09:36 by rmk")
+                                                             (* ; "Edited 11-Aug-2024 17:46 by rmk")
+                                                             (* ; "Edited  5-Aug-2024 10:19 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 23:47 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 10:18 by rmk")
+                                                             (* jds " 2-Aug-84 15:32")
+
+    (* ;; "Creates the TEdit Expanded Paragraph Menu for MAINTSTREAM. (PROGN to suppress %"value of comment used? compile-time messages.)")
+
+    (PROGN 
+           (* ;; "Hack so Masterscope knows that these otherwise quoted functions are here.")
+
+           (FUNCTION \TEDIT.APPLY.PARALOOKS)
+           (FUNCTION \TEDIT.SHOW.PARALOOKS)
+           (FUNCTION \TEDIT.MENU.NEUTRALIZE)
+           (FUNCTION \TEDIT.TABTYPE.SET)
+           (FUNCTION PRINTERTYPE)
+           (FUNCTION \TEDIT.PARAMENU.RESHAPEFN))
+    (LET (MENUTSTREAM)
+         (SETQ MENUTSTREAM (\TEDIT.MENU.CREATE `((ACTION (LABEL APPLY)
+                                                        (IGNORE T)
+                                                        (SELECTFN \TEDIT.APPLY.PARALOOKS))
+                                                 3
+                                                 (ACTION (LABEL SHOW)
+                                                        (IGNORE T)
+                                                        (SELECTFN \TEDIT.SHOW.PARALOOKS))
+                                                 3
+                                                 (ACTION (LABEL NEUTRAL)
+                                                        (IGNORE T)
+                                                        (SELECTFN \TEDIT.MENU.NEUTRALIZE))
+                                                 EOL
+                                                 (NWAY (IDENTIFIER QUAD)
+                                                       (BUTTONS (Left Right Centered Justified))
+                                                       (INITSTATE OFF))
+                                                 TAB
+                                                 (3STATE (IDENTIFIER TYPE)
+                                                        (LABEL "Page Heading"))
+                                                 2
+                                                 (FIELD (IDENTIFIER SUBTYPE)
+                                                        (PRELABEL "type")
+                                                        (FIELDTYPE SYMBOL))
+                                                 EOL
+                                                 (FIELD (IDENTIFIER LINELEADING)
+                                                        (PRELABEL "Line leading")
+                                                        (POSTLABEL "pts")
+                                                        (FIELDTYPE NUMBER)
+                                                        (LABELFONT (HELVETICA 8)))
+                                                 (FIELD (PRELABEL "   Para leading")
+                                                        (POSTLABEL "pts")
+                                                        (IDENTIFIER PARALEADING)
+                                                        (FIELDTYPE NUMBER)
+                                                        (LABELFONT (HELVETICA 8)))
+                                                 (FIELD (IDENTIFIER SPECIALX)
+                                                        (PRELABEL "    Special Locn: X")
+                                                        (POSTLABEL "picas")
+                                                        (FIELDTYPE PICAS)
+                                                        (LABELFONT (HELVETICA 8)))
+                                                 (FIELD (IDENTIFIER SPECIALY)
+                                                        (PRELABEL "  Y")
+                                                        (POSTLABEL "picas")
+                                                        (FIELDTYPE PICAS)
+                                                        (LABELFONT (HELVETICA 8)))
+                                                 EOL
+                                                 (TEXT (STRING "New Page:  ")
+                                                       (FONT (HELVETICA 8)))
+                                                 (3STATE (IDENTIFIER NEWPAGEBEFORE)
+                                                        (LABEL "Before"))
+                                                 2
+                                                 (3STATE (IDENTIFIER NEWPAGEAFTER)
+                                                        (LABEL "After"))
+                                                 4
+                                                 (3STATE (IDENTIFIER HEADINGKEEP)
+                                                        (LABEL "Keep heading"))
+                                                 (TEXT (STRING "      Display mode: ")
+                                                       (FONT (HELVETICA 8)))
+                                                 (3STATE (LABEL "Hardcopy"))
+                                                             (* (FIELD (IDENTIFIER PRINTFILETYPE)
+                                                             (FIELDTYPE SYMBOL) (INITSTATE
+                                                             (\, (PRINTERTYPE)))))
+                                                 4 EOL (TEXT (STRING "Tab Type:  ")
+                                                             (FONT (HELVETICA 8)))
+                                                 (NWAY (IDENTIFIER TABTYPE)
+                                                       (BUTTONS (Left Right Centered Decimal))
+                                                       (IGNORE T))
+                                                 3
+                                                 (TOGGLE (IDENTIFIER DOTTEDLEADER)
+                                                        (LABEL "Dotted Leader")
+                                                        (IGNORE T))
+                                                 (FIELD (IDENTIFIER DEFAULTTAB)
+                                                        (PRELABEL "     Default Tab:")
+                                                        (POSTLABEL "pts")
+                                                        (FIELDTYPE NUMBER)
+                                                        (LABELFONT (HELVETICA 8)))
+                                                 EOL
+                                                 ((PROGN (TEDIT.INSERT.OBJECT (MARGINBAR.CREATE
+                                                                               -0.5 -0.5 -39.5 NIL 12
+                                                                               NIL MAINTSTREAM)
+                                                                MENUTSTREAM CH# '(PROTECTED OFF))
+                                                         1))
+                                                 EOL)
+                                  NIL MAINTSTREAM))
+         [PUTTEXTPROP MENUTSTREAM 'WINDOWPROPS `(RESHAPEFN (\TEDIT.PARAMENU.RESHAPEFN]
+         MENUTSTREAM])
+
+(\TEDIT.PARAMENU.START
+  [LAMBDA (MAINTSTREAM)                                      (* ; "Edited 19-Oct-2025 10:29 by rmk")
+                                                             (* ; "Edited 28-May-2025 23:45 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 15:42 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 15:36 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 00:06 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 27-Feb-2024 07:53 by rmk")
+                                                             (* ; "Edited 19-Sep-2023 08:51 by rmk")
+                                                             (* ; "Edited 20-Aug-87 16:51 by jds")
+    (CL:UNLESS (\TEDIT.MENU.OPEN? "Paragraph-Looks Menu" MAINTSTREAM)
+        (\TEDIT.MENU.START (\TEDIT.PARAMENU.CREATE MAINTSTREAM)
+               MAINTSTREAM "Paragraph-Looks Menu" (HEIGHTIFWINDOW 141 T)
+               'PARALOOKS))])
+
+(\TEDIT.APPLY.PARALOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 29-Dec-2024 20:16 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 10:02 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 14:57 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:15 by rmk")
+                                                             (* ; "Edited 21-Aug-2024 12:28 by rmk")
+                                                             (* ; "Edited 11-Aug-2024 18:31 by rmk")
+                                                             (* ; "Edited 22-Apr-93 16:45 by jds")
+
+    (* ;; "Handler for the Paragraph Menu's APPLY button. ")
+
+    (TEDIT.PROMPTCLEAR (\TEDIT.MAINSTREAM MENUSTREAM))
+    (\TEDIT.CHANGE.PARALOOKS (\TEDIT.MAINSTREAM MENUSTREAM)
+           (\TEDIT.MENU.PARSE MENUSTREAM))
+    (TEDIT.BACKTOMAIN MENUSTREAM])
+
+(\TEDIT.SHOW.PARALOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 28-Jul-2025 20:52 by rmk")
+                                                             (* ; "Edited 20-Apr-2025 23:40 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 11:11 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 14:59 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:15 by rmk")
+                                                             (* ; "Edited  3-Aug-2024 19:05 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 17:26 by rmk")
+                                                             (* ; "Edited 14-Jul-2024 11:57 by rmk")
+                                                             (* ; "Edited 11-Jul-2024 11:14 by rmk")
+                                                             (* ; "Edited  6-Jul-2024 23:40 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 18-May-2024 17:15 by rmk")
+                                                             (* ; "Edited 27-Mar-2024 15:11 by rmk")
+                                                             (* ; "Edited 20-Jul-2023 17:00 by rmk")
+                                                             (* ; "Edited  3-May-2023 10:40 by rmk")
+                                                             (* ; "Edited 22-Aug-2022 13:17 by rmk")
+                                                             (* ; "Edited 30-May-91 22:17 by jds")
+
+    (* ;; "Set the PARALOOKS menu from the fmtspec of the currently selected paragraph. MENUSTREAM is the displaystream of the paralooks menu window.")
+
+    (* ;; "OBJ is unused, presumably to have a standard interface with other menu functions that update image objects.")
+                                                             (* ; "")
+    (LET* ((MENUTEXTOBJ (GETTSTR MENUSTREAM TEXTOBJ))
+           (MAINTEXTOBJ (GETTSTR (\TEDIT.MAINSTREAM MENUSTREAM)
+                               TEXTOBJ))
+           (MAINCH# (GETSEL (TEXTSEL MAINTEXTOBJ)
+                           CH#)))
+          (RESETLST                                          (* ; "For the defer")
+              (TEDIT.DEFER.UPDATES MENUSTREAM)
+              (\TEDIT.PARAMENU.FILLIN MENUSTREAM (PPARALOOKS (\TEDIT.CHTOPC MAINCH# MAINTEXTOBJ))))])
+
+(\TEDIT.PARAMENU.FILLIN
+  [LAMBDA (MENUSTREAM PARALOOKS)                             (* ; "Edited 19-Feb-2025 13:27 by rmk")
+                                                             (* ; "Edited  8-Feb-2025 22:53 by rmk")
+                                                             (* ; "Edited 21-Oct-2024 00:33 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 11:29 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 23:48 by rmk")
+                                                             (* ; "Edited 24-Aug-2024 21:46 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 08:36 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 00:15 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 12:00 by rmk")
+                                                             (* ; "Edited  5-Aug-2024 00:40 by rmk")
+
+    (* ;; "For the paragraph menu SHOW command, fills in the with values drawn from the PARALOOKS of the main documents selectiont. The strategy is to iterate through the image objects in the MENUTEXTOBJ and figure out from their property what aspect of PARALOOKS they depict.")
+
+    (for PC OBJ VAL PROP SETSTATEFN inpieces (\TEDIT.FIRSTPIECE (GETTSTR MENUSTREAM TEXTOBJ))
+       when [SETQ SETSTATEFN (AND (SETQ OBJ (POBJ PC))
+                                  (SETQ PROP (IMAGEOBJPROP OBJ 'IDENTIFIER))
+                                  (IMAGEOBJPROP OBJ 'SETSTATEFN]
+       do 
+          (* ;; "These are the properties of the PARAMENU image objects. ")
+
+          (SETQ VAL (SELECTQ PROP
+                        (QUAD (FGETPLOOKS PARALOOKS QUAD))
+                        (LINELEADING (FGETPLOOKS PARALOOKS LINELEAD))
+                        (PARALEADING (FGETPLOOKS PARALOOKS LEADBEFORE))
+                        (SPECIALX                            (* ; "0 means don't for these")
+                                  (CL:IF (AND (FGETPLOOKS PARALOOKS FMTSPECIALX)
+                                              (IGREATERP (FGETPLOOKS PARALOOKS FMTSPECIALX)
+                                                     0))
+                                      (FGETPLOOKS PARALOOKS FMTSPECIALX)
+                                      '**EMPTY**))
+                        (SPECIALY (CL:IF (AND (FGETPLOOKS PARALOOKS FMTSPECIALY)
+                                              (IGREATERP (FGETPLOOKS PARALOOKS FMTSPECIALY)
+                                                     0))
+                                      (FGETPLOOKS PARALOOKS FMTSPECIALY)
+                                      '**EMPTY**))
+                        (NEWPAGEBEFORE (FGETPLOOKS PARALOOKS FMTNEWPAGEBEFORE))
+                        (NEWPAGEAFTER (FGETPLOOKS PARALOOKS FMTNEWPAGEAFTER))
+                        (HEADINGKEEP (FGETPLOOKS PARALOOKS FMTHEADINGKEEP))
+                        (HARDCOPY (FGETPLOOKS PARALOOKS FMTHARDCOPY))
+                        (DEFAULTTAB (FGETPLOOKS PARALOOKS FMTDEFAULTTAB))
+                        (TABTYPE                             (* ; "Doesn't change")
+                                 (IMAGEOBJPROP OBJ 'STATE))
+                        (TYPE                                (* ; "Presumably PAGEHEADING here")
+                              (CL:IF (EQ 'PAGEHEADING (FGETPLOOKS PARALOOKS FMTPARATYPE))
+                                  'ON
+                                  'OFF))
+                        (SUBTYPE (FGETPLOOKS PARALOOKS FMTPARASUBTYPE))
+                        (DOTTEDLEADER                        (* ; 
+                                                             "Ephemeral property of individual tabs")
+                                      'OFF)
+                        (MARGINBAR [\TEDIT.PARALOOKS.TO.MARBAR PARALOOKS (fetch (MARGINBAR MARUNIT)
+                                                                            of (IMAGEOBJPROP
+                                                                                OBJ
+                                                                                'OBJECTDATUM])
+                        (TABTYPE (\TEDIT.THELP))
+                        (\TEDIT.THELP PROP))) 
+
+          (* ;; "Eventually, replace SHOULDNT with SETQ SETSTATEFN NIL")
+
+          (CL:WHEN SETSTATEFN
+              (SETQ PC (APPLY* SETSTATEFN PC VAL MENUSTREAM))
+              (TEDIT.OBJECT.CHANGED MENUSTREAM OBJ))])
+
+(\TEDIT.PARAMENU.RESHAPEFN
+  [LAMBDA (PANE BITS OLDREGION)                              (* ; "Edited 19-Oct-2025 14:18 by rmk")
+
+    (* ;; "The marginbar's width may change when the parawindow is reshaped.  If PANE is wider than the previous width, extend the margin bar.")
+
+    (LET [(PC (MB.GET 'MARGINBAR PANE 'STARTPC]
+         (CL:WHEN [AND PC (IGREATERP (PANEWIDTH PANE)
+                                 (fetch (MARGINBAR MARBARWIDTH) of (IMAGEOBJPROP (POBJ PC)
+                                                                          'OBJECTDATUM]
+             [WITH MARGINBAR (IMAGEOBJPROP (POBJ PC)
+                                    'OBJECTDATUM)
+                   (FSETPC PC POBJ (MARGINBAR.CREATE MARL1 MARLN MARR MARTABS MARUNIT MARTABTYPE
+                                          (PANEWIDTH PANE])
+         (\TEDIT.RESHAPEFN PANE BITS OLDREGION])
+)
+
+
+
+(* ;; "")
+
+
+
+
+(* ;; "")
+
+
+
+
+(* ; "CHARMENU")
+
+
+(RPAQ? TEDIT.FONTDEVICES '(DISPLAY PDF))
+
+(RPAQ? TEDIT.FONTFAMILIES '(Classic Modern Terminal Helvetica TimesRoman Gacha))
+(DEFINEQ
+
+(\TEDIT.CHARMENU.CREATE
+  [LAMBDA (TSTREAM)                                          (* ; "Edited  7-Jan-2025 15:48 by rmk")
+                                                             (* ; "Edited 16-Dec-2024 23:41 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 22:22 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:34 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 12:11 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 09:35 by rmk")
+                                                             (* ; "Edited 11-Aug-2024 17:46 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 12:02 by rmk")
+                                                             (* ; "Edited  7-Aug-2024 23:14 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 10:07 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 12:11 by rmk")
+                                                             (* ; "Edited 24-Jul-2024 18:09 by rmk")
+                                                             (* ; "Edited 20-Aug-87 16:50 by jds")
+                                                             (* ; "Creates the TEdit Expanded Menu")
+
+    (* ;; "Produces a CHARLOOKS menu specialized to TSTREAM")
+
+    (PROGN 
+           (* ;; "Hack so Masterscope knows that these otherwise quoted functions are here.")
+
+           (FUNCTION \TEDIT.APPLY.CHARLOOKS)
+           (FUNCTION \TEDIT.SHOW.CHARLOOKS)
+           (FUNCTION \TEDIT.MENU.NEUTRALIZE))
+    (\TEDIT.MENU.CREATE `((ACTION (LABEL APPLY)
+                                 (IGNORE T)
+                                 (SELECTFN \TEDIT.APPLY.CHARLOOKS))
+                          3
+                          (ACTION (LABEL SHOW)
+                                 (IGNORE T)
+                                 (SELECTFN \TEDIT.SHOW.CHARLOOKS))
+                          3
+                          (ACTION (LABEL NEUTRAL)
+                                 (IGNORE T)
+                                 (SELECTFN \TEDIT.MENU.NEUTRALIZE))
+                          EOL
+                          ,@(\TEDIT.CHARMENU.SPEC TSTREAM])
+
+(\TEDIT.CHARMENU.START
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 28-May-2025 23:41 by rmk")
+                                                             (* ; "Edited 14-Mar-2025 15:41 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 22:37 by rmk")
+                                                             (* ; "Edited 17-Dec-2024 00:04 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 27-Feb-2024 07:56 by rmk")
+                                                             (* ; "Edited 20-Sep-2023 23:13 by rmk")
+                                                             (* ; "Edited 10-Oct-2022 00:23 by rmk")
+                                                             (* ; "Edited 20-Aug-87 16:49 by jds")
+
+    (* ;; "Open a character-looks menu.")
+
+    (CL:UNLESS (\TEDIT.MENU.OPEN? "Character Looks Menu" TSTREAM)
+        (\TEDIT.MENU.START (\TEDIT.CHARMENU.CREATE TSTREAM)
+               TSTREAM "Character Looks Menu" (HEIGHTIFWINDOW 100 T)
+               'CHARLOOKS))])
+
+(\TEDIT.CHARMENU.SPEC
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 23-Mar-2025 14:48 by rmk")
+                                                             (* ; "Edited 15-Mar-2025 23:38 by rmk")
+                                                             (* ; "Edited 26-Jan-2025 22:05 by rmk")
+                                                             (* ; "Edited 10-Jan-2025 10:49 by rmk")
+                                                             (* ; "Edited  3-Jan-2025 11:21 by rmk")
+                                                             (* ; "Edited  1-Jan-2025 09:38 by rmk")
+                                                             (* ; "Edited 28-Dec-2024 12:42 by rmk")
+                                                             (* ; "Edited 22-Dec-2024 00:22 by rmk")
+                                                             (* ; "Edited 20-Dec-2024 12:27 by rmk")
+                                                             (* ; "Edited 17-Dec-2024 14:32 by rmk")
+                                                             (* ; "Edited  8-Nov-2024 08:35 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 21:36 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 21:45 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 14:35 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 10:16 by rmk")
+
+    (* ;; "This is shared by the CHARLOOKS and PAGE menus (for page numbers).  ")
+
+    (* ;; "Note:  PAGEMENU.CHARLOOKS.STATEFN assumes that DISTANCE is a later object")
+
+    (PROGN 
+           (* ;; "Hack so Masterscope knows that these otherwise quoted functions are here.")
+
+           (FUNCTION \TEDIT.OFFSETTYPE.STATEFN)
+           (FUNCTION \TEDIT.OTHER.STATECHANGEFN)
+           (FUNCTION \TEDIT.OTHER.SELECTFN))
+    (LET [(FONTFAMILIES (APPEND TEDIT.FONTFAMILIES))
+          (FONTDEVICES (CONS 'All (for D in TEDIT.FONTDEVICES collect (CL:IF (EQ 'PDF D)
+                                                                          'PDF
+                                                                          (L-CASE D T))]
+         (CL:WHEN (TEXTOBJ TSTREAM T)
+             [SETQ FONTFAMILIES (UNION FONTFAMILIES (TEXTPROP TSTREAM 'FAMILIES]
+             (for C N in (FGETTOBJ (TEXTOBJ TSTREAM)
+                                TXTCHARLOOKSLIST) eachtime (SETQ N (L-CASE (FONTPROP (GETCLOOKS
+                                                                                      C CLFONT)
+                                                                                  'FAMILY)
+                                                                          T))
+                unless (thereis F in FONTFAMILIES suchthat (EQ N (L-CASE F T)))
+                do (push FONTFAMILIES N) finally (SORT FONTFAMILIES)))
+         `((NWAY (IDENTIFIER DEVICE)
+                 (BUTTONS ,FONTDEVICES)
+                 (MAXITEMS/LINE 7)
+                 (INITSTATE ALL))
+           EOL 5 (NWAY (IDENTIFIER FAMILY)
+                       (BUTTONS ,FONTFAMILIES)
+                       (MAXITEMS/LINE 7))
+           EOL 15 (TOGGLE (LABEL Other)
+                         (IGNORE T)
+                         (STATECHANGEFN \TEDIT.OTHER.STATECHANGEFN)
+                         (SELECTFN \TEDIT.OTHER.SELECTFN))
+           3
+           (FIELD (IDENTIFIER OTHERFAMILY)
+                  (IGNORE T)
+                  (PRELABEL "other family:")
+                  (FIELDTYPE SYMBOL)
+                  (EMPTYVALUE NIL))
+           EOL 4 (3STATE (LABEL Bold))
+           3
+           (3STATE (LABEL Italic))
+           3
+           (FIELD (IDENTIFIER SIZE)
+                  (PRELABEL "Size:")
+                  (FIELDTYPE TRIMMEDSTRING))
+           EOL
+           (NWAY (IDENTIFIER OFFSETTYPE)
+                 (BUTTONS (Normal Superscript Subscript))
+                 (STATEFN \TEDIT.OFFSETTYPE.STATEFN))
+           (FIELD (IDENTIFIER DISTANCE)
+                  (PRELABEL "  distance:")
+                  (POSTLABEL "  ")
+                  (FIELDTYPE CARDINAL)
+                  (INITSTATE 2)
+                  (EMPTYVALUE 2)
+                  (IGNORE T))
+           EOL
+           (3STATE (LABEL Underline))
+           3
+           (3STATE (LABEL Strikeout))
+           3
+           (3STATE (LABEL Overline))
+           3
+           (3STATE (LABEL Unbreakable))
+           1])
+
+(\TEDIT.CHARMENU.PARSE
+  [LAMBDA (MENUSTREAM CH#)                                   (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 28-Aug-2024 16:12 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 08:37 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 17:59 by rmk")
+                                                             (* ; "Edited  6-Aug-2024 10:43 by rmk")
+                                                             (* ; "Edited  2-Aug-2024 18:00 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 21:57 by rmk")
+                                                             (* ; "Edited 26-Jul-2024 16:29 by rmk")
+                                                             (* ; "Edited 25-Jul-2024 12:02 by rmk")
+                                                             (* ; "Edited  2-May-2024 13:48 by rmk")
+                                                             (* ; "Edited 10-Apr-2024 10:18 by rmk")
+                                                             (* ; "Edited 25-Feb-2024 22:26 by rmk")
+                                                             (* ; "Edited 24-Jul-2023 17:10 by rmk")
+                                                             (* ; "Edited 30-May-91 22:18 by jds")
+
+    (* ;; "MBFN for TEdit charlooks menu buttons.  For a new font, this does not change the menu if the font doesn't exist.")
+
+    (LET ((TEXTOBJ (TEXTOBJ MENUSTREAM))
+          NEWLOOKS TEXT OFFSET DISTANCE FONTCLASS)
+         [SETQ NEWLOOKS (for PC OBJ PROP STATE STATEFN inpieces (CL:IF CH#
+                                                                    (\TEDIT.CHTOPC CH# TEXTOBJ)
+                                                                    (\TEDIT.FIRSTPIECE TEXTOBJ))
+                           when [SETQ PROP (AND (SETQ OBJ (POBJ PC))
+                                                (IMAGEOBJPROP OBJ 'IDENTIFIER]
+                           join (CL:WHEN (SETQ STATEFN (IMAGEOBJPROP OBJ 'STATEFN))
+                                    (SETQ PC (APPLY* STATEFN PC OBJ TEXTOBJ)))
+                                (CL:UNLESS (IMAGEOBJPROP OBJ 'DONTAPPLY)
+                                                             (* ; "Presumably used by someone else to set the menu, not the document directly, so we don't return anything")
+                                    (SETQ STATE (IMAGEOBJPROP OBJ 'STATE))
+                                    (CL:WHEN (AND STATE (NEQ 'NEUTRAL STATE))
+                                                             (* ; 
+                 "Don't propagate NIL or NEUTRAL. OFF means off. LISTP CAR means a sub-property list")
+                                        (CL:IF (LISTP (CAR STATE))
+                                            (APPEND (CAR STATE))
+                                            (LIST PROP STATE))))]
+         NEWLOOKS])
+
+(\TEDIT.CHARMENU.FILLIN
+  [LAMBDA (STARTINGPC CHARLOOKS MENUSTREAM)                  (* ; "Edited 15-Apr-2025 16:47 by rmk")
+                                                             (* ; "Edited 22-Mar-2025 23:27 by rmk")
+                                                             (* ; "Edited  1-Jan-2025 15:24 by rmk")
+                                                             (* ; "Edited 28-Dec-2024 12:48 by rmk")
+                                                             (* ; "Edited 20-Dec-2024 12:18 by rmk")
+                                                             (* ; "Edited 21-Oct-2024 00:33 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 00:03 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 10:16 by rmk")
+                                                             (* ; "Edited  3-Aug-2024 14:34 by rmk")
+
+    (* ;; "Given a TEXTOBJ describing a charlooks(sub) menu and a source CHARLOOKS , fill in the menu fields. The strategy is to iterate through the image objects in the MENUTEXTOBJ and figure out from their property what aspect of CHARLOOKS they depict.")
+
+    (* ;; "If the CHARLOOKS are not at the end of the file, the run of charlooks image objects should be followed by a fence post that causes a return with the fence post PC.")
+
+    (CL:WHEN CHARLOOKS
+        (for PC OBJ VAL SETSTATEFN FONT DEVICE inpieces (CL:IF STARTINGPC
+                                                            (NEXTPIECE STARTINGPC)
+                                                            (\TEDIT.FIRSTPIECE (GETTSTR MENUSTREAM 
+                                                                                      TEXTOBJ)))
+           first (SETQ FONT (FGETCLOOKS CHARLOOKS CLFONT))
+                 (SETQ DEVICE (MB.GET 'DEVICE MENUSTREAM 'STATE))
+                 (CL:WHEN (type? FONTCLASS FONT)
+                     (CL:WHEN (MEMB DEVICE '(OFF ALL NIL))
+                         (TEDIT.PROMPTPRINT MENUSTREAM 
+                                "Please select a particular display/print device" T)
+                         (RETURN))
+                     (SETQ FONT (FONTCREATE FONT NIL NIL NIL DEVICE)))
+           when [AND (SETQ OBJ (POBJ PC))
+                     (NEQ 'DEVICE (IMAGEOBJPROP OBJ 'IDENTIFIER))
+                     (SETQ SETSTATEFN (IMAGEOBJPROP OBJ 'SETSTATEFN]
+           do 
+              (* ;; "These are the properties of the CHARMENU image objects")
+
+              [SETQ VAL (SELECTQ (IMAGEOBJPROP OBJ 'IDENTIFIER)
+                            (FAMILY (L-CASE (FONTPROP FONT 'FAMILY)
+                                           T))
+                            (SIZE (FONTPROP FONT 'SIZE))
+                            (BOLD [EQ 'BOLD (CAR (FONTPROP FONT 'FACE])
+                            (ITALIC [EQ 'ITALIC (CADR (FONTPROP FONT 'FACE])
+                            (UNDERLINE (FGETCLOOKS CHARLOOKS CLULINE))
+                            (STRIKEOUT (FGETCLOOKS CHARLOOKS CLSTRIKE))
+                            (OVERLINE (FGETCLOOKS CHARLOOKS CLOLINE))
+                            (UNBREAKABLE (FGETCLOOKS CHARLOOKS CLUNBREAKABLE))
+                            (COLOR (FGETCLOOKS CHARLOOKS CLCOLOR))
+                            (OFFSETTYPE (CL:WHEN (SETQ VAL (FGETCLOOKS CHARLOOKS CLOFFSET))
+                                            (if (IGREATERP VAL 0)
+                                                then 'SUPERSCRIPT
+                                              elseif (ILESSP VAL 0)
+                                                then 'SUBSCRIPT
+                                              else 'NORMAL)))
+                            ((OTHER OTHERFAMILY) 
+                                 NIL)
+                            (DISTANCE (CL:UNLESS (ZEROP (FGETCLOOKS CHARLOOKS CLOFFSET))
+                                          (ABS (FGETCLOOKS CHARLOOKS CLOFFSET))))
+                            (\TEDIT.THELP (IMAGEOBJPROP OBJ 'IDENTIFIER] 
+
+              (* ;; "Eventually, replace SHOULDNT with SETQ SETSTATEFN NIL")
+
+              (CL:WHEN SETSTATEFN
+                  (SETQ PC (PROG1 (APPLY* SETSTATEFN PC VAL MENUSTREAM)
+                                                             (* ; "Provide OBJ's PC for the change")
+                               (TEDIT.OBJECT.CHANGED MENUSTREAM OBJ PC)))) finally (RETURN PC)))])
+
+(\TEDIT.SHOW.CHARLOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 28-Jul-2025 22:59 by rmk")
+                                                             (* ; "Edited 20-Apr-2025 23:40 by rmk")
+                                                             (* ; "Edited 31-Dec-2024 21:25 by rmk")
+                                                             (* ; "Edited  2-Nov-2024 20:16 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 09:55 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 14:59 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:13 by rmk")
+                                                             (* ; "Edited  7-Aug-2024 13:58 by rmk")
+                                                             (* ; "Edited  3-Aug-2024 19:06 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 17:26 by rmk")
+                                                             (* ; "Edited 14-Jul-2024 11:57 by rmk")
+                                                             (* ; "Edited 11-Jul-2024 11:14 by rmk")
+                                                             (* ; "Edited  6-Jul-2024 23:40 by rmk")
+                                                             (* ; "Edited 25-Jun-2024 11:59 by rmk")
+                                                             (* ; "Edited 18-May-2024 17:15 by rmk")
+                                                             (* ; "Edited 27-Mar-2024 15:11 by rmk")
+                                                             (* ; "Edited 20-Jul-2023 17:00 by rmk")
+                                                             (* ; "Edited  3-May-2023 10:40 by rmk")
+                                                             (* ; "Edited 22-Aug-2022 13:17 by rmk")
+                                                             (* ; "Edited 30-May-91 22:17 by jds")
+
+    (* ;; "Set the CHARLOOKS menu from the looks of the currently selected character. MENUSTREAM is the displaystream of the charlooks menu window, or the page-format menu that also has a character looks section for page numbers.")
+
+    (* ;; "OBJ is unused, presumably to have a standard interface with other menu functions that update image objects.")
+
+    (LET* ((MENUTEXTOBJ (FTEXTOBJ MENUSTREAM))
+           (MAINTEXTOBJ (GETTSTR (\TEDIT.MAINSTREAM MENUSTREAM)
+                               TEXTOBJ))
+           (MAINCH# (GETSEL (TEXTSEL MAINTEXTOBJ)
+                           CH#)))
+          (TEDIT.PROMPTCLEAR MENUSTREAM)                     (* ; 
+                                                 "Fill in the menu objects and fields with that info")
+          (RESETLST
+              (TEDIT.DEFER.UPDATES MENUSTREAM)
+              (\TEDIT.CHARMENU.FILLIN (\TEDIT.FIRSTPIECE MENUTEXTOBJ)
+                     (if (ILEQ MAINCH# (TEXTLEN MAINTEXTOBJ))
+                         then (PCHARLOOKS (\TEDIT.CHTOPC MAINCH# MAINTEXTOBJ))
+                       else (FGETTOBJ TEXTOBJ DEFAULTCHARLOOKS))
+                     MENUSTREAM))
+          (FSETSEL MENUSEL ONFLG T)
+          (\TEDIT.UPDATE.SEL MENUSEL 1 0 'LEFT)
+          (\TEDIT.FIXSEL MENUSEL MENUSTREAM)
+          (TEDIT.BACKTOMAIN MENUSTREAM])
+
+(\TEDIT.APPLY.CHARLOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 29-Dec-2024 20:13 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 09:39 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:39 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 14:56 by rmk")
+                                                             (* ; "Edited 15-Mar-2024 13:34 by rmk")
+                                                             (* ; "Edited 18-Apr-2023 23:55 by rmk")
+                                                             (* ; "Edited 21-Oct-2022 18:47 by rmk")
+                                                             (* ; "Edited 30-May-91 22:17 by jds")
+
+    (* ;; "Handler for the Character Menu's APPLY button. ")
+
+    (TEDIT.PROMPTCLEAR (\TEDIT.MAINSTREAM MENUSTREAM))
+    (\TEDIT.CHANGE.CHARLOOKS (\TEDIT.MAINSTREAM MENUSTREAM)
+           (\TEDIT.MENU.PARSE MENUSTREAM))
+    (TEDIT.BACKTOMAIN MENUSTREAM])
+
+(\TEDIT.OFFSETTYPE.STATEFN
+  [LAMBDA (TYPEPC TYPEOBJ TEXTOBJ)                           (* ; "Edited 22-Oct-2024 12:53 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 17:44 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:57 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 14:15 by rmk")
+                                                             (* ; "Edited 28-Aug-2024 19:14 by rmk")
+                                                             (* ; "Edited 12-Aug-2024 10:23 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 23:15 by rmk")
+                                                             (* ; "Edited  6-Aug-2024 10:39 by rmk")
+                                                             (* ; "Edited  2-Aug-2024 13:22 by rmk")
+
+    (* ;; "STATEFN for the OFFSETTYPE NWAY button.  This coerces the button's state from e.g. (OFFSETTYPE SUPERSCRIPT) to (SUPERSCRIPT 5) if DISTANCE is 5.  Distance comes from the DISTANCE field later in the menu.")
+
+    [LET ((SELECTED (IMAGEOBJPROP TYPEOBJ 'SELECTED))
+          DISTANCE)
+         (CL:WHEN SELECTED
+             (SETQ DISTANCE (IMAGEOBJPROP (MB.GET 'DISTANCE TEXTOBJ 'OBJECT TYPEPC)
+                                   'STATE))
+             (IMAGEOBJPROP TYPEOBJ 'STATE (CONS (SELECTQ (IMAGEOBJPROP SELECTED 'IDENTIFIER)
+                                                    (SUPERSCRIPT (LIST 'SUPERSCRIPT DISTANCE))
+                                                    (SUBSCRIPT (LIST 'SUBSCRIPT DISTANCE))
+                                                    ((NORMAL NIL) 
+                                                         (LIST 'SUPERSCRIPT 0))
+                                                    NIL))))]
+    TYPEPC])
+
+(\TEDIT.OTHER.STATECHANGEFN
+  [LAMBDA (OTHEROBJ NEWSTATE MENUSTREAM MENUSEL)             (* ; "Edited 28-Dec-2024 12:18 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 12:30 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 17:59 by rmk")
+                                                             (* ; "Edited 19-Oct-2024 11:55 by rmk")
+                                                             (* ; "Edited  7-Sep-2024 13:25 by rmk")
+                                                             (* ; "Edited 31-Aug-2024 14:24 by rmk")
+
+    (* ;; "Don't turn OTHER on unless OTHERFAMILY looks good.  If it's good, the OTHER.SELECTFN will move it to the FAMILY list and empty the OTHERFAMILY.")
+
+    (CL:WHEN (EQ 'ON NEWSTATE)
+        (LET ((OTHERFAM (MB.GET 'OTHERFAMILY MENUSTREAM 'STATE MENUSEL)))
+             (if (NULL OTHERFAM)
+                 then (TEDIT.PROMPTPRINT MENUSTREAM "OTHER font is not specified" T T)
+                      'DON'T
+               elseif [AND (BOUNDP (U-CASE OTHERFAM))
+                           (type? FONTCLASS (GETATOMVAL (U-CASE OTHERFAM]
+                 then (TEDIT.PROMPTPRINT MENUSTREAM "Please use TEDIT.LOOKS to install a fontclass" T
+                             T)
+                      'DON'T
+               elseif (FONTSAVAILABLE OTHERFAM '* '* 0 'DISPLAY T)
+               else (TEDIT.PROMPTPRINT MENUSTREAM (CONCAT "Can't find OTHER font " OTHERFAM)
+                           T T)
+                    'DON'T)))])
+
+(\TEDIT.OTHER.SELECTFN
+  [LAMBDA (OTHEROBJ MENUDS MENUSEL MENUSTREAM)               (* ; "Edited 22-Dec-2024 00:22 by rmk")
+                                                             (* ; "Edited  7-Nov-2024 21:55 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 12:38 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 22:11 by rmk")
+
+    (* ;; "If OTHER is selected, turn off any other family. Family is before, OTHERFAMILY is after.")
+
+    (CL:WHEN (EQ 'ON (IMAGEOBJPROP OTHEROBJ 'STATE))
+        [LET* ((FAMARG (MB.GET 'FAMILY MENUSTREAM '(OBJECT STARTPC)
+                              MENUSEL T))
+               (OTHERFAMARG (MB.GET 'OTHERFAMILY MENUSTREAM '(OBJECT STARTPC)
+                                   MENUSEL))
+               (OTHERFAMOBJ (CAR OTHERFAMARG))
+               (OTHERFAM (L-CASE (IMAGEOBJPROP OTHERFAMOBJ 'STATE)
+                                T))
+               (MAINTEXTOBJ (TEXTOBJ (\TEDIT.MAINSTREAM MENUSTREAM)
+                                   T)))
+              (APPLY* (IMAGEOBJPROP (CAR FAMARG)
+                             'SETSTATEFN)
+                     (CADR FAMARG)
+                     OTHERFAM MENUSTREAM)
+
+              (* ;; 
+      "Note: OTHER must be turned off before the OTHERFAM field is cleared:  clearing moves MENUSEL.")
+
+              (APPLY* (IMAGEOBJPROP OTHEROBJ 'SETSTATEFN)
+                     MENUSEL
+                     'OFF MENUSTREAM)
+              (APPLY* (IMAGEOBJPROP OTHERFAMOBJ 'SETSTATEFN)
+                     (CADR OTHERFAMARG)
+                     NIL MENUSTREAM)
+              (CL:WHEN MAINTEXTOBJ                           (* ; 
+                                                             "Save families for future menu creation")
+                  [\TEDIT.TEXTPROP MAINTEXTOBJ 'FAMILIES T (UNION (CONS OTHERFAM)
+                                                                  (\TEDIT.TEXTPROP MAINTEXTOBJ
+                                                                         'FAMILIES])])])
+)
+
+
+
+(* ;; "")
+
+
+
+
+(* ;; "")
+
+
+
+
+(* ; "PAGEMENU")
+
+(DEFINEQ
+
+(\TEDIT.PAGEMENU.CREATE
+  [LAMBDA (TSTREAM)                                          (* ; "Edited  9-Feb-2026 09:09 by rmk")
+                                                             (* ; "Edited 26-Jan-2026 12:03 by rmk")
+                                                             (* ; "Edited  5-Jun-2025 18:41 by rmk")
+                                                             (* ; "Edited 11-May-2025 14:40 by rmk")
+                                                             (* ; "Edited 27-Jan-2025 08:51 by rmk")
+                                                             (* ; "Edited  7-Jan-2025 15:47 by rmk")
+                                                             (* ; "Edited  5-Jan-2025 16:02 by rmk")
+                                                             (* ; "Edited  4-Jan-2025 00:34 by rmk")
+                                                             (* ; "Edited 17-Dec-2024 00:08 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 23:47 by rmk")
+                                                             (* ; "Edited  6-Oct-2024 15:35 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 23:13 by rmk")
+                                                             (* ; "Edited 14-Aug-2024 09:35 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 00:16 by rmk")
+                                                             (* ; "Edited 30-Jul-2024 00:10 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 11:28 by rmk")
+                                                             (* ; "Edited 24-Jul-2024 18:09 by rmk")
+                                                             (* gbn " 8-Oct-84 18:25")
+
+    (* ;; "Creates the TEdit Page Menu")
+
+    (PROGN 
+           (* ;; "Hack so Masterscope knows that these otherwise quoted functions are here.")
+
+           (FUNCTION \TEDIT.APPLY.PAGELOOKS)
+           (FUNCTION \TEDIT.SHOW.PAGELOOKS)
+           (FUNCTION \TEDIT.PAGEMENU.CHARLOOKS.STATEFN)
+           (FUNCTION \TEDIT.PAGEMENU.HEADINGS.STATEFN)
+           (FUNCTION \TEDIT.PAGEMENU.CHARLOOKS.STATEFN)
+           (FUNCTION \TEDIT.CHARMENU.FILLIN)
+           (FUNCTION \TEDIT.PAGEMENU.HEADINGS.SETSTATEFN))
+    (\TEDIT.MENU.CREATE `((ACTION (LABEL APPLY)
+                                 (IGNORE T)
+                                 (SELECTFN \TEDIT.APPLY.PAGELOOKS))
+                          3
+                          (ACTION (LABEL SHOW)
+                                 (IGNORE T)
+                                 (SELECTFN \TEDIT.SHOW.PAGELOOKS))
+                          EOL "Paper Size:  " (NWAY (IDENTIFIER PAPERSIZE)
+                                                    (BUTTONS (Letter Legal A4))
+                                                    (INITSTATE Letter))
+                          16
+                          (TOGGLE (LABEL "Landscape"))
+                          EOL
+                          (TEXT (STRING "For page:  "))
+                          (NWAY (IDENTIFIER PAGEID)
+                                (BUTTONS (|First(&Default)| Other% Left Other% Right)))
+                          EOL
+
+                          (* ;; "")
+
+                          (* ;; "Page numbers")
+
+                          5
+                          (TEXT (STRING "Page numbers:  "))
+                          (NWAY (IDENTIFIER PAGENOS)
+                                (BUTTONS (No Yes Heading))
+                                (INITSTATE Yes))
+                          EOL TAB (FIELD (IDENTIFIER PAGENUMBERX)
+                                         (PRELABEL "X:")
+                                         (INITSTATE 25.5)
+                                         (FIELDTYPE NUMBER))
+                          (FIELD (IDENTIFIER PAGENUMBERY)
+                                 (PRELABEL "  Y:")
+                                 (INITSTATE 3)
+                                 (FIELDTYPE NUMBER))
+                          "    Format:  "
+                          (NWAY (IDENTIFIER FOLIOFORMAT)
+                                (BUTTONS (|123| xiv XIV))
+                                INITSTATE |123|)
+                          EOL TAB (FIELD (IDENTIFIER STARTINGPAGE#)
+                                         (PRELABEL "Starting page #:")
+                                         (INITSTATE 1)
+                                         (FIELDTYPE POSITIVENUMBER))
+                          3 "Alignment:" 2 (NWAY (IDENTIFIER QUAD)
+                                                 (BUTTONS (Left Centered Right))
+                                                 (INITSTATE Centered))
+                          EOL TAB (FIELD (IDENTIFIER FOLIOPRETEXT)
+                                         (PRELABEL "Text before number:"))
+                          5
+                          (FIELD (IDENTIFIER FOLIOPOSTTEXT)
+                                 (PRELABEL "Text after number:"))
+                          EOL
+
+                          (* ;; "")
+
+                          (* ;; "Margins")
+
+                          EOL 5 (TEXT (STRING "Margins:   "))
+                          (FIELD (IDENTIFIER LEFTMARGIN)
+                                 (PRELABEL "Left")
+                                 (POSTLABEL "picas")
+                                 (INITSTATE 6)
+                                 (FIELDTYPE NUMBER))
+                          (FIELD (IDENTIFIER RIGHTMARGIN)
+                                 (PRELABEL "  Right")
+                                 (POSTLABEL "picas")
+                                 (INITSTATE 6)
+                                 (FIELDTYPE NUMBER))
+                          (FIELD (IDENTIFIER TOPMARGIN)
+                                 (PRELABEL "  Top")
+                                 (POSTLABEL "picas")
+                                 (INITSTATE 6)
+                                 (FIELDTYPE NUMBER))
+                          (FIELD (IDENTIFIER BOTTOMMARGIN)
+                                 (PRELABEL "  Bottom")
+                                 (POSTLABEL "picas")
+                                 (INITSTATE 6)
+                                 (FIELDTYPE NUMBER))
+
+                          (* ;; "")
+
+                          (* ;; "Columns ")
+
+                          EOL 5 (FIELD (IDENTIFIER COLUMNS)
+                                       (PRELABEL "Columns:")
+                                       (INITSTATE 1)
+                                       (FIELDTYPE POSITIVENUMBER))
+                          4
+                          (FIELD (IDENTIFIER COLWIDTH)
+                                 (PRELABEL "Col width")
+                                 (POSTLABEL "picas")
+                                 (FIELDTYPE NUMBER))
+                          4
+                          (FIELD (IDENTIFIER SPACEBETWEENCOLUMNS)
+                                 (PRELABEL "Space between cols:")
+                                 (POSTLABEL "picas")
+                                 (FIELDTYPE NUMBER))
+
+                          (* ;; "")
+
+                          (* ;; "Page headings")
+
+                          EOL EOL (ACTION (IDENTIFIER HEADINGS)
+                                         (LABEL "Page Headings:")
+                                         (FONT (HELVETICA 8 BOLD))
+                                         (SELECTFN NILL)
+                                         (STATEFN \TEDIT.PAGEMENU.HEADINGS.STATEFN)
+                                         (SETSTATEFN \TEDIT.PAGEMENU.HEADINGS.SETSTATEFN))
+                          ,@(\TEDIT.PAGEMENU.CREATE.HEADINGS 8)
+                          EOL EOL (ACTION (IDENTIFIER CHARLOOKS)
+                                         (LABEL "Font for page numbers:")
+                                         (FONT (HELVETICA 8 BOLD))
+                                         (STATEFN \TEDIT.PAGEMENU.CHARLOOKS.STATEFN
+                                                (FUNCTION \TEDIT.PAGEMENU.HEADINGS.STATEFN))
+                                         (SETSTATEFN \TEDIT.CHARMENU.FILLIN))
+                          EOL
+                          ,@(\TEDIT.CHARMENU.SPEC TSTREAM])
+
+(\TEDIT.PAGEMENU.START
+  [LAMBDA (TSTREAM)                                          (* ; "Edited 28-May-2025 23:50 by rmk")
+    (CL:UNLESS (\TEDIT.MENU.OPEN? "Page Layout Menu" TSTREAM)
+        (\TEDIT.MENU.START (\TEDIT.PAGEMENU.CREATE)
+               TSTREAM "Page Layout Menu" (HEIGHTIFWINDOW 135 5)
+               'PAGE))])
+
+(\TEDIT.SHOW.PAGELOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 20-Apr-2025 23:41 by rmk")
+                                                             (* ; "Edited 22-Oct-2024 11:04 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 17:32 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 15:10 by rmk")
+                                                             (* ; "Edited 30-Aug-2024 23:58 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:06 by rmk")
+                                                             (* ; "Edited 20-Aug-2024 15:26 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 13:51 by rmk")
+
+    (* ;; "Set the page layout menu from the looks of the currently selected page-type. MENUSTREAM is the displaystream of the pagelooks menu window.")
+
+    (* ;; "OBJ is unused, presumably to have a standard interface with other menu functions that update image objects.")
+
+    (PROG [(PAGEID (MB.GET 'PAGEID MENUSTREAM 'STATE]
+          (CL:WHEN (MEMB PAGEID '(NIL OFF))
+              (TEDIT.PROMPTPRINT MENUWINDOW "Please specify the page-type" T T)
+              (RETURN))
+          (RESETLST
+              (TEDIT.DEFER.UPDATES MENUSTREAM)
+              (\TEDIT.PAGEMENU.FILLIN MENUSTREAM (\TEDIT.PAGEREGION.UNPARSE (\TEDIT.MAINSTREAM 
+                                                                                   MENUSTREAM)
+                                                        PAGEID)))
+          (FSETSEL MENUSEL ONFLG T)
+          (\TEDIT.UPDATE.SEL MENUSEL 1 0 'LEFT)
+          (\TEDIT.FIXSEL MENUSEL MENUSTREAM)
+          (TEDIT.BACKTOMAIN MENUSTREAM])
+
+(\TEDIT.PAGEMENU.FILLIN
+  [LAMBDA (MENUSTREAM PAGELOOKS)                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 10:20 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 13:37 by rmk")
+                                                             (* ; "Edited  3-Aug-2024 14:34 by rmk")
+
+    (* ;; "Given a TEXTOBJ describing a page layout menu, and a PAGELOOKS property list from the main document, fill in the menu fields. The strategy is to iterate through the image objects in the MENUTEXTOBJ and figure out from their property what aspect of PAGELOOKS they depict.")
+
+    (for PC OBJ SETSTATEFN inpieces (\TEDIT.FIRSTPIECE (fetch (TEXTSTREAM TEXTOBJ) of MENUSTREAM))
+       when [AND (SETQ OBJ (POBJ PC))
+                 (SETQ SETSTATEFN (IMAGEOBJPROP OBJ 'SETSTATEFN]
+       do 
+          (* ;; "These are the properties of the PAGEMENU image objects.  The SETSTATEFNs for HEADINGS and CHARLOOKS deal with their menu representations.")
+
+          (CL:WHEN SETSTATEFN                                (* ; "Provide OBJ's PC for the change")
+              (SETQ PC (PROG1 (APPLY* SETSTATEFN PC (CDR (ASSOC (IMAGEOBJPROP OBJ 'IDENTIFIER)
+                                                                PAGELOOKS))
+                                     MENUSTREAM)
+                              (TEDIT.OBJECT.CHANGED MENUSTREAM OBJ))))])
+
+(\TEDIT.PAGEREGION.UNPARSE
+  [LAMBDA (TSTREAM PAGEID)                                   (* ; "Edited  5-Jun-2025 19:37 by rmk")
+                                                             (* ; "Edited 30-Aug-2024 23:48 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 22:52 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 20:49 by rmk")
+                                                             (* ; "Edited  8-Aug-2024 23:27 by rmk")
+
+    (* ;; "The top PAGEREGION defines the page.  Dimensions are height and width in REGIONSPEC,  PAGESIZE (Letter...) and FOLIO information are in REGIONLOCALINFO.   ")
+
+    (* ;; "")
+
+    (PROG* [(PAGEREGION (TEDIT.GET.PAGEFORMAT TSTREAM PAGEID))
+            (PAPER (fetch (PAGEREGION REGIONSPEC) of PAGEREGION))
+            (LOCALINFO (fetch (PAGEREGION REGIONLOCALINFO) of PAGEREGION))
+            (PAGELOOKS (LIST (CONS 'PAGEID PAGEID]
+
+     (* ;; "The top PAGEREGION defines the page.  Dimensions are height and width in REGIONSPEC,  PAGESIZE (Letter...) and FOLIO information are in REGIONLOCALINFO. The paper dimension height/width are implied by PAPERSIZE, don't need to be saved.  But are needed for the margins.")
+
+           (CL:UNLESS (EQ 'PAGE (fetch (PAGEREGION REGIONFILLMETHOD) of PAGEREGION))
+                                                             (* ; 
+                                                             "Don't know what to do if not a page.")
+               (RETURN))
+           (PUTASSOC 'PAPERSIZE (LISTGET LOCALINFO 'PAPERSIZE)
+                  PAGELOOKS)
+           (PUTASSOC 'LANDSCAPE (LISTGET LOCALINFO 'LANDSCAPE?)
+                  PAGELOOKS)
+           (PUTASSOC 'STARTINGPAGE# (LISTGET LOCALINFO 'STARTINGPAGE#)
+                  PAGELOOKS)
+           (PUTASSOC 'FOLIOFORMAT (SELECTQ (CAR (LISTGET LOCALINFO 'FOLIOINFO))
+                                      (ARABIC '|123|)
+                                      (LOWERROMAN 'xiv)
+                                      (UPPERROMAN 'XIV)
+                                      '|123|)
+                  PAGELOOKS)
+           (PUTASSOC 'FOLIOPRETEXT (CADR (LISTGET LOCALINFO 'FOLIOINFO))
+                  PAGELOOKS)
+           (PUTASSOC 'FOLIOPOSTTEXT (CADDR (LISTGET LOCALINFO 'FOLIOINFO))
+                  PAGELOOKS)
+           (for BOX REGION SPECS PAGENUMBERX PQUAD LEFT HEADINGS RIGHTINCR COLWIDTH (COLUMNS _ 0)
+                (INTERCOL _ 0) in (fetch (PAGEREGION REGIONSUBBOXES) of PAGEREGION)
+              do 
+                 (* ;; 
+                 "Run thru the boxes on the page, calculating information about the page as a whole.")
+
+                 (SETQ REGION (fetch REGIONSPEC of BOX))
+                 (SELECTQ (fetch (PAGEREGION REGIONFILLMETHOD) of BOX)
+                     (FOLIO                                  (* ; 
+                                                "A page-number (%"Folio%") region. Shoul be only one")
+                            (PUTASSOC 'PAGENOS 'Yes PAGELOOKS)
+                            (SETQ SPECS (fetch REGIONLOCALINFO of BOX))
+
+                            (* ;; "This should be done whenever the pageframe is created.")
+
+                            (PUTASSOC 'CHARLOOKS (\TEDIT.PARSE.CHARLOOKS.LIST (LISTGET SPECS
+                                                                                     'CHARLOOKS)
+                                                        TEDIT.DEFAULT.FOLIO.LOOKS)
+                                   PAGELOOKS)
+                            (SETQ PQUAD (LISTGET (LISTGET SPECS 'PARALOOKS)
+                                               'QUAD))
+                            (PUTASSOC 'QUAD PQUAD PAGELOOKS)
+                            (SETQ PAGENUMBERX (fetch (REGION LEFT) of REGION))
+
+                            (* ;; "RMK:  Very odd:  why  4 and 2 inches here?  The formatter knows how to shift.  Problem is that X specifies the left edge of the page region?")
+
+                            (SELECTQ PQUAD
+                                (LEFT)
+                                (RIGHT (add PAGENUMBERX (ITIMES 4 PTSPERINCH)))
+                                (CENTERED (add PAGENUMBERX (ITIMES 2 PTSPERINCH)))
+                                NIL)
+                            (PUTASSOC 'PAGENUMBERX (FQUOTIENT PAGENUMBERX PTSPERPICA)
+                                   PAGELOOKS)
+                            (PUTASSOC 'PAGENUMBERY (FQUOTIENT (fetch (REGION BOTTOM) of REGION)
+                                                          PTSPERPICA)
+                                   PAGELOOKS))
+                     (HEADING 
+                              (* ;; "A page-heading region, could be several. Their type/x/y values are collect in a flat list inside a HEADINGS property. \TEDIT.PAGEMENU.HEADINGS.SETSTATEFN pops them off to fill in the successive heading blocks.")
+
+                              [SETQ HEADINGS (NCONC HEADINGS
+                                                    (LIST (CONS 'HEADINGTYPE
+                                                                (LISTGET (fetch REGIONLOCALINFO
+                                                                            of BOX)
+                                                                       'HEADINGTYPE))
+                                                          (CONS 'HEADINGX (FQUOTIENT
+                                                                           (fetch (REGION LEFT)
+                                                                              of REGION)
+                                                                           PTSPERPICA))
+                                                          (CONS 'HEADINGY (FQUOTIENT
+                                                                           (fetch (REGION BOTTOM)
+                                                                              of REGION)
+                                                                           PTSPERPICA])
+                     (TEXT 
+                           (* ;; "A regular-text region=column. ")
+
+                           (add COLUMNS 1)
+                           (SELECTQ COLUMNS
+                               (1 (SETQ COLWIDTH (fetch (REGION WIDTH) of REGION))
+                                                             (* ; "All have same width (points)")
+                                  (SETQ RIGHTINCR (fetch (REGION LEFT) of REGION))
+                                                             (* ; 
+                                                      "Left of first column relative to paper's edge")
+
+                                  (* ;; "First column gives the left, bottom, and top margins. Note:  no FIXR so e.g. 6.5 picas. right margin depends on columns")
+
+                                  (PUTASSOC 'LEFTMARGIN (FQUOTIENT RIGHTINCR PTSPERPICA)
+                                         PAGELOOKS)
+                                  (PUTASSOC 'BOTTOMMARGIN (FQUOTIENT (fetch (REGION BOTTOM)
+                                                                        of REGION)
+                                                                 PTSPERPICA)
+                                         PAGELOOKS)
+                                  (PUTASSOC 'TOPMARGIN (FQUOTIENT (IDIFFERENCE (fetch (REGION HEIGHT)
+                                                                                  of PAPER)
+                                                                         (fetch (REGION PTOP)
+                                                                            of REGION))
+                                                              PTSPERPICA)
+                                         PAGELOOKS))
+                               (2                            (* ; "More than 1, constant INTERCOL")
+                                  (SETQ INTERCOL (IDIFFERENCE (fetch (REGION LEFT) of REGION)
+                                                        RIGHTINCR)))
+                               NIL)                          (* ; 
+                                                        "INTERCOL starts at 0, for first/only column")
+                           (add RIGHTINCR COLWIDTH INTERCOL))
+                     NIL) finally (CL:UNLESS (CDR (ASSOC 'PAGENOS PAGELOOKS))
+                                      (PUTASSOC 'PAGENOS 'No PAGELOOKS))
+                                (PUTASSOC 'RIGHTMARGIN (FQUOTIENT (IDIFFERENCE (fetch (REGION WIDTH)
+                                                                                  of PAPER)
+                                                                         RIGHTINCR)
+                                                              PTSPERPICA)
+                                       PAGELOOKS)
+                                (PUTASSOC 'COLUMNS COLUMNS PAGELOOKS)
+                                (CL:IF (IGREATERP COLUMNS 1)
+                                    (PUTASSOC 'INTERCOL INTERCOL PAGELOOKS))
+                                (PUTASSOC 'HEADINGS HEADINGS PAGELOOKS))
+           (RETURN PAGELOOKS])
+
+(\TEDIT.APPLY.PAGELOOKS
+  [LAMBDA (OBJ MENUSEL MENUWINDOW MENUSTREAM)                (* ; "Edited 29-Dec-2024 20:16 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 09:40 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 15:05 by rmk")
+                                                             (* ; "Edited 25-Aug-2024 09:14 by rmk")
+                                                             (* ; "Edited 21-Aug-2024 12:18 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 11:19 by rmk")
+                                                             (* ; "Edited 29-Jul-2024 18:05 by rmk")
+                                                             (* ; "Edited 27-Jul-2024 11:25 by rmk")
+                                                             (* ; "Edited  2-May-2024 14:26 by rmk")
+                                                             (* ; "Edited 29-Apr-2024 13:36 by rmk")
+                                                             (* ; "Edited 27-Mar-2024 15:20 by rmk")
+                                                             (* ; "Edited 21-Dec-2023 12:31 by rmk")
+                                                             (* ; "Edited  8-Aug-2023 00:02 by rmk")
+                                                             (* ; "Edited 21-Oct-2022 18:51 by rmk")
+                                                             (* ; 
+                                                        "Edited  4-Jun-93 12:04 by sybalsky:mv:envos")
+    (TEDIT.PROMPTCLEAR (\TEDIT.MAINSTREAM MENUSTREAM))
+    (\TEDIT.CHANGE.PAGELOOKS (\TEDIT.MAINW MENUSTREAM)
+           (\TEDIT.MENU.PARSE MENUSTREAM))
+    (TEDIT.BACKTOMAIN MENUSTREAM])
+
+(\TEDIT.CHANGE.PAGELOOKS
+  [LAMBDA (MAINTEXTSTREAM PAGELOOKS)                         (* ; "Edited 27-Jan-2026 10:41 by rmk")
+                                                             (* ; "Edited 11-May-2025 15:04 by rmk")
+                                                             (* ; "Edited 24-Dec-2024 21:28 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 17:17 by rmk")
+                                                             (* ; "Edited 30-Aug-2024 23:43 by rmk")
+                                                             (* ; "Edited 15-Aug-2024 14:48 by rmk")
+                                                             (* ; "Edited 12-Aug-2024 23:34 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 12:11 by rmk")
+    (PROG ((MAINTEXTOBJ (TEXTOBJ MAINTEXTSTREAM))
+           (PAGEID (LISTGET PAGELOOKS 'PAGEID))
+           (PAGENOS (LISTGET PAGELOOKS 'PAGENOS))
+           PAGEPROPS)
+          (CL:WHEN (EQ 'OFF PAGEID)
+              (TEDIT.PROMPTPRINT MAINTEXTSTREAM "Please specify a page type" T T)
+              (RETURN))
+          (for PLTAIL on PAGELOOKS by (CDDR PLTAIL) do (SELECTQ (CADR PLTAIL)
+                                                           (ON (RPLACA PLTAIL T))
+                                                           ((OFF NEUTRAL) 
+                                                                (RPLACA PLTAIL NIL))
+                                                           NIL))
+          (SELECTQ (L-CASE PAGENOS T)
+              ((Yes T)                                       (* ; 
+                                                    "Page number format specfified in pagelooks menu")
+                   (CL:UNLESS (AND (LISTGET PAGELOOKS 'PAGENUMBERX)
+                                   (LISTGET PAGELOOKS 'PAGENUMBERY))
+                       (TEDIT.PROMPTPRINT MAINTEXTOBJ 
+                              "Please set both X and Y locations for page numbers" T T)
+                       (RETURN))
+                   [push PAGEPROPS 'STARTINGPAGE# (LISTGET PAGELOOKS 'STARTINGPAGE#)
+                         'FOLIOINFO
+                         (LIST (SELECTQ (LISTGET PAGELOOKS 'FOLIOFORMAT)
+                                   (|123| 'ARABIC)
+                                   (xiv 'LOWERROMAN)
+                                   (XIV 'UPPERROMAN)
+                                   'ARABIC)
+                               (LISTGET PAGELOOKS 'FOLIOPRETEXT)
+                               (LISTGET PAGELOOKS 'FOLIOPOSTTEXT])
+              (No)
+              (Header 
+                      (* ;; "Page numbers formatted/printed by image object in header paragraphs")
+
+                      (push PAGEPROPS 'STARTINGPAGE# (LISTGET PAGELOOKS 'STARTINGPAGE#)))
+              (SHOULDNT))
+          (CL:UNLESS (LISTGET PAGELOOKS 'COLUMNS)
+              (LISTPUT PAGELOOKS 'COLUMNS 1)
+              (RETURN))
+          (CL:UNLESS (OR (EQ 1 (LISTGET PAGELOOKS 'COLUMNS))
+                         (LISTGET PAGELOOKS 'COLWIDTH)
+                         (LISTGET PAGELOOKS 'SPACEBETWEENCOLUMNS))
+              (TEDIT.PROMPTPRINT MAINTEXTOBJ "Please specify the space between columns" T T)
+              (RETURN))
+          [push PAGEPROPS 'LANDSCAPE? (EQ 'ON (LISTGET PAGELOOKS 'LANDSCAPE]
+          (TEDIT.PAGEFORMAT MAINTEXTOBJ (TEDIT.SINGLE.PAGEFORMAT PAGENOS (LISTGET PAGELOOKS
+                                                                                'PAGENUMBERX)
+                                               (LISTGET PAGELOOKS 'PAGENUMBERY)
+                                               (LISTGET PAGELOOKS 'CHARLOOKS)
+                                               (LISTGET PAGELOOKS 'QUAD)
+                                               (LISTGET PAGELOOKS 'LEFTMARGIN)
+                                               (LISTGET PAGELOOKS 'RIGHTMARGIN)
+                                               (LISTGET PAGELOOKS 'TOPMARGIN)
+                                               (LISTGET PAGELOOKS 'BOTTOMMARGIN)
+                                               (LISTGET PAGELOOKS 'COLUMNS)
+                                               (LISTGET PAGELOOKS 'COLWIDTH)
+                                               (LISTGET PAGELOOKS 'SPACEBETWEENCOLUMNS)
+                                               (LISTGET PAGELOOKS 'HEADINGS)
+                                               'PICAS PAGEPROPS (LISTGET PAGELOOKS 'PAPERSIZE))
+                 PAGEID])
+
+(\TEDIT.PAGEMENU.CHARLOOKS.STATEFN
+  [LAMBDA (CHARLOOKSPC OBJ MENUTEXTOBJ)                      (* ; "Edited 28-Aug-2024 15:07 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 23:53 by rmk")
+
+    (* ;; "The STATEFN for the page-number CHARLOOKS piece.  This accumulates the character properties from the following pieces and stores them in as the STATE of CHARLOOKSPC.   Assumes that this is the end of menu, otherwise we have to be able to tell \TEDIT.MENU.PARSE the property of the last object it should examine (DISTANCE?), and it has to report that piece.")
+
+    [IMAGEOBJPROP OBJ 'STATE (CONS (LIST 'CHARLOOKS (\TEDIT.MENU.PARSE MENUTEXTOBJ CHARLOOKSPC
+                                                           'DISTANCE]
+    (IMAGEOBJPROP OBJ 'PARSEENDPIECE])
+)
+(DEFINEQ
+
+(\TEDIT.PAGEMENU.CREATE.HEADINGS
+  [LAMBDA (N)                                                (* ; "Edited  8-Nov-2024 08:36 by rmk")
+                                                             (* ; "Edited 20-Oct-2024 17:21 by rmk")
+                                                             (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 13-Aug-2024 19:50 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 11:45 by rmk")
+                                                             (* ; "Edited 26-Jul-2024 17:58 by rmk")
+
+    (* ;; "Puts out N heading types 2 per line separated by tabs. The LASTHEADINGTYPEY property signals that the run of headings has ended (for  \TEDIT.PAGEMENU.HEADINGS.SETSTATEFN).  ")
+
+    (for I from 1 to N by 2 join [COPY '(EOL 3 (FIELD (IDENTIFIER HEADINGTYPE)
+                                                      (PRELABEL "Heading Type:")
+                                                      (FIELDTYPE SYMBOL)
+                                                      (EMPTYVALUE NIL))
+                                             (FIELD (IDENTIFIER HEADINGTYPEX)
+                                                    (PRELABEL " X:")
+                                                    (FIELDTYPE NUMBER)
+                                                    (EMPTYVALUE NIL))
+                                             (FIELD (IDENTIFIER HEADINGTYPEY)
+                                                    (PRELABEL " Y:")
+                                                    (FIELDTYPE NUMBER)
+                                                    (EMPTYVALUE NIL))
+                                             TAB
+                                             (FIELD (IDENTIFIER HEADINGTYPE)
+                                                    (PRELABEL "Heading Type:")
+                                                    (FIELDTYPE SYMBOL)
+                                                    (EMPTYVALUE NIL))
+                                             (FIELD (IDENTIFIER HEADINGTYPEX)
+                                                    (PRELABEL " X:")
+                                                    (FIELDTYPE NUMBER)
+                                                    (EMPTYVALUE NIL))
+                                             (FIELD (IDENTIFIER HEADINGTYPEY)
+                                                    (PRELABEL " Y:")
+                                                    (FIELDTYPE NUMBER)
+                                                    (EMPTYVALUE NIL]
+       finally (PUTASSOC 'IDENTIFIER (CONS 'LASTHEADINGTYPEY)
+                      (CAR (LAST $$VAL])
+
+(\TEDIT.PAGEMENU.HEADINGS.SETSTATEFN
+  [LAMBDA (HEADINGSPC HEADINGS MENUSTREAM)                   (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 10:18 by rmk")
+                                                             (* ; "Edited  9-Aug-2024 11:58 by rmk")
+
+    (* ;; "This is the SETSTATEFN for the HEADINGSPC.  Its value HEADINGS is a list of type/x/y subsequences that are popped off as their respective imageobjects are encountered. So it looks like an ALIST, but its later values are uncovered as earlier ones are removed. The order of HEADINGS has to match the order of the image objects.")
+
+    (* ;; "Return value is the piece containing  the LASTHEADINGTYPEY object.  ")
+
+    (for PC OBJ SETSTATEFN inpieces (NEXTPIECE HEADINGSPC) when [AND (SETQ OBJ (POBJ PC))
+                                                                     (SETQ SETSTATEFN
+                                                                      (IMAGEOBJPROP OBJ 'SETSTATEFN]
+       do (CL:WHEN SETSTATEFN
+              (SETQ PC (PROG1 (APPLY* SETSTATEFN PC (CDR (pop HEADINGS))
+                                     MENUSTREAM)
+                              (TEDIT.OBJECT.CHANGED MENUSTREAM OBJ PC))))
+          (CL:WHEN (EQ 'LASTHEADINGTYPEY (IMAGEOBJPROP OBJ 'IDENTIFIER))
+                 (RETURN PC])
+
+(\TEDIT.PAGEMENU.HEADINGS.STATEFN
+  [LAMBDA (HEADINGSPC HEADINGSOBJ MENUTEXTOBJ)               (* ; "Edited 29-Sep-2024 12:53 by rmk")
+                                                             (* ; "Edited 29-Aug-2024 11:05 by rmk")
+                                                             (* ; "Edited 16-Aug-2024 08:39 by rmk")
+                                                             (* ; "Edited 10-Aug-2024 11:39 by rmk")
+
+    (* ;; "The STATEFN for the HEADINGS piece.  This accumulates the heading properties for the following pieces (assuming type/x/y triples) until the LASTHEADINGY piece.  The resulting list of triples is stored as the STATE of the HEADINGSPC")
+
+    (for PC OBJ STATEFN HEADINGS VALS inpieces (NEXTPIECE HEADINGSPC)
+       when [AND (SETQ OBJ (POBJ PC))
+                 (SETQ STATEFN (IMAGEOBJPROP OBJ 'STATEFN]
+       do (SETQ PC (APPLY* STATEFN PC OBJ MENUTEXTOBJ))
+          (push VALS (IMAGEOBJPROP OBJ 'STATE))
+          (CL:WHEN (MEMB (IMAGEOBJPROP OBJ 'IDENTIFIER)
+                         '(HEADINGTYPEY LASTHEADINGTYPEY))
+              (CL:WHEN (thereis V in VALS suchthat V)
+                  (push HEADINGS (DREVERSE VALS))
+                  (SETQ VALS NIL))
+              (CL:WHEN (EQ 'LASTHEADINGTYPEY (IMAGEOBJPROP OBJ 'IDENTIFIER))
+                  [IMAGEOBJPROP (PCONTENTS HEADINGSPC)
+                         'STATE
+                         (CONS (LIST 'HEADINGS (DREVERSE HEADINGS]
+                  (RETURN PC)))])
+)
+(DECLARE%: DONTEVAL@LOAD DOEVAL@COMPILE DONTCOPY COMPILERVARS 
+
+(ADDTOVAR NLAMA )
+
+(ADDTOVAR NLAML )
+
+(ADDTOVAR LAMA )
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (4936 16574 (TEDIT.ADD.MENUITEM 4946 . 7063) (TEDIT.DEFAULT.MENUFN 7065 . 13786) (
+TEDIT.REMOVE.MENUITEM 13788 . 14785) (\TEDIT.CREATEMENU 14787 . 15352) (\TEDIT.MENU.WHENHELDFN 15354
+ . 16259) (\TEDIT.MENU.WHENSELECTEDFN 16261 . 16572)) (17388 65423 (DRAWMARGINSCALE 17398 . 20857) (
+MARGINBAR 20859 . 27984) (MARGINBAR.CREATE 27986 . 32184) (MB.MARGINBAR.BUTTONEVENTINFN 32186 . 39988)
+ (MB.MARGINBAR.SELFN.TABS 39990 . 45230) (MB.MARGINBAR.SELFN.TABS.KIND 45232 . 46167) (
+MARGINBAR.GETSTATEFN 46169 . 50156) (MARGINBAR.SETSTATEFN 50158 . 50368) (MARGINBAR.NEUTRALIZE 50370
+ . 51045) (MARGINBAR.LOOKS 51047 . 54153) (MB.MARGINBAR.SIZEFN 54155 . 54941) (MB.MARGINBAR.DISPLAYFN 
+54943 . 58004) (MDESCALE 58006 . 58546) (MSCALE 58548 . 58878) (MB.MARGINBAR.SHOWTAB 58880 . 61203) (
+MB.MARGINBAR.TABTRACK 61205 . 62590) (MARGINBAR.INIT 62592 . 63985) (\TEDIT.PARALOOKS.TO.MARBAR 63987
+ . 65421)) (66248 73530 (TEDIT.MENUSTREAM 66258 . 67258) (TEDITMENUP 67260 . 68229) (\TEDIT.MENU.START
+ 68231 . 72578) (\TEDIT.MENU.OPEN? 72580 . 72954) (\TEDIT.MENU.BUTTONEVENTFN 72956 . 73528)) (73849 
+81900 (\TEDIT.MENU.CREATE 73859 . 75799) (\TEDIT.MENU.PARSE 75801 . 79490) (\TEDIT.MENU.NEUTRALIZE 
+79492 . 81563) (\TEDITMENU.RECORD.UNFORMATTED 81565 . 81898)) (81966 101368 (
+\TEDIT.EXPANDEDMENU.CREATE 81976 . 87654) (\TEDIT.EXPANDEDMENU.START 87656 . 89280) (
+\TEDIT.EXPANDEDMENU.FN 89282 . 92537) (\TEDIT.EXPANDEDMENU.ACTIONFN 92539 . 101366)) (101430 120855 (
+\TEDIT.PARAMENU.CREATE 101440 . 110171) (\TEDIT.PARAMENU.START 110173 . 111427) (
+\TEDIT.APPLY.PARALOOKS 111429 . 112481) (\TEDIT.SHOW.PARALOOKS 112483 . 115200) (
+\TEDIT.PARAMENU.FILLIN 115202 . 119951) (\TEDIT.PARAMENU.RESHAPEFN 119953 . 120853)) (121049 147891 (
+\TEDIT.CHARMENU.CREATE 121059 . 123663) (\TEDIT.CHARMENU.START 123665 . 124955) (\TEDIT.CHARMENU.SPEC 
+124957 . 129640) (\TEDIT.CHARMENU.PARSE 129642 . 132810) (\TEDIT.CHARMENU.FILLIN 132812 . 137442) (
+\TEDIT.SHOW.CHARLOOKS 137444 . 140989) (\TEDIT.APPLY.CHARLOOKS 140991 . 142152) (
+\TEDIT.OFFSETTYPE.STATEFN 142154 . 144117) (\TEDIT.OTHER.STATECHANGEFN 144119 . 145764) (
+\TEDIT.OTHER.SELECTFN 145766 . 147889)) (147953 177067 (\TEDIT.PAGEMENU.CREATE 147963 . 156484) (
+\TEDIT.PAGEMENU.START 156486 . 156837) (\TEDIT.SHOW.PAGELOOKS 156839 . 158725) (\TEDIT.PAGEMENU.FILLIN
+ 158727 . 160277) (\TEDIT.PAGEREGION.UNPARSE 160279 . 169678) (\TEDIT.APPLY.PAGELOOKS 169680 . 171607)
+ (\TEDIT.CHANGE.PAGELOOKS 171609 . 176223) (\TEDIT.PAGEMENU.CHARLOOKS.STATEFN 176225 . 177065)) (
+177068 182871 (\TEDIT.PAGEMENU.CREATE.HEADINGS 177078 . 179890) (\TEDIT.PAGEMENU.HEADINGS.SETSTATEFN 
+179892 . 181317) (\TEDIT.PAGEMENU.HEADINGS.STATEFN 181319 . 182869)))))
+STOP

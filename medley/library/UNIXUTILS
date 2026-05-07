@@ -1,0 +1,391 @@
+(DEFINE-FILE-INFO :PACKAGE "INTERLISP" :READTABLE "INTERLISP" :BASE 10)
+
+(FILECREATED "28-Apr-2026 09:59:13" {WMEDLEY}<library>UNIXUTILS.;61 22079  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (VARS UNIXUTILSCOMS)
+
+      :PREVIOUS-DATE "27-Apr-2026 11:10:07" {MEDLEY}<library>UNIXUTILS.;60)
+
+
+(PRETTYCOMPRINT UNIXUTILSCOMS)
+
+(RPAQQ UNIXUTILSCOMS
+       ((DECLARE%: EVAL@COMPILE DONTCOPY                     (* ; "For PROCESS-COMMAND")
+               (FILES (FROM LOADUPS)
+                      EXPORTS.ALL))
+        (GLOBALVARS ShellBrowser ShellOpener)
+        (INITVARS (ShellBrowser)
+               (ShellOpener))
+        (FUNCTIONS ShellCommand ShellWhich)
+        (ADDVARS (MEDLEY-INIT-VARS (ShellBrowser NIL RESET)
+                        (ShellOpener NIL RESET)))
+        (FNS ShellBrowser ShellBrowse ShellOpener ShellOpen PROCESS-COMMAND SLASHIT UNIX-FILE-NAME 
+             UNIX-TMP-FILE-NAME)
+        (COMMANDS "cd" cdm "ls" "pwd")
+        (PROPS (UNIXUTILS FILETYPE))))
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+
+(FILESLOAD (FROM LOADUPS)
+       EXPORTS.ALL)
+)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS ShellBrowser ShellOpener)
+)
+
+(RPAQ? ShellBrowser )
+
+(RPAQ? ShellOpener )
+
+(CL:DEFUN ShellCommand (Cmd &OPTIONAL (Output T))
+   (CL:WITH-OPEN-STREAM (s (CREATE-PROCESS-STREAM Cmd))
+          (CL:TAGBODY [SETFILEINFO s 'ENDOFSTREAMOP #'(CL:LAMBDA (s)
+                                                             (GO OUT]
+                 (CL:LOOP (PRINTCCODE (READCCODE s)
+                                 Output))
+                 OUT))
+   NIL)
+
+(CL:DEFUN ShellWhich (Cmd)                                   (* ; "Edited 18-Jan-2023 13:19 by FGH")
+   [CL:WITH-OPEN-STREAM (S (OPENSTREAM '{NODIRCORE} 'BOTH))
+          (ShellCommand (CONCAT "command -v " Cmd)
+                 S)
+          (COND
+             ((EQ (GETEOFPTR S)
+                  0)
+              NIL)
+             (T (SETFILEPTR S 0)
+                (RSTRING S])
+
+(ADDTOVAR MEDLEY-INIT-VARS (ShellBrowser NIL RESET)
+                           (ShellOpener NIL RESET))
+(DEFINEQ
+
+(ShellBrowser
+  [LAMBDA NIL                                                (* ; "Edited 18-Jan-2023 20:30 by FGH")
+
+    (* ;; "Figure out the browser  to use for the ShellOpen/ShellBrowse functions. ")
+
+    (* ;; " Ordinarily, this would be the same as the generic ShellOpener.")
+
+    (* ;; " But if a generic ShellOpener is not found, then there are some additional")
+
+    (* ;; " possibilities that will work for http/https URLs.  If one of these exists return it.")
+
+    (OR ShellBrowser (SETQ ShellBrowser
+                      (if (NOT (STREQUAL (ShellOpener)
+                                      "true"))
+                          then ShellOpener
+                        else (LET (CMDPATH)
+                                  (if (SETQ CMDPATH (ShellWhich "git"))
+                                      then 
+                                           (* ;; " Systems with git installed")
+
+                                           (CONCAT CMDPATH " web--browse")
+                                    elseif (SETQ CMDPATH (ShellWhich "lynx"))
+                                      then 
+                                           (* ;; " Systems with lynx installed")
+
+                                           (LET (CMDPATH2)
+                                                (if (SETQ CMDPATH2 (ShellWhich "xterm"))
+                                                    then (CONCAT CMDPATH2 " -e " CMDPATH)
+                                                  else (LIST CMDPATH)))
+                                    else 
+                                         (* ;; " Out of ideas - just return a dummy function")
+
+                                         "true"])
+
+(ShellBrowse
+  [LAMBDA (URL)                                              (* ; "Edited 18-Jan-2023 20:32 by FGH")
+
+    (* ;; " Open the web page specified by URL using an external browser via shell call")
+
+    (* ;; " URL must start with http:// or https:// or file:/// (case ireelevant) or this function will just return NIL.")
+
+    (* ;; " Returns T otherwise.")
+
+    (SETQ URL (MKSTRING URL))
+    (if (OR (EQ (STRPOS "http://" (L-CASE URL))
+                1)
+            (EQ (STRPOS "https://" (L-CASE URL))
+                1)
+            (EQ (STRPOS "file:///" (L-CASE URL))
+                1))
+        then (ShellOpen URL)
+      else NIL])
+
+(ShellOpener
+  [LAMBDA NIL
+
+    (* ;; "Find an %"opener%" that will open files (and URLs) using the appropriate/default app on this machine")
+
+    (OR ShellOpener (SETQ ShellOpener (LET (CMDPATH)
+                                           (if (SETQ CMDPATH (ShellWhich "wslview"))
+                                               then 
+                                                    (* ;; "windows with WSL")
+
+                                                    CMDPATH
+                                             elseif (SETQ CMDPATH (ShellWhich "cygstart"))
+                                               then 
+                                                    (* ;; "windows with cygwin")
+
+                                                    CMDPATH
+                                             elseif (SETQ CMDPATH (ShellWhich "xdg-open"))
+                                               then 
+                                                    (* ;; "Linux systems with xdg-utils installed ")
+
+                                                    CMDPATH
+                                             elseif (SETQ CMDPATH (ShellWhich "open"))
+                                               then 
+                                                    (* ;; " MacOS open")
+
+                                                    CMDPATH
+                                             else 
+                                                  (* ;; 
+                                                  " Out of ideas - just return a dummy function")
+
+                                                  "true"])
+
+(ShellOpen
+  [LAMBDA (FilenameOrURL)                                    (* ; "Edited 27-Apr-2026 11:08 by FGH")
+                                                             (* ; "Edited 28-Dec-2025 18:26 by rmk")
+                                                             (* ; "Edited 10-Sep-2025 15:29 by rmk")
+                                                             (* ; "Edited  4-May-2025 11:14 by rmk")
+
+    (* ;; "Open the  file or URL using the generic %"opener%" for this machine via a shell call.")
+
+    (* ;; " If FilenameOrURL starts with %"http://%" or %"https://%" or %"file:///%",  then we use (ShellBrowser) as")
+
+    (* ;; " the %"opener%" (which includes some browsers on a machine without a generic opener).")
+
+    (* ;; 
+    " Otherwise FilenameOrURL is assumed to be a filename and will be opened using (ShellOpener).")
+
+    (* ;; " Returns T is all goes well; returns an error string if all does not go well")
+
+    (RANDSET T)
+    (SETQ FilenameOrURL (MKSTRING FilenameOrURL))
+    (if (OR (EQ (STRPOS "http://" (L-CASE FilenameOrURL))
+                1)
+            (EQ (STRPOS "https://" (L-CASE FilenameOrURL))
+                1)
+            (EQ (STRPOS "file://" (L-CASE FilenameOrURL))
+                1))
+        then (LET ((BROWSER (ShellBrowser)))
+                  (if (NOT (STREQUAL BROWSER "true"))
+                      then (if (LISTP BROWSER)
+                               then (CHAT 'SHELL NIL (CONCAT (CAR BROWSER)
+                                                            " '" FilenameOrURL "'"))
+                             else (ShellCommand (CONCAT BROWSER " '" FilenameOrURL "'" 
+                                                       " >>/tmp/ShellBrowser-warnings-$$.txt"))
+                                  T)
+                    else (CONCAT "Unable to find a browser to open: " FilenameOrURL)))
+      else (LET* ((OPENER (ShellOpener))
+                  (FULLNAME (FULLNAME FilenameOrURL)))
+                 (if (NOT FULLNAME)
+                     then (CONCAT "File not found: " FilenameOrURL)
+                   elseif (STREQUAL OPENER "true")
+                     then (CONCAT "Unable to find a file opener to open: " FilenameOrURL)
+                   else (SETQ FilenameOrURL (TRUEFILENAME FilenameOrURL)) 
+
+                        (* ;; "RMK:  UNVERSIONED is in the Lisp space, I removed the SLASHIT there because it adds \ in front of spaces which screws up the following INFILEP.")
+
+                        (LET* ((VERSION.SPECIFIED (FILENAMEFIELD FilenameOrURL 'VERSION))
+                               (UNPACKED (UNPACKFILENAME.STRING FULLNAME))
+                               (NEWNAME (CONCAT (LISTGET UNPACKED 'NAME)
+                                               "~"
+                                               (LISTGET UNPACKED 'VERSION)
+                                               "~"))
+                               (EXTENSION (LISTGET UNPACKED 'EXTENSION))
+                               [UNVERSIONED (LET (FN (UNPACKED (COPY UNPACKED)))
+                                                 (LISTPUT UNPACKED 'VERSION NIL)
+                                                 (LISTPUT UNPACKED 'HOST NIL)
+                                                 (SETQ FN (PACKFILENAME.STRING UNPACKED))
+                                                 (if (STREQUAL (SUBSTRING FN -1)
+                                                            ".")
+                                                     then (SETQ FN (SUBSTRING UNIXFILE 1 -2]
+                               (UNVERSIONED.EXISTS (INFILEP (CONCAT "{UNIX}" UNVERSIONED)))
+                               (TMPDIR (CONCAT "/tmp/" (RAND 1000 9999)))
+                               (TARGETFILE.LISP (PACKFILENAME.STRING 'HOST "{UNIX}" 'DIRECTORY TMPDIR
+                                                       'NAME NEWNAME 'EXTENSION EXTENSION))
+                               (TARGETFILE.UNIX (SLASHIT (PACKFILENAME.STRING 'HOST NIL 'DIRECTORY 
+                                                                TMPDIR 'NAME NEWNAME 'EXTENSION 
+                                                                EXTENSION)
+                                                       NIL NIL NIL T))
+                               (UNIXFILE NIL))
+                              (DECLARE (SPECVARS UNIXFILE))
+                              (if (OR VERSION.SPECIFIED (NOT UNVERSIONED.EXISTS))
+                                  then (COPYFILE FULLNAME TARGETFILE.LISP)
+                                       (SETQ UNIXFILE TARGETFILE.UNIX)
+                                else (SETQ UNIXFILE UNVERSIONED))
+                              (CL:WITH-OPEN-STREAM
+                               (SHELLSTREAM (OPENSTREAM (CONCAT "{CORE}SHELLOUT" (RAND 1000 9999))
+                                                   'BOTH))
+                               (ShellCommand (CONCAT OPENER " '" UNIXFILE "'" 
+                                                    " >>/tmp/ShellOpener-warnings-$$.txt")
+                                      SHELLSTREAM)
+                               (if (EQ (GETFILEPTR SHELLSTREAM)
+                                       0)
+                                   then T
+                                 else (LET ((OUTSTRING (ALLOCSTRING (GETFILEPTR SHELLSTREAM)
+                                                              " ")))
+                                           (CL:WITH-OPEN-STREAM (STRINGSTREAM (OPENSTRINGSTREAM
+                                                                               OUTSTRING
+                                                                               'OUTPUT))
+                                                  (COPYCHARS SHELLSTREAM STRINGSTREAM 0 -1))
+                                           OUTSTRING])
+
+(PROCESS-COMMAND
+  [LAMBDA (CMD)                                              (* ; "Edited 17-Jul-2022 08:17 by rmk")
+
+    (* ;; "This sets up an asynchronous process and waits until it returns with an exit code.  Typically 0 means success.")
+
+    (CL:WITH-OPEN-STREAM (PS (CREATE-PROCESS-STREAM CMD))
+           (BIND CODE WHILE (EQ T (SETQ CODE (OR (SUBRCALL UNIX-HANDLECOMM 7 (fetch (STREAM F1)
+                                                                                of PS))
+                                                 0))) DO (BLOCK) FINALLY (RETURN CODE])
+
+(SLASHIT
+  [LAMBDA (X LCASEDIRS NOHOST KEEPDOT NO.QUOTE.SPACE)        (* ; "Edited 27-Apr-2026 11:00 by FGH")
+                                                             (* ; "Edited 17-Jan-2026 23:15 by rmk")
+                                                             (* ; "Edited  4-Nov-2025 10:10 by rmk")
+                                                             (* ; "Edited 22-Oct-2025 13:05 by rmk")
+                                                             (* ; "Edited 25-Sep-2025 09:57 by rmk")
+                                                             (* ; "Edited 23-Sep-2023 15:27 by rmk")
+
+    (* ;; "It would also be nice to use the generic unpackfilename/packfilename tools.  But packfilename sticks in brackets again, and sticks a dot on when removing the version.")
+
+    (* ;; "Perhaps this should be a per file-device operation that maps device names into the local file system.")
+
+    (* ;; "This is a first approximation to a utility that converts a filename X on a host whose files physically reside in the local Unix file system into the strings that shell commands can use to reference that file.  For now, this just involves replacing directory brackets with /, removing the host, perhaps lower-casing the directory, and perhaps removing a final dot.  It probably should be extended to deal with version number translation, for now it just keeps the ; version. ")
+
+    (LET [LASTDIRPOS SLASHED (DIRPOS (ADD1 (OR (STRPOS "}" X)
+                                               0)))
+                (REPLACE.SPACE (if NO.QUOTE.SPACE
+                                   then (CONS (CHARCODE SPACE))
+                                 else (CHARCODE (\ SPACE]
+         [SETQ SLASHED (CONCATCODES (for I C from DIRPOS while (SETQ C (NTHCHARCODE X I))
+                                       join (SELCHARQ C
+                                                 ((< >) 
+                                                      (SETQ LASTDIRPOS I)
+                                                      (CONS (CHARCODE /)))
+                                                 (/ (SETQ LASTDIRPOS I)
+                                                    (CONS C))
+                                                 (SPACE (APPEND REPLACE.SPACE))
+                                                 (CONS C]
+         (CL:WHEN (AND LCASEDIRS LASTDIRPOS)
+             (SETQ LASTDIRPOS (ADD1 (IDIFFERENCE LASTDIRPOS DIRPOS)))
+             (SETQ SLASHED (CONCAT (L-CASE (SUBSTRING SLASHED 1 LASTDIRPOS))
+                                  (OR (SUBSTRING SLASHED (ADD1 LASTDIRPOS))
+                                      ""))))
+         (CL:UNLESS (OR (EQ DIRPOS 1)
+                        NOHOST)
+             (SETQ SLASHED (CONCAT (SUBSTRING X 1 (SUB1 DIRPOS))
+                                  SLASHED)))
+         (CL:UNLESS (OR KEEPDOT (NEQ (CHARCODE %.)
+                                     (NTHCHARCODE SLASHED -1)))
+             (SETQ SLASHED (CL:IF (EQ (CHARCODE %')
+                                      (NTHCHARCODE SLASHED -2))
+                               (CONCAT (SUBSTRING SLASHED 1 -3)
+                                      ".")
+                               (SUBSTRING SLASHED 1 -2))))
+         SLASHED])
+
+(UNIX-FILE-NAME
+  [LAMBDA (FILE ACCESS COPY EXTENSION)                       (* ; "Edited 31-Mar-2026 00:13 by rmk")
+                                                             (* ; "Edited 29-Mar-2026 00:26 by rmk")
+                                                             (* ; "Edited 19-Jan-2026 14:05 by rmk")
+                                                             (* ; "Edited 17-Jan-2026 22:32 by rmk")
+                                                             (* ; "Edited 11-Jan-2026 23:54 by rmk")
+                                                             (* ; "Edited 27-Dec-2025 21:24 by rmk")
+                                                             (* ; "Edited 26-Dec-2025 10:58 by rmk")
+                                                             (* ; "Edited 27-Sep-2025 16:24 by rmk")
+                                                             (* ; "Edited 19-Sep-2025 07:29 by rmk")
+                                                             (* ; "Edited 13-Sep-2025 18:37 by rmk")
+                                                             (* ; "Edited  1-Oct-2023 20:52 by rmk")
+
+    (* ;; "Tries to return the string that would reference FILE in a Unix shell, for the use of PROCESS-COMMAND and ShellCommand.  If VERSION is 1, it assumes that the Unix file doesn't have the Medley version convention.  If FILE does not have a corresponding Unix name (e.g. NODIRCORE), COPY is non-NIL, and ACCESS is INPUT, FILE will be copied to a unix tmp file (with COPY in its name) and that name will be returned.")
+
+    (* ;; "NOTE:  The value does not have a host field--no {UNIX}.")
+
+    (CL:WHEN FILE
+        (SETQ FILE (TRUEFILENAME FILE))
+        (CL:UNLESS (STREAMP FILE)
+            [SETQ FILE (\GETFILENAME FILE (SELECTQ ACCESS
+                                              (OUTPUT 'NEW)
+                                              (INPUT 'OLD)
+                                              (NIL (SETQ ACCESS 'INPUT)
+                                                   'OLD)
+                                              (\ILLEGAL.ARG ACCESS])
+        [SLASHIT (SELECTQ (FILENAMEFIELD FILE 'HOST)
+                     (UNIX (CL:IF [AND EXTENSION (NEQ (L-CASE EXTENSION)
+                                                      (L-CASE (FILENAMEFIELD FILE 'EXTENSION]
+                               (COPYFILE FILE (PACKFILENAME 'EXTENSION EXTENSION 'BODY FILE))
+                               FILE))
+                     (DSK [LET ((VERSION (FILENAMEFIELD FILE 'VERSION))
+                                (UNAME (PACKFILENAME 'VERSION NIL 'BODY FILE)))
+                               (CL:IF (EQ VERSION 1)
+                                   UNAME
+                                   (CONCAT UNAME (CONCAT (CL:IF (EQ (CHARCODE %.)
+                                                                    (NTHCHARCODE UNAME -1))
+                                                             ""
+                                                             ".")
+                                                        "~" VERSION "~")))])
+                     (LET (UNAME)
+
+                          (* ;; "Catch the streams as well as other devices (CORE, servers)")
+
+                          (SETQ UNAME (UNIX-TMP-FILE-NAME FILE EXTENSION))
+                          (CL:IF (AND COPY FILE)
+                              (RESETLST
+                                  (CL:WHEN (\GETSTREAM FILE 'INPUT T)
+                                                             (* ; "Hope it's randaccess")
+                                      [RESETSAVE (GETFILEPTR FILE)
+                                             `(PROGN (SETFILEPTR ,FILE OLDVALUE])
+                                  (COPYFILE FILE UNAME))
+                              UNAME)])])
+
+(UNIX-TMP-FILE-NAME
+  [LAMBDA (NAME EXT HOST)                                    (* ; "Edited 17-Jan-2026 22:28 by rmk")
+                                                             (* ; "Edited 13-Jan-2026 15:41 by rmk")
+                                                             (* ; "Edited 26-Dec-2025 17:37 by rmk")
+
+    (* ;; "Returns a unique {UNIX}/tmp/medley name that includes NAME as a hint and perhaps a useful extension.  This goes through random candidates hoping to find a name that doesn't yet exist, and that can be %"reserved%" before anybody else gets it.  There is a race-condition window where somebody could get in.")
+
+    (* ;; " ")
+
+    (* ;; "If DSK names were reformatted so that the ~version~ came before the intended extension, we could just open on an output stream on DSK to get a unique version number, then convert to the UNIX formatted string.")
+
+    (bind UNAME (DATEPREFIX _ (CONCAT "{UNIX}/tmp/medley-" (IDATE)
+                                     "-"))
+          (SUFFIX _ (CONCAT (CL:IF NAME
+                                [OR (AND (STREAMP (FULLNAME NAME))
+                                         "stream")
+                                    (L-CASE (FILENAMEFIELD NAME 'NAME]
+                                "unamed")
+                           (CL:IF EXT
+                               (CONCAT "." (L-CASE EXT))
+                               ""))) eachtime (SETQ UNAME (CONCAT DATEPREFIX (RAND 1 1000)
+                                                                 "-" SUFFIX))
+       unless (INFILEP UNAME) do (RETURN (SLASHIT (CLOSEF (OPENSTREAM UNAME 'OUTPUT 'NEW])
+)
+
+(DEFCOMMAND "cd" (DIR) (/CNDIR DIR))
+
+(DEFCOMMAND cdm (SUBDIR) (/CNDIR (CL:IF SUBDIR
+                                     (CONCAT '{MEDLEY}/ SUBDIR)
+                                     '{MEDLEY})))
+
+(DEFCOMMAND "ls" (FIRST . REST) (DODIR (CONS FIRST REST)))
+
+(DEFCOMMAND "pwd" NIL (DIRECTORYNAME T))
+
+(PUTPROPS UNIXUTILS FILETYPE CL:COMPILE-FILE)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (1208 1581 (ShellCommand 1208 . 1581)) (1583 1980 (ShellWhich 1583 . 1980)) (2090 21695 
+(ShellBrowser 2100 . 3872) (ShellBrowse 3874 . 4559) (ShellOpener 4561 . 6249) (ShellOpen 6251 . 12198
+) (PROCESS-COMMAND 12200 . 12813) (SLASHIT 12815 . 16127) (UNIX-FILE-NAME 16129 . 20014) (
+UNIX-TMP-FILE-NAME 20016 . 21693)))))
+STOP

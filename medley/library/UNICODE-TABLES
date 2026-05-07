@@ -1,0 +1,803 @@
+(DEFINE-FILE-INFO :PACKAGE "INTERLISP" :READTABLE "INTERLISP" :BASE 10 :FORMAT :UTF-8)
+
+(FILECREATED "31-Mar-2026 09:01:05" {WMEDLEY}<library>UNICODE-TABLES.;22 44782  
+
+      :EDIT-BY rmk
+
+      :CHANGES-TO (VARS XCCS-CHARSETS)
+
+      :PREVIOUS-DATE "22-Feb-2026 10:44:33" {WMEDLEY}<library>UNICODE-TABLES.;20)
+
+
+(PRETTYCOMPRINT UNICODE-TABLESCOMS)
+
+(RPAQQ UNICODE-TABLESCOMS
+       [
+        (* ;; "This is code for reading/writing the XCCS-to-UNICODE mapping tables.  It runs offline, when UNICODE-UTF8 is modified.  ")
+
+        (COMS                                                (* ; "Read Unicode mapping files")
+              (INITVARS (UNICODEDIRECTORIES NIL))
+              (GLOBALVARS UNICODEDIRECTORIES)
+              (VARS XCCS-CHARSETS)
+              (FNS READ-UNICODE-MAPPING-FILENAMES READ-UNICODE-MAPPING))
+        (COMS                                                (* ; 
+                                                  "Make translation tables for  UTF external formats")
+              (FNS MAKE-UNICODE-TRANSLATION-TABLES GET-MCCS-UNICODE-MAPPING INVERT-UNICODE-MAPPING 
+                   XCCSTOMCCS-MAPPING)
+              (FNS ALL-UNICODE-MAPPINGS XCCSJAPANESECHARSETS)
+              (COMS                                          (* ; "Write Unicode mapping files")
+                    (FNS WRITE-UNICODE-MAPPING WRITE-UNICODE-INCLUDED WRITE-UNICODE-MAPPING-HEADER 
+                         WRITE-UNICODE-MAPPING-FILENAME)
+                    (FNS XCCS-UTF8-AFTER-OPEN)
+                    
+                    (* ;; "Automate dumping of a documentation prefix")
+
+                    [DECLARE%: EVAL@COMPILE DONTCOPY (CONSTANTS (MISSINGCODE (CL:PARSE-INTEGER "FFFE"
+                                                                                    :RADIX 16))
+                                                            (UNDEFINEDCODE (CL:PARSE-INTEGER "FFFF" 
+                                                                                  :RADIX 16]
+                    (VARS UNICODE-MAPPING-HEADER))
+              (FNS UTF8HEXSTRING)
+              (COMS                                          (* ; "debugging")
+                    (FNS SHOWCHARS)
+                    (DECLARE%: DOEVAL@LOAD DONTCOPY (MACROS HEXCHAR OCTALCHAR)))
+              (DECLARE%: EVAL@COMPILE DONTCOPY (FILES (LOADCOMP)
+                                                      UNICODE-EXPORTS])
+
+
+
+(* ;; 
+"This is code for reading/writing the XCCS-to-UNICODE mapping tables.  It runs offline, when UNICODE-UTF8 is modified.  "
+)
+
+
+
+
+(* ; "Read Unicode mapping files")
+
+
+(RPAQ? UNICODEDIRECTORIES NIL)
+(DECLARE%: DOEVAL@COMPILE DONTCOPY
+
+(GLOBALVARS UNICODEDIRECTORIES)
+)
+
+(RPAQQ XCCS-CHARSETS
+       ((LATIN "0")
+        (JAPANESE-SYMBOLS1 "41")
+        (JAPANESE-SYMBOLS2 "42")
+        (EXTENDED-LATIN "43")
+        (HIRAGANA "44")
+        (KATAKANA "45")
+        (GREEK "46")
+        (CYRILLIC "47")
+        (FORMS "50")
+        (RUNIC-GOTHIC "51")
+        (MORE-CYRILLIC "52")
+        (UNKNOWN1 "56")
+        (DECORATED-RULES "56")
+        (UNKNOWN2 "57")
+        (VERTICAL-JAPANESE "57")
+        (ARABIC "340")
+        (HEBREW "341")
+        (IPA "342")
+        (HANGUL "343")
+        (GEORGIAN-ARMENIAN "344")
+        (DEVANAGRI "345")
+        (BENGALI "346")
+        (GURMUKHI "347")
+        (THAI-LAO "350")
+        (SYMBOLS3 "353")
+        (EXTENDED-ITC-DINGBATS "354")
+        (ITC-DINGBATS1 "355")
+        (SYMBOLS2 "356")
+        (SYMBOLS1 "357")
+        (LIGATURES "360")
+        (ACCENTED-LATIN1 "361")
+        (ACCENTED-LATIN2 "362")
+        (ACCENTED-GREEK1 "363")
+        (ACCENTED-GREEK2 "364")
+        (MORE-ARABIC "365")
+        (GRAPHIC-VARIANTS "375")
+        (JAPANESE HIRAGANA KATAKANA JIS)
+        (DEFAULT LATIN ACCENTED-LATIN1 EXTENDED-LATIN SYMBOLS1 SYMBOLS2 FORMS JAPANESE-SYMBOLS1 
+               JAPANESE-SYMBOLS2)
+        (JIS "60-166")))
+(DEFINEQ
+
+(READ-UNICODE-MAPPING-FILENAMES
+  [LAMBDA (FILESPEC)                                         (* ; "Edited 21-Feb-2026 18:14 by rmk")
+                                                             (* ; "Edited 16-Oct-2025 16:43 by rmk")
+                                                             (* ; "Edited  4-Sep-2025 00:11 by rmk")
+                                                             (* ; "Edited 27-Jan-2025 16:46 by rmk")
+                                                             (* ; "Edited 21-Jan-2025 22:51 by rmk")
+                                                             (* ; "Edited 19-Jan-2025 12:21 by rmk")
+                                                             (* ; "Edited  3-Feb-2024 11:00 by rmk")
+                                                             (* ; "Edited 30-Jan-2024 08:45 by rmk")
+                                                             (* ; "Edited 26-Jan-2024 14:02 by mth")
+                                                          (* ; "Edited  5-Aug-2020 15:59 by kaplan")
+                                                            (* ; "Edited  4-Aug-2020 17:31 by rmk:")
+
+    (* ;; "FILESPEC can be a file name, character-set name, the name of a collection of character sets, an XCCS character code, or a list of those. Maps those into the names of files that contain the indicated Unicode mappings.")
+
+    (for F X CSI inside (if (EQ FILESPEC 'ALL)
+                            then 
+                                 (* ;; 
+          "Perhaps should figure out which files in the directories and subdirectories are relevant?")
+
+                                 (for N in XCCS-CHARSETS collect (CAR N))
+                          else FILESPEC)
+       join 
+            (* ;; "Last case hopes to pick up all the tables that are grouped together in a subdirectory (e.g. if F is JIS)")
+
+            [OR (CL:WHEN (CHARCODEP F)                       (* ; 
+                                                        "An XCCS code can retrieve its character set")
+                    (for D FN (FOCTAL ← (OCTALSTRING (LRSH F 8))) inside UNICODEDIRECTORIES
+                       when (SETQ FN (DIRECTORY (PACKFILENAME 'DIRECTORY D 'BODY (CONCAT 'XCCS- 
+                                                                                        FOCTAL
+                                                                                        '=*)
+                                                       'EXTENSION
+                                                       'TXT
+                                                       'VERSION ""))) do (RETURN FN)))
+                (MKLIST (FINDFILE (PACKFILENAME 'BODY F 'EXTENSION 'TXT 'VERSION "")
+                               T UNICODEDIRECTORIES))
+                (for D inside UNICODEDIRECTORIES
+                   when [SETQ $$VAL (OR (DIRECTORY (PACKFILENAME 'NAME (CONCAT "XCCS-*=" F)
+                                                          'EXTENSION
+                                                          'TXT
+                                                          'VERSION "" 'BODY D))
+                                        (DIRECTORY (PACKFILENAME 'NAME (CONCAT "XCCS-" F "=*")
+                                                          'EXTENSION
+                                                          'TXT
+                                                          'VERSION "" 'BODY D]
+                   do (RETURN $$VAL))
+                (AND (SETQ CSI (ASSOC F XCCS-CHARSETS))
+                     (READ-UNICODE-MAPPING-FILENAMES (CDR CSI)))
+                (for D inside UNICODEDIRECTORIES when (DIRECTORYNAMEP (SETQ D
+                                                                       (CONCAT D ">" F ">")))
+                   join (DIRECTORY (CONCAT D ">*.TXT;"]
+       finally                                               (* ; 
+                                                     "CL:REMOVE-DUPLICATES doesn't exist in MAKEINIT")
+             (RETURN (for FTAIL on $$VAL unless (thereis FF in (CDR FTAIL)
+                                                   suchthat (STRING-EQUAL (CAR FTAIL)
+                                                                   FF)) collect (CAR FTAIL])
+
+(READ-UNICODE-MAPPING
+  [LAMBDA (FILESPEC PRINT NOERROR)                           (* ; "Edited 16-Oct-2025 11:25 by rmk")
+                                                             (* ; "Edited 11-Oct-2025 12:08 by rmk")
+                                                             (* ; "Edited  4-Sep-2025 00:17 by rmk")
+                                                             (* ; "Edited 24-Apr-2025 15:32 by rmk")
+                                                             (* ; "Edited 31-Jan-2025 17:43 by rmk")
+                                                             (* ; "Edited 17-Jan-2025 16:41 by rmk")
+                                                             (* ; "Edited  3-Feb-2024 00:21 by rmk")
+                                                             (* ; "Edited  5-Jan-2024 12:26 by rmk")
+                                                            (* ; "Edited  3-Jul-2021 13:37 by rmk:")
+
+    (* ;; "Combines the char-mapping tables from FILES coded in the Uncode-CDROM format.  Comments prefixed by # and")
+
+    (* ;; "               Column 1:  XCCS input hex code in the format 0xXXXX")
+
+    (* ;; "               Column 2:  Corresponding Unicode code-sequence in the format")
+
+    (* ;; "                                            0xXXXX  ... 0xYYYY")
+
+    (* ;; "               Column 3:  (after #) Character name in some mapping files, utf-8 character")
+
+    (* ;; "                                     for XCCS mapping files")
+
+    (* ;; "")
+
+    (RESETLST
+        (for FILE STREAM [SEPBITTABLE ← (MAKEBITTABLE (CHARCODE (TAB SPACE] in (
+                                                                       READ-UNICODE-MAPPING-FILENAMES
+                                                                                FILESPEC)
+           join 
+                (* ;; "External format  :THROUGH means read as bytes, so the Unicode UTF-8 comments cannot cause reading problems.")
+
+                [RESETSAVE [SETQ STREAM (OPENSTREAM FILE 'INPUT NIL '((FORMAT :THROUGH)
+                                                                      (EOLCONVENTION LF]
+                       '(PROGN (CLOSEF? OLDVALUE]
+                (bind LINE NAME CHARSET START
+                   first (CL:UNLESS (FILEPOS "Name:" STREAM NIL NIL NIL T)
+                             (ERROR "NOT A UNICODE MAPPING FILE" (FULLNAME STREAM)))
+                         (SETQ NAME (CL:STRING-TRIM " " (CL:READ-LINE STREAM NIL NIL)))
+                         (SETQ CHARSET (CL:IF (FILEPOS "XCCS charset:" STREAM NIL NIL NIL T)
+                                           (CL:STRING-TRIM " " (CL:READ-LINE STREAM NIL NIL))
+                                           ""))
+                         (CL:WHEN PRINT                      (* ; "Strip off XCCS in front of name")
+                             (PRINTOUT T T CHARSET " " [SUBSTRING NAME (CONSTANT (ADD1 (NCHARS "XCCS"
+                                                                                              ]
+                                    T)) while (SETQ LINE (CL:READ-LINE STREAM NIL NIL))
+                   when (SETQ START (STRPOSL SEPBITTABLE LINE 1 T))
+                   unless (EQ (CHARCODE %#)
+                              (NTHCHARCODE LINE START))
+                   collect [bind END CODES while [SETQ END (OR (STRPOSL SEPBITTABLE LINE START)
+                                                               (ADD1 (NCHARS LINE]
+                              collect [CHARCODE.DECODE (SUBSTRING LINE START (SUB1 END)
+                                                              (CONSTANT (CONCAT]
+                              repeatwhile (AND (SETQ START (STRPOSL SEPBITTABLE LINE END T))
+                                               (NEQ (CHARCODE %#)
+                                                    (NTHCHARCODE LINE START)))
+                              finally (CL:WHEN (CDDR $$VAL)  (* ; "Combiners go into a CADR list")
+                                          (RPLACD $$VAL (CONS (CDR $$VAL))))]
+                   finally (CLOSEF? STREAM))))])
+)
+
+
+
+(* ; "Make translation tables for  UTF external formats")
+
+(DEFINEQ
+
+(MAKE-UNICODE-TRANSLATION-TABLES
+  [LAMBDA (MAPPING REINSTALL)                                (* ; "Edited 21-Feb-2026 22:42 by rmk")
+                                                             (* ; "Edited 11-Oct-2025 11:54 by rmk")
+                                                             (* ; "Edited  4-Sep-2025 00:30 by rmk")
+                                                             (* ; "Edited 24-Apr-2025 15:47 by rmk")
+                                                             (* ; "Edited 31-Jan-2025 17:46 by rmk")
+                                                             (* ; "Edited 26-Jan-2025 19:36 by rmk")
+                                                             (* ; "Edited 22-Jan-2025 14:22 by rmk")
+                                                             (* ; "Edited 19-Jan-2025 15:08 by rmk")
+                                                             (* ; "Edited 18-Jan-2025 11:52 by rmk")
+                                                             (* ; "Edited  3-Feb-2024 00:24 by rmk")
+                                                             (* ; "Edited 30-Jan-2024 09:54 by rmk")
+                                                            (* ; "Edited 21-Aug-2021 13:12 by rmk:")
+    (SETQ MAPPING (GET-MCCS-UNICODE-MAPPING MAPPING))
+
+    (* ;; "This updates or produces two recoding arrays, one maps left-side codes into right-side codes (e.g. MCCS  to Unicode), for printing, the other maps right-side (Unicode) codes to corresponding right-side codes (e.g. MCCS).")
+
+    (* ;; "")
+
+    (* ;; "If REINSTALL is T, the new mapping vectors replace the current maps in the *MCCSTOUNICODE* and *UNICODETOMCCS* global variables.  Otherwise we create new tables (mostly for comparison and debugging).")
+
+    (* ;; "")
+
+    (if REINSTALL
+        then (SETQ *MCCS-LOADED-CHARSETS* (SETQ *UNICODE-LOADED-CHARSETS* NIL))
+             (SETQ *NEXT-PRIVATE-MCCSCODE* FIRST-PRIVATE-MCCSCODE)
+             (SETQ *NEXT-PRIVATE-UNICODE* FIRST-PRIVATE-UNICODE)
+             (LET [(TABLE (HASHARRAY (LENGTH MAPPING)))
+                   (INVERSETABLE (HASHARRAY (LENGTH MAPPING]
+                  (MERGE-UNICODE-TRANSLATION-TABLES NIL MAPPING TABLE INVERSETABLE)
+                  (SETQ *MCCSTOUNICODE* TABLE)
+                  (SETQ *UNICODETOMCCS* INVERSETABLE)
+                  (LIST *MCCSTOUNICODE* *UNICODETOMCCS*))
+      else (CL:UNLESS (BOUNDP '*NEXT-PRIVATE-MCCSCODE*)
+               (SETQ *NEXT-PRIVATE-MCCSCODE* FIRST-PRIVATE-MCCSCODE)
+               (SETQ *NEXT-PRIVATE-UNICODE* FIRST-PRIVATE-UNICODE))
+           (MERGE-UNICODE-TRANSLATION-TABLES NIL MAPPING])
+
+(GET-MCCS-UNICODE-MAPPING
+  [LAMBDA (MAPPING)                                          (* ; "Edited 22-Feb-2026 00:29 by rmk")
+
+    (* ;; "MAPPING is the list of numeric code correspondence pairs mapping MCCS-to-Unicode, or a specification of XCCS-to-Unicode files to be read and converted to MCCS-to-UNICODE.")
+
+    (SORT (if [AND (LISTP MAPPING)
+                   (for PAIR R in MAPPING as I to 10
+                      always (AND (LISTP PAIR)
+                                  (CHARCODEP (CAR PAIR))
+                                  [FIXP (SETQ R (CAR (MKLIST (CADR PAIR]
+                                  (CHARCODEP (IABS R]
+              then 
+                   (* ;; "The argument is already a list of MCCS-to-UNICODE mapping pairs")
+
+                   MAPPING
+            else 
+                 (* ;; "Mapping files are is read as XCCS-UNICODE, make it MCCS")
+
+                 (XCCSTOMCCS-MAPPING (READ-UNICODE-MAPPING MAPPING)))
+          T])
+
+(INVERT-UNICODE-MAPPING
+  [LAMBDA (MAPPING)                                          (* ; "Edited 22-Feb-2026 00:39 by rmk")
+
+    (* ;; "MAPPING is a list of pairs that map domain codes to range codes (presumably MCCS to UNICODE).  This produces an inverted list of pairs that map the range into the domain (Unicode to MCCS)   ")
+
+    (LET (INVERTED)
+         (SETQ INVERTED (SORT (for P D R OLDR in MAPPING eachtime (SETQ D (CAR P))
+                                                               (SETQ R (CADR P)) 
+
+                                                               (* ;; 
+                                            "We don't do combiners, but we are allowing non-SMALLP's")
+ unless (OR (LISTP D)
+            (LISTP R)) collect (LIST R D))
+                              T))
+
+         (* ;; "If MAPPING contains two pairs that map to the same U (e.g. (M1 U) and (M2 U)), we want the inverse table to collect them into a single pair (U M1 M2) instead of two pairs (U M1) (U M2), with the lowest M code first. Those pairs represent alternative inverse mappings. There are no duplicates/alternative table entries in the M-to-U direction.")
+
+         (* ;; "The SORT above means that multiple inverted pairs for the same U will be next to each other in the list.")
+
+         [for PTAIL PTAIL2 U MS on INVERTED eachtime (SETQ U (CAAR PTAIL))
+            when (SETQ MS (for old PTAIL2 P2 on PTAIL eachtime (SETQ P2 (CADR PTAIL2))
+                             while (EQ U (CAR P2)) collect (CADR P2)))
+            do (RPLACD PTAIL (CDR PTAIL2))
+               (RPLACD (CAR PTAIL)
+                      (SORT (CONS (CADR (CAR PTAIL))
+                                  MS]
+         INVERTED])
+
+(XCCSTOMCCS-MAPPING
+  [LAMBDA (XTOUMAPPING)                                      (* ; "Edited 11-Oct-2025 12:57 by rmk")
+
+    (* ;; 
+    "This translates the pairs that map XCCS to Unicode into pairs that translate MCCS to Unicode.")
+
+    (* ;; 
+   "We grab the affected pairs before we make any changes so that we don't get into ordering issues.")
+
+    (LET* ([XTOMCODES (CHARCODE ((Currency Dollar)
+                                 (Dollar Currency)
+                                 (Uparrow Circumflex)
+                                 (Circumflex Uparrow)
+                                 (Leftarrow Lowline)
+                                 (Lowline Leftarrow]
+           (AFFECTED (for MP in XTOUMAPPING when (thereis XP in XTOMCODES
+                                                    suchthat (EQ (CAR MP)
+                                                                 (CAR XP))) collect MP)))
+          (for AP in AFFECTED do (RPLACA AP (CADR (ASSOC (CAR AP)
+                                                         XTOMCODES)))
+             finally (push XTOUMAPPING (CHARCODE (DEL DEL)))
+                   (RETURN XTOUMAPPING])
+)
+(DEFINEQ
+
+(ALL-UNICODE-MAPPINGS
+  [LAMBDA (INVERTED FILE)                                    (* ; "Edited 22-Feb-2026 10:42 by rmk")
+                                                             (* ; "Edited 24-Apr-2025 15:51 by rmk")
+                                                             (* ; "Edited 31-Jan-2025 17:46 by rmk")
+                                                             (* ; "Edited 26-Jan-2025 13:40 by rmk")
+                                                             (* ; "Edited 22-Jan-2025 14:07 by rmk")
+                                                             (* ; "Edited 19-Jan-2025 12:20 by rmk")
+                                                             (* ; "Edited 17-Jan-2025 22:32 by rmk")
+                                                             (* ; "Edited 15-Jan-2025 09:49 by rmk")
+                                                             (* ; "Edited 27-Mar-2024 14:48 by rmk")
+                                                             (* ; "Edited  5-Feb-2024 13:14 by rmk")
+                                                             (* ; "Edited  3-Feb-2024 09:16 by rmk")
+
+    (* ;; "Reads all the XCCS-to-UNICODE mapping files that we know about, and produces a 2-level index that maps between MCCS codes and UNICODE codes, depending on INVERTED.")
+
+    (* ;; "The first index level segments all the domain codes according to their character sets.  The segments are sorted by character set, the pairs within each segment are sorted by their domain codes.  ")
+
+    (* ;; 
+    "E.g. if INVERTED=NIL and given a MCCS code, the lookup for the corresponding Unicode(s) is")
+
+    (* ;; "   (CAR (GETMULTI  INDEX  (\CHARSET MCCSCODE)  MCCSCODE).")
+
+    (* ;; "If FILE is not NIL, the result is written to a file. If FILE is T, the file is either MCCS-TO-UNICODE-MAPPINGS.TXT or UNICODE-TO-MCCS-MAPPINGS.TXT, depending on INVERTED.")
+
+    (LET [INDEX (MAPPING (GET-MCCS-UNICODE-MAPPING 'ALL]
+         (for PAIR in (CL:IF INVERTED
+                          (INVERT-UNICODE-MAPPING MAPPING)
+                          MAPPING) unless (LISTP (CADR PAIR)) do 
+                                                                 (* ;; 
+                                                 "(LISTP (CADR PAIR) is a combiner, ignored for now.")
+
+                                                     (* ;; 
+       "One segment for each high-byte character set.   This aligns with UNICODE-EXTEND.TRANSLATION?")
+
+                                 (* ;; "For alternative mappings (in the U-to-M direction) we end up with  (D R1 R2 ...).  (CAR (GETMULTI)) is the first (and almost always) the only one.")
+
+                                                                 (PUSHMULTI-NEW INDEX
+                                                                        (\CHARSET (CAR PAIR))
+                                                                        (CAR PAIR)
+                                                                        (CADR PAIR)))
+
+         (* ;; "Push the charset mappings down an extra CONS, so that a subsequent READ will get them all after a FILEPOS search for super-paren [")
+
+         (for CS in INDEX do (for M in (CDR CS) when (CDDR M) do 
+                                                                 (* ;; 
+                                                                "Sort the range alternatives, if any")
+
+                                                                 (change (CDR M)
+                                                                        (SORT DATUM))) 
+
+                             (* ;; "Sort by domain codes and push down a level")
+
+                             (change (CDR CS)
+                                    (SORT DATUM T)))
+         (SETQ INDEX (SORT INDEX T))                         (* ; "Sort character sets")
+         (if FILE
+             then (SETQ FILE (PACKFILENAME 'BODY (if (NEQ FILE T)
+                                                     then FILE
+                                                   elseif INVERTED
+                                                     then 'UNICODE-TO-MCCS-MAPPINGS
+                                                   else 'MCCS-TO-UNICODE-MAPPINGS)
+                                    'DIRECTORY
+                                    (CAR (MKLIST UNICODEDIRECTORIES))
+                                    'EXTENSION
+                                    'TXT))
+                  (CL:WITH-OPEN-FILE (STREAM FILE :DIRECTION :OUTPUT :IF-EXISTS :NEW-VERSION)
+
+                         (* ;; 
+         "We can FILEPOS for %"[nnn %" then READ for each segment. Or just READFILE to get them all.")
+
+                         (for I in INDEX do (PRINTOUT STREAM "[" (CAR I)
+                                                   " "
+                                                   (CADR I)
+                                                   "]" T T))
+                         (PRINTOUT STREAM "STOP" T)
+                         (FULLNAME STREAM))
+           else INDEX])
+
+(XCCSJAPANESECHARSETS
+  [LAMBDA (OCTAL FILE)                                       (* ; "Edited 11-Jun-2025 23:00 by rmk")
+
+    (* ;; "Returns the list of numbers for the Japanese character sets.")
+
+    (for F POS CS in (READ-UNICODE-MAPPING-FILENAMES "JIS")
+       when (SETQ POS (STRPOS "XCCS-" F 1 NIL NIL T))
+       collect [SETQ CS (SUBSTRING F POS (SUB1 (STRPOS '=JIS F POS]
+             (CL:IF OCTAL
+                 CS
+                 (MKATOM (CONCAT CS "Q")))
+       finally (SORT $$VAL)
+             (CL:WHEN FILE
+                 (RETURN (CL:WITH-OPEN-FILE (STREAM (PACKFILENAME 'BODY (CL:IF (EQ FILE T)
+                                                                            "JAPANESECHARSETS"
+                                                                            FILE)
+                                                           'DIRECTORY
+                                                           (CAR (MKLIST UNICODEDIRECTORIES))
+                                                           'EXTENSION
+                                                           'TXT)
+                                                   :DIRECTION :OUTPUT :IF-EXISTS :NEW-VERSION)
+                                (PRINT $$VAL STREAM)
+                                (FULLNAME STREAM))))])
+)
+
+
+
+(* ; "Write Unicode mapping files")
+
+(DEFINEQ
+
+(WRITE-UNICODE-MAPPING
+  [LAMBDA (MAPPING INCLUDECHARSETS FILE EMPTYOK)             (* ; "Edited  4-Jan-2024 22:44 by rmk")
+                                                            (* ; "Edited 16-Aug-2020 16:56 by rmk:")
+
+    (* ;; "Writes a symbol unicode mapping file.  Mapping is a list of (XCCS-code Unicode) pairs, which may contain codes in multiple character sets.")
+
+    (* ;; "If FILE is NIL, it defaults to a name XCCS- followed by the octal character sets in the mapping, in the unicode/XEROX directory.")
+
+    (* ;; "The output lines are of the form x0XXX<tab>x0UUUU<tab>#  Unicode-char")
+
+    (* ;; 
+    "If INCLUDECHARSETS=T then the mappings are split up into separate per-character set files.")
+
+    (* ;; "Otherwise, all and only mappings included in thos charsets are included in a single output file--an implicit subset.")
+
+    (IF (AND (EQ INCLUDECHARSETS T)
+             (NULL FILE))
+        THEN (IF MAPPING
+                 THEN (FOR CSI F IN XCCS-SET-NAMES WHEN (SETQ F (WRITE-UNICODE-MAPPING MAPPING
+                                                                       (CAR CSI)
+                                                                       NIL T)) COLLECT F)
+               ELSE (PRINTOUT T "THERE ARE NO MAPPINGS" T)
+                    NIL)
+      ELSE
+      (LET
+       (IMAPPING CSETINFO RANGES)
+       (CL:MULTIPLE-VALUE-SETQ (IMAPPING CSETINFO RANGES)
+              (WRITE-UNICODE-INCLUDED MAPPING INCLUDECHARSETS))
+       (IF IMAPPING
+           THEN (CL:WITH-OPEN-FILE
+                 (STREAM (WRITE-UNICODE-MAPPING-FILENAME FILE CSETINFO RANGES)
+                        :DIRECTION :OUTPUT :IF-EXISTS :NEW-VERSION :EXTERNAL-FORMAT :UTF-8-RAW)
+                 (WRITE-UNICODE-MAPPING-HEADER STREAM CSETINFO RANGES)
+                 (SORT IMAPPING T)
+                 (FOR M CSET LEFTC FIRSTRIGHTC CSI IN IMAPPING
+                    DO (SETQ LEFTC (CAR M))
+                       (SETQ FIRSTRIGHTC (CADR M))
+                       (CL:UNLESS (EQ CSET (LRSH LEFTC 8))
+                           (SETQ CSET (LRSH LEFTC 8))
+                           (SETQ CSI (ASSOC CSET CSETINFO))
+                           (PRINTOUT STREAM T "#  " .P2 (CADR CSI)
+                                  " "
+                                  (CADDR CSI)
+                                  T))
+                       (PRINTOUT STREAM "0x" (HEXSTRING LEFTC 4)
+                              %#
+                              (FOR RIGHTC IN (CDR M) DO (PRINTOUT NIL "	" "0x" (HEXSTRING RIGHTC 4)))
+                              "	#  "
+                              (SELECTC FIRSTRIGHTC
+                                  (UNDEFINEDCODE 
+                                                 (* ;; "FFFF")
+
+                                                 "UNDEFINED")
+                                  (MISSINGCODE 
+                                               (* ;; "FFFE")
+
+                                               "MISSING")
+                                  (IF (ILESSP FIRSTRIGHTC 32)
+                                      THEN                   (* ; "Control chars")
+                                           [CONCAT "↑" (CHARACTER (IPLUS FIRSTRIGHTC (CHARCODE @]
+                                    ELSE (CHARACTER FIRSTRIGHTC)))
+                              T))
+                 (FULLNAME STREAM))
+         ELSEIF (NOT EMPTYOK)
+           THEN (PRINTOUT T "THERE ARE NO MAPPINGS")
+                (CL:WHEN INCLUDECHARSETS
+                    (PRINTOUT T " FOR " .PPVTL (MKLIST INCLUDECHARSETS)
+                           T))
+                NIL])
+
+(WRITE-UNICODE-INCLUDED
+  [LAMBDA (MAPPING INCLUDECHARSETS)                         (* ; "Edited  4-Aug-2020 17:47 by rmk:")
+
+    (* ;; "CSETINFO is a list of (num string name) for each included character set.")
+
+    (LET (CHARSETS CSETINFO RANGES ICSETS IMAPPING)
+
+         (* ;; "Normalize the INCLUDECHARSETS, then reduce MAPPING to the included mappings")
+
+         [SETQ ICSETS (FOR C POS KNOWN INSIDE (OR INCLUDECHARSETS (FOR CSI IN XCCS-SET-NAMES
+                                                                     COLLECT (CAR CSI)))
+                         JOIN [SETQ KNOWN (OR (SASSOC C XCCS-SET-NAMES)
+                                              (FIND N IN XCCS-SET-NAMES
+                                                 SUCHTHAT (EQ C (CADR N)))
+                                              (HELP "UNKNOWN CHARACTER SET" (OCTALSTRING C]
+                              (IF (SETQ POS (STRPOS "-" (CAR KNOWN)))
+                                  THEN (FOR I FROM (CL:PARSE-INTEGER (SUBSTRING (CAR KNOWN)
+                                                                            1
+                                                                            (SUB1 POS))
+                                                          :RADIX 8)
+                                          TO (CL:PARSE-INTEGER (SUBSTRING (CAR KNOWN)
+                                                                      (ADD1 POS))
+                                                    :RADIX 8) COLLECT (LIST I (OCTALSTRING I)
+                                                                            (CADR KNOWN)))
+                                ELSE (CONS (CONS (CL:PARSE-INTEGER (CAR KNOWN)
+                                                        :RADIX 8)
+                                                 KNOWN]
+         (SETQ IMAPPING (FOR M CSI IN MAPPING WHEN (SETQ CSI (ASSOC (LRSH (CAR M)
+                                                                          8)
+                                                                    ICSETS))
+                           COLLECT 
+
+                                 (* ;; "The attested subset of INCLUDED")
+
+                                 (CL:UNLESS (MEMB CSI CSETINFO)
+                                        (PUSH CSETINFO CSI))
+                                 M))
+
+         (* ;; "Sort as numbers, not octal strings, then group into consecutive ranges")
+
+         (SETQ CSETINFO (SORT CSETINFO T))
+         [SETQ RANGES (FOR CTAIL C START END ON (FOR CSI IN CSETINFO COLLECT (CAR CSI)) WHILE CTAIL
+                         COLLECT (SETQ START (CAR CTAIL))
+                               (SETQ END START)
+                               (CONS START (WHILE [AND (CDR CTAIL)
+                                                       (EQ END (SUB1 (CADR CTAIL]
+                                              COLLECT (SETQ CTAIL (CDR CTAIL))
+                                                    (SETQ END (CAR CTAIL]
+
+         (* ;; "Split out groups of less than 3.  But if a range exhaustively covers a known subset (like JIS), replace by the name")
+
+         [SETQ RANGES (FOR R STR KNOWN LAST IN RANGES
+                         JOIN (SETQ LAST (CAR (LAST R)))
+                              (IF (EQ (CAR R)
+                                      LAST)
+                                  THEN (CONS (OCTALSTRING (CAR R)))
+                                ELSEIF (SETQ KNOWN (SASSOC (SETQ STR (CONCAT (OCTALSTRING
+                                                                              (CAR R))
+                                                                            "-"
+                                                                            (OCTALSTRING LAST)))
+                                                          XCCS-SET-NAMES))
+                                  THEN (CONS (CADR KNOWN))
+                                ELSEIF (CDDR R)
+                                  THEN (CONS STR)
+                                ELSE (LIST (OCTALSTRING (CAR R))
+                                           (OCTALSTRING LAST]
+         (CL:VALUES IMAPPING CSETINFO RANGES])
+
+(WRITE-UNICODE-MAPPING-HEADER
+  [LAMBDA (STREAM CSETINFO RANGES)                           (* ; "Edited  5-Jan-2024 13:24 by rmk")
+                                                            (* ; "Edited  4-Aug-2020 17:38 by rmk:")
+
+    (* ;; "Writes the standard per-file header information")
+
+    (FOR LINE IN UNICODE-MAPPING-HEADER
+       DO (PRINTOUT STREAM "#" 2)
+          (SELECTQ LINE
+              (XCCSCHARACTERSETS 
+                   (PRINTOUT STREAM "        XCCS charset")
+                   (IF (CDR CSETINFO)
+                       THEN (PRINTOUT STREAM "s:" -4)
+                            (FOR R IN RANGES DO (PRINTOUT STREAM R " "))
+                     ELSE                                    (* ; "Singleton")
+                          (PRINTOUT STREAM ": " -4 (CADAR CSETINFO)
+                                 " "
+                                 (CADDAR CSETINFO)))
+                   (TERPRI STREAM))
+              (DATE (PRINTOUT STREAM "        Date:" -13 (DATE (DATEFORMAT NO.TIME NO.LEADING.SPACES)
+                                                               )
+                           T))
+              (PRINTOUT STREAM LINE T)))
+    (TERPRI STREAM])
+
+(WRITE-UNICODE-MAPPING-FILENAME
+  [LAMBDA (FILE CSETINFO RANGES)                            (* ; "Edited  4-Aug-2020 19:34 by rmk:")
+    (PACKFILENAME 'BODY [OR FILE (CONCATLIST
+                                  (CONS 'XCCS- (IF (CDR CSETINFO)
+                                                   THEN (FOR RTAIL R ON RANGES
+                                                           JOIN (SETQ R (CAR RTAIL))
+                                                                (SETQ R (CL:IF (LISTP R)
+                                                                            (LIST (CAR R)
+                                                                                  "-"
+                                                                                  (CDR R))
+                                                                            (CONS R)))
+                                                                (CL:IF (CDR RTAIL)
+                                                                       (NCONC1 R ","))
+                                                                R)
+                                                 ELSE (LIST (CADAR CSETINFO)
+                                                            "="
+                                                            (CADDAR CSETINFO]
+           'DIRECTORY
+           (CAR UNICODEDIRECTORIES)
+           'EXTENSION
+           'TXT])
+)
+(DEFINEQ
+
+(XCCS-UTF8-AFTER-OPEN
+  [LAMBDA (STREAM ACCESS PARAMETERS)                         (* ; "Edited  3-Jan-2024 10:27 by rmk")
+                                                            (* ; "Edited 13-Aug-2020 11:54 by rmk:")
+
+    (* ;; 
+    "If added to STREAM-AFTER-OPEN-FNS, causes mapping files to be opened as UTF-8. For development")
+
+    (CL:WHEN (AND (STRPOS "XCCS-" (U-CASE (FULLNAME STREAM)))
+                  [EQ 'TXT (U-CASE (FILENAMEFIELD (FULLNAME STREAM)
+                                          'EXTENSION]
+                  (NOT (ASSOC 'EXTERNALFORMAT PARAMETERS)))
+        (STREAMPROP STREAM 'EXTERNALFORMAT :UTF-8))])
+)
+
+
+
+(* ;; "Automate dumping of a documentation prefix")
+
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+(RPAQ MISSINGCODE (CL:PARSE-INTEGER "FFFE" :RADIX 16))
+
+(RPAQ UNDEFINEDCODE (CL:PARSE-INTEGER "FFFF" :RADIX 16))
+
+
+(CONSTANTS (MISSINGCODE (CL:PARSE-INTEGER "FFFE" :RADIX 16))
+       (UNDEFINEDCODE (CL:PARSE-INTEGER "FFFF" :RADIX 16)))
+)
+)
+
+(RPAQQ UNICODE-MAPPING-HEADER
+       ("" "        Name:             XCCS (Version 2.0) to Unicode" "        Unicode version:  3.0"
+           XCCSCHARACTERSETS "        Table version:    0.1" "        Table format:     Format A" 
+           DATE "        Author:           Ron Kaplan <Ron.Kaplan@post.harvard.edu>" "" 
+           "This file contains mappings from the Xerox Character Code Standard (version" 
+           "2.0, 1990) into Unicode 3.0. standard codes.  That is an extension of the" 
+           "version of XCCS corresponding to the fonts in the Medley system." "" 
+           "The format of this file conforms to the format of the other Unicode-supplied" 
+           "mapping files:" "   Three white-space (tab or spaces) separated columns:" 
+           "     Column 1 is the XCCS code (as hex 0xXXXX)" 
+           "     Column 2 is the corresponding Unicode (as hex 0xXXXX)" 
+           "     Column 3 (after #) is a comment column. For convenience, it contains the" 
+           "        Unicode character itself and the Unicode character names when available." 
+           "Unicode FFFF is used for undefined XCCS codes (Column 3 = UNDEFINED" 
+           "Unicode FFFE is used for XCCS codes that have not yet been filled in." 
+           "(Column 3 = MISSING)" "" "This file is encoded in UTF-8, so that the Unicode characters"
+           "are properly displayed in Column 3 and can be edited by standard" 
+           "Unicode-enabled editors (e.g. Mac Textedit)." "" 
+           "This file can also be read by the function" 
+           "READ-UNICODE-MAPPING in the UNICODE Medley library package." "" 
+           "The entries are in XCCS order and grouped by character sets.  In front of" 
+           "the mappings, for convenience, there is a line with the octal XCCS" 
+           "character set, after #." "" 
+           "Note that a given XCCS code might map to codes in several different Unicode" 
+           "positions, since there are repetitions in the Unicode standard." "" 
+           "For more details, see the associated README.TXT file." "" 
+           "Any comments or problems, contact <ron.kaplan@post.harvard.edu>"))
+(DEFINEQ
+
+(UTF8HEXSTRING
+  [LAMBDA (CHARCODE)                                        (* ; "Edited 10-Aug-2020 08:33 by rmk:")
+
+    (* ;; "Utility to produces the UTF8 hexstring representing CODE")
+
+    (HEXSTRING (IF (ILESSP CHARCODE 128)
+                   THEN CHARCODE
+                 ELSEIF (ILESSP CHARCODE 2048)
+                   THEN                                      (* ; "x800")
+                        (LOGOR (LLSH (LOGOR (LLSH 3 6)
+                                            (LRSH CHARCODE 6))
+                                     8)
+                               (LOGOR (LLSH 2 6)
+                                      (LOADBYTE CHARCODE 0 6)))
+                 ELSEIF (ILESSP CHARCODE 65536)
+                   THEN                                      (* ; "x10000")
+                        (LOGOR (LLSH (LOGOR (LLSH 7 5)
+                                            (LRSH CHARCODE 12))
+                                     16)
+                               (LLSH (LOGOR (LLSH 2 6)
+                                            (LOADBYTE CHARCODE 6 6))
+                                     8)
+                               (LOGOR (LLSH 2 6)
+                                      (LOADBYTE CHARCODE 0 6)))
+                 ELSEIF (ILESSP CHARCODE 2097152)
+                   THEN                                      (* ; "x200000")
+                        (LOGOR (LLSH (LOGOR (LLSH 15 4)
+                                            (LRSH CHARCODE 18))
+                                     24)
+                               (LLSH (LOGOR (LLSH 2 6)
+                                            (LOADBYTE CHARCODE 12 6))
+                                     16)
+                               (LLSH (LOGOR (LLSH 2 6)
+                                            (LOADBYTE CHARCODE 6 6))
+                                     8)
+                               (LOGOR (LLSH 2 6)
+                                      (LOADBYTE CHARCODE 0 6)))
+                 ELSE (ERROR "CHARCODE too big for UTF8" CHARCODE])
+)
+
+
+
+(* ; "debugging")
+
+(DEFINEQ
+
+(SHOWCHARS
+  [LAMBDA (FONT FROMCHAR TOCHAR ONELINE)                     (* ; "Edited  5-Oct-2025 17:41 by rmk")
+                                                             (* ; "Edited  7-Sep-2025 20:29 by rmk")
+                                                             (* ; "Edited  2-Sep-2025 10:26 by rmk")
+                                                             (* ; "Edited 24-Jul-2025 11:30 by rmk")
+                                                             (* ; "Edited  8-Jun-2025 20:05 by rmk")
+                                                             (* ; "Edited 26-Jan-2024 14:18 by mth")
+                                                            (* ; "Edited  1-Aug-2020 09:27 by rmk:")
+    [SETQ FONT (FONTCREATE (OR FONT '(CLASSIC 12]
+    (RESETLST
+        [LET ((OLDFONT (DSPFONT NIL T))
+              CHARS)
+             (CL:UNLESS (CHARCODEP FROMCHAR)
+                 (SETQ FROMCHAR (OR (CHARCODE.DECODE FROMCHAR T)
+                                    FROMCHAR)))
+             (SETQ CHARS (if (LISTP FROMCHAR)
+                           elseif (CHARCODEP FROMCHAR)
+                             then (CL:UNLESS (CHARCODEP TOCHAR)
+                                      (SETQ TOCHAR (OR (CHARCODE.DECODE TOCHAR)
+                                                       FROMCHAR)))
+                                  (for C from FROMCHAR to TOCHAR collect C)
+                           else (CHCON FROMCHAR)))
+             [RESETSAVE OLDFONT '(PROGN (DSPFONT OLDVALUE]
+             (TERPRI)
+             (for C in CHARS do (PRINTOUT T .FONT OLDFONT (CONCAT (OCTALSTRING (\CHARSET C))
+                                                                 ","
+                                                                 (OCTALSTRING (\CHAR8CODE C)))
+                                       10 .FONT FONT (CHARACTER C))
+                                (CL:UNLESS ONELINE (PRINTOUT T T])
+    (TERPRI])
+)
+(DECLARE%: DOEVAL@LOAD DONTCOPY 
+(DECLARE%: EVAL@COMPILE 
+
+(PUTPROPS HEXCHAR MACRO ((CODE)
+                         (HEXSTRING CODE)))
+
+(PUTPROPS OCTALCHAR MACRO [(CODE)
+                           (CONCAT (OCTALSTRING (\CHARSET CODE))
+                                  ","
+                                  (OCTALSTRING (LOGAND CODE 255])
+)
+)
+(DECLARE%: EVAL@COMPILE DONTCOPY 
+
+(FILESLOAD (LOADCOMP)
+       UNICODE-EXPORTS)
+)
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (3929 12651 (READ-UNICODE-MAPPING-FILENAMES 3939 . 8408) (READ-UNICODE-MAPPING 8410 . 
+12649)) (12718 19526 (MAKE-UNICODE-TRANSLATION-TABLES 12728 . 15488) (GET-MCCS-UNICODE-MAPPING 15490
+ . 16510) (INVERT-UNICODE-MAPPING 16512 . 18305) (XCCSTOMCCS-MAPPING 18307 . 19524)) (19527 26150 (
+ALL-UNICODE-MAPPINGS 19537 . 24813) (XCCSJAPANESECHARSETS 24815 . 26148)) (26195 36957 (
+WRITE-UNICODE-MAPPING 26205 . 29949) (WRITE-UNICODE-INCLUDED 29951 . 34263) (
+WRITE-UNICODE-MAPPING-HEADER 34265 . 35513) (WRITE-UNICODE-MAPPING-FILENAME 35515 . 36955)) (36958 
+37634 (XCCS-UTF8-AFTER-OPEN 36968 . 37632)) (40159 42248 (UTF8HEXSTRING 40169 . 42246)) (42275 44317 (
+SHOWCHARS 42285 . 44315)))))
+STOP

@@ -1,0 +1,93 @@
+(DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
+
+(FILECREATED "13-Apr-2023 09:44:06" {DSK}<home>larry>il>medley>greetfiles>MEDLEYDIR-INIT.;6 2925   
+
+      :EDIT-BY "lmm"
+
+      :CHANGES-TO (VARS MEDLEYDIR-INITCOMS)
+
+      :PREVIOUS-DATE "10-Apr-2023 11:58:07" {DSK}<home>larry>il>medley>greetfiles>MEDLEYDIR-INIT.;5
+)
+
+
+(PRETTYCOMPRINT MEDLEYDIR-INITCOMS)
+
+(RPAQQ MEDLEYDIR-INITCOMS
+       ([P (LOAD? (CONCAT (OR (UNIX-GETENV "MEDLEYDIR")
+                              "")
+                         "/sources/MEDLEYDIR.LCOM"))
+           (MEDLEY-INIT-VARS 'GREET)
+           (KEYACTION 'LOCK '(LOCKTOGGLE . IGNORE]
+        (FILES BACKGROUND-YIELD)
+        (VARS 
+              (* ;; "settings for new users")
+
+              (DWIMWAIT 180)
+              (HELPDEPTH 4)
+              (HELPTIME 1)
+              (FILING.ENUMERATION.DEPTH 1)
+              [LOGINDIR (DIRECTORYNAME (OR (UNIX-GETENV "LOGINDIR")
+                                           (UNIX-GETENV "HOME"]
+              [USERGREETFILES `((,LOGINDIR "INIT" COM)
+                                (,LOGINDIR "INIT"]
+              (COPYRIGHTFLG 'NEVER)
+              (COPYRIGHTSRESERVED NIL)
+              (AUTOBACKTRACEFLG 'ALWAYS)
+              (MAXLEVEL 30000)
+              (MAXLOOP 30000))
+        (FNS INTERLISPMODE)
+        (ALISTS (FONTDEFS))))
+
+(LOAD? (CONCAT (OR (UNIX-GETENV "MEDLEYDIR")
+                   "")
+              "/sources/MEDLEYDIR.LCOM"))
+
+(MEDLEY-INIT-VARS 'GREET)
+
+(KEYACTION 'LOCK '(LOCKTOGGLE . IGNORE))
+
+(FILESLOAD BACKGROUND-YIELD)
+
+(RPAQQ DWIMWAIT 180)
+
+(RPAQQ HELPDEPTH 4)
+
+(RPAQQ HELPTIME 1)
+
+(RPAQQ FILING.ENUMERATION.DEPTH 1)
+
+(RPAQ LOGINDIR (DIRECTORYNAME (OR (UNIX-GETENV "LOGINDIR")
+                                  (UNIX-GETENV "HOME"))))
+
+(RPAQ USERGREETFILES `((,LOGINDIR "INIT" COM)
+                       (,LOGINDIR "INIT")))
+
+(RPAQQ COPYRIGHTFLG NEVER)
+
+(RPAQQ COPYRIGHTSRESERVED NIL)
+
+(RPAQQ AUTOBACKTRACEFLG ALWAYS)
+
+(RPAQQ MAXLEVEL 30000)
+
+(RPAQQ MAXLOOP 30000)
+(DEFINEQ
+
+(INTERLISPMODE
+  [LAMBDA (OLD?)                                             (* N.H.Briggs " 2-Feb-88 14:26")
+    (PROCESSPROP 'EXEC 'PROFILE (XCL:COPY-PROFILE (if OLD?
+                                                      then "OLD-INTERLISP-T"
+                                                    else "INTERLISP")))
+    (XCL:SET-DEFAULT-EXEC-TYPE (if OLD?
+                                   then "OLD-INTERLISP-T"
+                                 else "INTERLISP"))
+    (SETQ *DEFAULT-MAKEFILE-ENVIRONMENT* (LIST :READTABLE (if OLD?
+                                                              then "OLD-INTERLISP-FILE"
+                                                            else "INTERLISP")
+                                               :PACKAGE "INTERLISP"])
+)
+
+(ADDTOVAR FONTDEFS )
+(DECLARE%: DONTCOPY
+  (FILEMAP (NIL (2051 2876 (INTERLISPMODE 2061 . 2874)))))
+STOP
