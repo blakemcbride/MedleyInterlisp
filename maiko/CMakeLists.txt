@@ -538,13 +538,27 @@ IF(MAIKO_DISPLAY_SDL)
 
 IF(APPLE)
 	IF(MAIKO_DISPLAY_SDL STREQUAL "3")
+		IF(EXISTS "/Library/Frameworks/SDL3.xcframework/macos-arm64_x86_64")
 #
 # Until CMake properly supports .xcframeworks, https://gitlab.kitware.com/cmake/cmake/-/issues/25998
-# we need to manually set the RPATH to produce a working executable
+# we need to manually set the RPATH to produce a working executable when SDL3 is installed as the
+# official xcframework.
 #
-	MESSAGE("-- Applying fixup for macOS RPATH for SDL3.xcframework")
-	SET_PROPERTY(TARGET ldesdl APPEND PROPERTY BUILD_RPATH "/Library/Frameworks/SDL3.xcframework/macos-arm64_x86_64")
+			MESSAGE("-- Applying fixup for macOS RPATH for SDL3.xcframework")
+			SET_PROPERTY(TARGET ldesdl APPEND PROPERTY BUILD_RPATH "/Library/Frameworks/SDL3.xcframework/macos-arm64_x86_64")
+		ELSE()
 #
+# Homebrew's libSDL3.dylib has an absolute install_name, so the binary needs no RPATH.  Disable
+# CMake's auto link-path tracking and tell it the install RPATH is empty and matches the build
+# RPATH — otherwise every reinstall retries install_name_tool -delete_rpath on RPATHs the linker
+# never wrote.
+#
+			SET_TARGET_PROPERTIES(ldesdl PROPERTIES
+				INSTALL_RPATH ""
+				BUILD_WITH_INSTALL_RPATH TRUE
+				INSTALL_RPATH_USE_LINK_PATH FALSE
+			)
+		ENDIF()
 	ENDIF()
 ENDIF()
   TARGET_LINK_LIBRARIES(ldesdl ${MAIKO_LIBRARIES} ${MAIKO_DISPLAY_SDL_LIBRARIES})

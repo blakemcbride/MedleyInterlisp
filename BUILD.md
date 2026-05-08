@@ -82,9 +82,9 @@ After a default `make`:
 
 | Path | Contents |
 |---|---|
-| `maiko/<os>.<cpu>/lde` | runtime dispatcher (re-execs as `ldesdl` by default, `ldex` if you pass `-display X11` or an X11-style display string) |
+| `maiko/<os>.<cpu>/lde` | runtime dispatcher (re-execs as `ldesdl` by default; re-execs as `ldex` if the X11 emulator was built and you pass `-display X11` or an X11-style display string) |
 | `maiko/<os>.<cpu>/ldesdl` | SDL3 emulator (default runtime) |
-| `maiko/<os>.<cpu>/ldex` | X11 emulator (used by the loadup pipeline; runtime fallback) |
+| `maiko/<os>.<cpu>/ldex` | X11 emulator — only built with `-DMAIKO_DISPLAY_X11=ON` |
 | `maiko/<os>.<cpu>/ldeinit` | bootstrap emulator used by the `mid` loadup stage |
 | `medley/loadups/lisp.sysout` | base Lisp environment |
 | `medley/loadups/full.sysout` | + library/lispusers + modernizations |
@@ -97,12 +97,12 @@ After a default `make`:
 
 ### Display backends
 
-By default the build produces both SDL3 and X11 emulators; the `lde` dispatcher picks SDL3 at runtime unless you ask for X11. To opt out of either backend:
+By default the build produces only the SDL3 emulator (`ldesdl`); the `lde` dispatcher always re-execs into it. The X11 emulator (`ldex`) is opt-in:
 
 ```sh
-cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=OFF   # X11 only
-cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_X11=OFF   # SDL3 only — note the loadup pipeline currently requires ldex/ldeinit
-cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=2     # legacy SDL2 instead of SDL3
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_X11=ON                          # also build ldex
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=OFF -DMAIKO_DISPLAY_X11=ON  # X11 only
+cmake -S maiko -B maiko/build -DMAIKO_DISPLAY_SDL=2                           # legacy SDL2 instead of SDL3
 cmake --build maiko/build && cmake --install maiko/build
 ```
 
@@ -152,7 +152,7 @@ By default Medley runs through SDL3 (`ldesdl`).  SDL3 transparently uses Wayland
 - **WSL2:** SDL3 works through WSLg if available; otherwise install an X server (e.g. VcXsrv) and use `-d X11`.
 - **Headless / SSH:** use `--vnc` (see below) or run `Xvfb`/`Xvnc` and set `DISPLAY`.
 
-To force the X11 emulator instead of SDL3 — `./medley -d X11 ...`.
+To force the X11 emulator instead of SDL3 — `./medley -d X11 ...` (requires building with `-DMAIKO_DISPLAY_X11=ON`).
 
 ### Pick a launcher
 
