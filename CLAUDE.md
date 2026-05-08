@@ -70,15 +70,15 @@ cmake .. && cmake --build .
 Targets defined in `CMakeLists.txt`:
 - `lde` — runtime dispatcher; re-execs as `ldesdl` by default, or as `ldex` when invoked with `-display X11` or an X11-style display string (`:0`, `host:0`, ...).
 - `ldesdl` — SDL3 emulator (default runtime). Built when `MAIKO_DISPLAY_SDL` is `2` or `3`.
-- `ldex` — X11 emulator. Built when `MAIKO_DISPLAY_X11=ON`. Used by the loadup pipeline (`run_medley` in `loadup-setup.sh` pins `--maikoprog ldex`) and as a runtime fallback.
-- `ldeinit` — bootstrap variant used by the `loadup-mid` stage; built when `MAIKO_DISPLAY_X11=ON`.
+- `ldex` — X11 emulator. Built only when `MAIKO_DISPLAY_X11=ON` (off by default). Available as a runtime fallback.
+- `ldeinit` — bootstrap variant used by the `loadup-mid` stage; built whenever any display backend is enabled, picks X11 when `MAIKO_DISPLAY_X11=ON`, otherwise SDL.
 - `ldeether`, `mkvdate`, `setsout`, `tstsout` — utilities.
 - `INSTALL` places everything in `${release_dir}` = `${os_ver}.${machine_type}`.
 
 CMake options (all live in the cache, configurable via `-D...` or `cmake-gui`):
 - `MAIKO_RELEASE` — `351` (default), `350`, `300`, `210`, `201`, `200`, `115`. See `inc/version.h`.
-- `MAIKO_DISPLAY_X11` — `ON` (default) / `OFF`. Adds `-DXWINDOW`, links `X11::X11`, includes `src/xbbt.c`, `src/xinit.c`, `src/xwinman.c`, etc. Required for the loadup-stage tools (`ldex`, `ldeinit`).
-- `MAIKO_DISPLAY_SDL` — `3` (default) / `2` / `OFF`. Adds `-DSDL=3` (or `=2`) and includes `src/sdl.c`. SDL3 path is functional; SDL2 retained for legacy systems.
+- `MAIKO_DISPLAY_SDL` — `3` (default) / `2` / `OFF`. Adds `-DSDL=3` (or `=2`) and includes `src/sdl.c`. SDL3 is the default everywhere — runtime, loadup, ldeinit.
+- `MAIKO_DISPLAY_X11` — `OFF` (default) / `ON`. Optional X11 backend. Adds `-DXWINDOW`, links `X11::X11`, includes `src/xbbt.c`, `src/xinit.c`, `src/xwinman.c`, etc. When on, also builds `ldex` and uses X11 sources for `ldeinit`.
 - `MAIKO_NETWORK_TYPE` — `NONE` (default), `SUN_DLPI`, `SUN_NIT`, `NETHUB`.
 
 clang-tidy is detected and applied if available (with `cert-*` checks, plus a hand-curated set of suppressions for legacy strcpy/bzero usage).
@@ -200,7 +200,7 @@ cd medley
 
 Exit from a running system: `(LOGOUT)` (Interlisp prompt) or `(IL:LOGOUT)` (CL prompt). Logout writes `~/lisp.virtualmem` (override via `$LDEDESTSYSOUT` or `$LOGINDIR`); the next launch without an explicit sysout restores from there. **Note Blake priority #5** — home-dir pollution like this is a known target for cleanup.
 
-Display: SDL3 is the default runtime. SDL3 transparently uses Wayland or X11 on Linux and the native compositor on macOS / Windows. The `lde` dispatcher prefers `ldesdl`; pass `-display X11` (or any X-style display name) to force `ldex` instead. The loadup pipeline pins `--maikoprog ldex` (X11) so sysout builds don't depend on the SDL3 path.
+Display: SDL3 is the default everywhere — runtime, loadup, `ldeinit`. SDL3 transparently uses Wayland or X11 on Linux and the native compositor on macOS / Windows. The `lde` dispatcher prefers `ldesdl`; pass `-display X11` (or any X-style display name) to force `ldex` (only available when `MAIKO_DISPLAY_X11=ON`).
 
 ## Testing
 

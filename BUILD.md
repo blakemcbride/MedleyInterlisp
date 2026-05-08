@@ -14,26 +14,29 @@ The rest of this document covers prerequisites, optional targets, the underlying
 
 ## Prerequisites
 
-A C compiler (clang preferred), CMake ≥ 3.15, **SDL3** (the default display backend), and X11 client headers (still required for the loadup-stage tools `ldex` / `ldeinit`).
+A C compiler (clang preferred), CMake ≥ 3.15, and **SDL3**. X11 dev libraries are no longer required; pass `-DMAIKO_DISPLAY_X11=ON` to also build the X11 emulator (`ldex`).
 
 ### Linux (Debian / Ubuntu)
 ```sh
 sudo apt update
-sudo apt install build-essential clang cmake pkg-config libx11-dev libbsd-overlay-dev libsdl3-dev
+sudo apt install build-essential clang cmake pkg-config libbsd-overlay-dev libsdl3-dev
+# Optional: also build the X11 emulator (-DMAIKO_DISPLAY_X11=ON)
+sudo apt install libx11-dev
 ```
 
 ### Linux (Fedora / RHEL)
 ```sh
-sudo dnf install clang cmake pkgconf-pkg-config libX11-devel libbsd-devel SDL3-devel
+sudo dnf install clang cmake pkgconf-pkg-config libbsd-devel SDL3-devel
+# Optional: also build the X11 emulator
+sudo dnf install libX11-devel
 ```
 
 ### macOS
 ```sh
 brew install cmake sdl3
-brew install --cask xquartz       # only if you also want the X11 fallback
+# Optional: also build the X11 emulator
+brew install --cask xquartz
 ```
-
-In XQuartz preferences, enable "Emulate three button mouse" (only relevant if you run the X11 emulator).
 
 ### `apps.sysout` (optional)
 

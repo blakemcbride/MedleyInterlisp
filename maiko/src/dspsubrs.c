@@ -204,6 +204,14 @@ void flip_cursor(void) {
 #endif
 
 
+  /* In INIT mode (ldeinit) the cursor isn't set up; skipping the
+   * platform refresh avoids a NULL-deref in sdl_getOrAllocateCursor
+   * during the makeinit-time GC.  X11's Set_XCursor is fine either
+   * way, but skip it for consistency. */
+#ifdef INIT
+  if (for_makeinit) return;
+#endif
+
 #if defined(XWINDOW)
   /* JDS 011213: 15- cur y, as function does same! */
   Set_XCursor(Current_Hot_X, 15 - Current_Hot_Y);

@@ -34,7 +34,7 @@ cmake --install build
 
 CMake options:
 * MAIKO\_DISPLAY\_SDL: OFF, 2, [3] — SDL display version. Default 3.
-* MAIKO\_DISPLAY\_X11: [ON], OFF — X11 display subsystem. On by default; required for the loadup-stage tools (`ldex`, `ldeinit`).
+* MAIKO\_DISPLAY\_X11: ON, [OFF] — Optional X11 display subsystem. Off by default; turn on to also build the X11 emulator (`ldex`).  When off, `ldeinit` is built using the SDL backend.
 * MAIKO\_NETWORK\_TYPE: [NONE], SUN\_DLPI, SUN\_NIT, NETHUB
 * MAIKO\_RELEASE: [351], various — see `maiko/inc/version.h`
 

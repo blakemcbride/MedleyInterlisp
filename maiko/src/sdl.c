@@ -1070,6 +1070,20 @@ static int min_y = INT_MAX;
 static int max_x = 0;
 static int max_y = 0;
 void sdl_notify_damage(int x, int y, int w, int h) {
+  /* Clip to the actual display.  Callers (e.g. flush_display_lineregion)
+   * compute y from pointer arithmetic against DisplayRegion68k and can
+   * yield out-of-range values when the source bitmap isn't part of the
+   * display region.  Under X11 those bogus coordinates were swallowed
+   * by the X server; SDL3 will happily blit with negative width or
+   * height and crash. */
+  if (w <= 0 || h <= 0) return;
+  if (x < 0) { w += x; x = 0; }
+  if (y < 0) { h += y; y = 0; }
+  if (x >= sdl_displaywidth || y >= sdl_displayheight) return;
+  if (x + w > sdl_displaywidth)  w = sdl_displaywidth  - x;
+  if (y + h > sdl_displayheight) h = sdl_displayheight - y;
+  if (w <= 0 || h <= 0) return;
+
   if (x < min_x) min_x = x;
   if (y < min_y) min_y = y;
   if (x + w > max_x) max_x = min(x + w, sdl_displaywidth - 1);
@@ -1420,6 +1434,14 @@ void sdl_update_display() {
 #endif
 int process_events_time = 0;
 void process_SDLevents() {
+#ifdef INIT
+  /* In INIT mode (ldeinit running MAKEINIT) the Lisp-side state that
+   * the event handlers update (CLastUserActionCell68k, EmCursorX/Y68K,
+   * KEYBOARDEVENTQUEUE68k, ...) is not yet wired up.  Skip the whole
+   * loop until the system is past INIT.  Mirrors the #ifndef INIT
+   * guards in xwinman.c's process_Xevents. */
+  return;
+#else
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -1581,6 +1603,7 @@ void process_SDLevents() {
     min_x = min_y = INT_MAX;
     max_x = max_y = 0;
   }
+#endif /* !INIT */
 }
 
 int init_SDL(char *windowtitle, int w, int h, int s) {
@@ -1597,11 +1620,16 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
     return 1;
   }
   printf("initialised\n");
+  /* Mark the window resizable so tiling window managers (i3, sway, ...)
+   * treat it as a normal window instead of a fixed-size dialog/utility
+   * and tile it.  SDL_WINDOW_RESIZABLE doesn't force the user to be
+   * able to actually resize from the inside — sdl_update_viewport
+   * handles that case anyway. */
 #if SDL_MAJOR_VERSION == 2
   sdl_window = SDL_CreateWindow(windowtitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                sdl_windowwidth, sdl_windowheight, 0);
+                                sdl_windowwidth, sdl_windowheight, SDL_WINDOW_RESIZABLE);
 #else
-  sdl_window = SDL_CreateWindow(windowtitle, sdl_windowwidth, sdl_windowheight, 0);
+  sdl_window = SDL_CreateWindow(windowtitle, sdl_windowwidth, sdl_windowheight, SDL_WINDOW_RESIZABLE);
 #endif
   printf("Window created\n");
   if (sdl_window == NULL) {
