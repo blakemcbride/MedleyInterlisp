@@ -42,6 +42,9 @@ loadups/gitinfo
 # (Accidentally) created sysouts at any level
 *.sysout
 *.SYSOUT
+# ...except starter.sysout, which is the bootstrap image required to
+# build init.sysout via loadup-init.sh and must be tracked.
+!internal/loadups/starter.sysout
 
 # GITFNS deleted subdirectory
 deleted/**
