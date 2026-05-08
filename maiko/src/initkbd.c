@@ -509,15 +509,11 @@ void keyboardtype(int fd)
       InterfacePage->devconfig |= KB_SUN3 - MIN_KEYTYPE; /* 10 */
       break;
 #endif /* DOS */
-    default: {
-      char errmsg[200];
-      sprintf(errmsg, "Unsupported keyboard type: %d", type);
-      printf("%s\n", errmsg);
-      printf("Configuring keyboard for type-3\n");
+    default:
+      /* Unknown keyboard type — silently fall back to type-3. */
       SUNLispKeyMap = SUNLispKeyMap_for3;
       InterfacePage->devconfig |= KB_SUN3 - MIN_KEYTYPE;
       break;
-    }
   }
 
 } /* end keyboardtype*/

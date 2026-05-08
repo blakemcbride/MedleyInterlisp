@@ -361,27 +361,6 @@ maiko="${maiko_exe}"
 # Arg to this function should be "$@", the main args
 # array that at this point should just include the pass-on args
 start_maiko() {
-  echo \
-  \"${maiko}\" \"${src_sysout}\"                      \
-             -id \"${run_id}\"                        \
-             -title \"${title}\"                      \
-             -g ${geometry}                           \
-             -sc ${screensize}                        \
-             ${borderwidth_flag} ${borderwidth_value} \
-             ${pixelscale_flag} ${pixelscale_value}   \
-             ${noscroll_arg}                          \
-             ${mem_flag} ${mem_value}                 \
-             ${nh_host_flag} ${nh_host_value}         \
-             ${nh_port_flag} ${nh_port_value}         \
-             ${nh_mac_flag} ${nh_mac_value}           \
-             ${nh_debug_flag} ${nh_debug_value}       \
-             ${nofork_arg}                            \
-             "$@"                                     ;
-  echo "MEDLEYDIR: \"${MEDLEYDIR}\""
-  echo "LOGINDIR: \"${LOGINDIR}\""
-  echo "GREET FILE: \"${LDEINIT}\""
-  echo "REM.CM FILE: \"${LDEREMCM}\""
-  echo "VMEM FILE: \"${LDEDESTSYSOUT}\""
   #
   # Temp workaround for issues in Maiko sysout arg
   # processing. See Issue #1702.  FGH 2024-05-09

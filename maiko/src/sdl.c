@@ -60,6 +60,13 @@ static SDL_Renderer *sdl_renderer = NULL;
 static SDL_RendererInfo sdl_rendererinfo = {0};
 #endif
 static SDL_Texture *sdl_texture = NULL;
+/* Tile texture used to fill the area of the SDL window outside the main
+ * bitmap so the desktop looks continuous when the window is bigger than
+ * the Lisp screen.  Refreshed each update from a stable corner of the
+ * bitmap so it always matches whatever WINDOWBACKGROUNDSHADE the Lisp
+ * environment is currently using. */
+#define SDL_SHADE_DIM 32
+static SDL_Texture *sdl_shade_texture = NULL;
 #else
 static SDL_Surface *sdl_windowsurface = NULL;
 static SDL_Surface *sdl_buffersurface = NULL;
@@ -959,6 +966,13 @@ static const DLword bitmask[16] = {1 << 15, 1 << 14, 1 << 13, 1 << 12, 1 << 11, 
 // actual size of the lisp display in pixels.
 int sdl_displaywidth = 0;
 int sdl_displayheight = 0;
+
+/* Resize handshake: C stages a "desired" size when the SDL window is
+ * resized; Lisp polls these via user-subrs and calls dsp_commit_resize
+ * when it's safe to actually change the bitmap dimensions.  See
+ * IDLE-PATCH.LISP for the Lisp side. */
+int desired_displaywidth = 0;
+int desired_displayheight = 0;
 // current size of the window, in pixels
 int sdl_windowwidth = 0;
 int sdl_windowheight = 0;
@@ -1196,6 +1210,80 @@ void sdl_setCursor(int hot_x, int hot_y) {
   SDL_SetCursor(c);
 }
 #if defined(SDLRENDERING)
+/* Refresh the shade tile from a SDL_SHADE_DIM x SDL_SHADE_DIM region of
+ * the current Lisp bitmap.  Whatever pattern Lisp has painted there
+ * becomes our outside-the-bitmap fill, so the WINDOWBACKGROUNDSHADE
+ * always matches.
+ *
+ * We probe a few candidate locations and accept the first one that
+ * looks like a regular shade (not solid white, not solid black, not all
+ * one row/column): the bottom-center of the bitmap is most likely to
+ * be empty desktop, but if a window happens to be there we fall back
+ * to other corners.  If no candidate qualifies, the texture is left
+ * alone (we keep whatever previous frame's tile worked). */
+static int sdl_shade_sample_qualifies(int sx, int sy) {
+  const int bitsperword = 8 * sizeof(DLword);
+  int sourcepitchwords = sdl_displaywidth / bitsperword;
+  int set = 0, total = 0;
+  for (int yy = 0; yy < SDL_SHADE_DIM; yy++) {
+    int y = sy + yy;
+    for (int xx = 0; xx < SDL_SHADE_DIM; xx++) {
+      int x = sx + xx;
+      DLword w = GETBASEWORD(DisplayRegion68k, y * sourcepitchwords + x / bitsperword);
+      if (w & bitmask[x % bitsperword]) set++;
+      total++;
+    }
+  }
+  /* Accept anything between 5% and 95% set: rules out solid white
+   * (window background) and solid black (filled rectangle). */
+  return (set * 20 >= total) && (set * 20 <= total * 19);
+}
+
+static void sdl_refresh_shade_tile(void) {
+  if (sdl_shade_texture == NULL || DisplayRegion68k == NULL) return;
+  if (sdl_displaywidth < SDL_SHADE_DIM * 2 ||
+      sdl_displayheight < SDL_SHADE_DIM * 2) return;
+
+  /* Candidate sample points, in priority order.  All chosen to be
+   * inside the bitmap with at least SDL_SHADE_DIM headroom on each
+   * side. */
+  int candidates[][2] = {
+    { sdl_displaywidth / 2 - SDL_SHADE_DIM / 2,
+      sdl_displayheight - SDL_SHADE_DIM - 8 },        /* bottom-center */
+    { sdl_displaywidth - SDL_SHADE_DIM - 8,
+      sdl_displayheight - SDL_SHADE_DIM - 8 },        /* bottom-right  */
+    { 8,
+      sdl_displayheight - SDL_SHADE_DIM - 8 },        /* bottom-left   */
+    { sdl_displaywidth / 2 - SDL_SHADE_DIM / 2,
+      sdl_displayheight / 2 - SDL_SHADE_DIM / 2 },    /* center        */
+  };
+  int sample_x = -1, sample_y = -1;
+  for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
+    int sx = candidates[i][0], sy = candidates[i][1];
+    if (sx < 0 || sy < 0) continue;
+    if (sdl_shade_sample_qualifies(sx, sy)) { sample_x = sx; sample_y = sy; break; }
+  }
+  if (sample_x < 0) return; /* no good sample; keep previous tile */
+
+  const int bitsperword = 8 * sizeof(DLword);
+  int sourcepitchwords = sdl_displaywidth / bitsperword;
+
+  void *dst = NULL;
+  int   pitch = 0;
+  if (!SDL_LockTexture(sdl_shade_texture, NULL, &dst, &pitch)) return;
+  for (int yy = 0; yy < SDL_SHADE_DIM; yy++) {
+    Uint32 *row = (Uint32 *)((Uint8 *)dst + yy * pitch);
+    int sy = sample_y + yy;
+    for (int xx = 0; xx < SDL_SHADE_DIM; xx++) {
+      int sx = sample_x + xx;
+      DLword w = GETBASEWORD(DisplayRegion68k, sy * sourcepitchwords + sx / bitsperword);
+      row[xx] = (w & bitmask[sx % bitsperword]) ? sdl_foreground_color
+                                                : sdl_background_color;
+    }
+  }
+  SDL_UnlockTexture(sdl_shade_texture);
+}
+
 void sdl_bitblt_to_texture(int _x, int _y, int _w, int _h) {
   DLword *src = DisplayRegion68k;
   void *dst;
@@ -1329,7 +1417,7 @@ static int map_key(SDL_Keycode k) {
 static void handle_keydown(SDL_Keycode k, unsigned short mod) {
   int lk = map_key(k);
   if (lk == -1) {
-    printf("No mapping for key %s\n", SDL_GetKeyName(k));
+    /* unmapped key (e.g. Left GUI) — silently ignore */
   } else {
     // printf("dn %s -> lisp keycode %d (0x%x)\n", SDL_GetKeyName(k), lk, mod);
     kb_trans(lk - KEYCODE_OFFSET, FALSE);
@@ -1340,7 +1428,7 @@ static void handle_keydown(SDL_Keycode k, unsigned short mod) {
 static void handle_keyup(SDL_Keycode k, unsigned short mod) {
   int lk = map_key(k);
   if (lk == -1) {
-    printf("No mapping for key %s\n", SDL_GetKeyName(k));
+    /* unmapped key — silently ignore */
   } else {
     // printf("up %s -> lisp keycode %d (0x%x)\n", SDL_GetKeyName(k), lk, mod);
     kb_trans(lk - KEYCODE_OFFSET, TRUE);
@@ -1363,16 +1451,17 @@ extern LispPTR *CLastUserActionCell68k;
 #define MOUSE_RIGHT 14
 #define MOUSE_MIDDLE 15
 static void sdl_update_viewport(int width, int height) {
-  /* XXX: needs work */
-  int w = width / 32 * 32;
-  if (w > sdl_displaywidth * sdl_pixelscale) w = sdl_displaywidth * sdl_pixelscale;
-  int h = height / 32 * 32;
-  if (h > sdl_displayheight * sdl_pixelscale) h = sdl_displayheight * sdl_pixelscale;
+  /* Make the viewport span the full SDL window.  The texture is then
+   * rendered at its native pixel size at top-left (see sdl_update_display);
+   * any extra window space is cleared to a neutral gray that
+   * approximates WINDOWBACKGROUNDSHADE.  Effect: shrinking the window
+   * clips the bitmap; growing it leaves shade-colored letterbox space
+   * around the bitmap.  Text never scales. */
   SDL_Rect r;
   r.x = 0;
   r.y = 0;
-  r.w = w;
-  r.h = h;
+  r.w = width;
+  r.h = height;
 #if defined(SDLRENDERING)
 #if SDL_MAJOR_VERSION == 2
   SDL_RenderSetViewport(sdl_renderer, &r);
@@ -1380,7 +1469,102 @@ static void sdl_update_viewport(int width, int height) {
   SDL_SetRenderViewport(sdl_renderer, &r);
 #endif
 #endif
-  printf("new viewport: %d / %d\n", w, h);
+}
+
+extern int displaywidth, displayheight;
+extern int DisplayRasterWidth;
+extern DLword *DisplayRegion68k;
+extern DLword *DISP_MAX_Address;
+extern int please_fork;
+
+/* Resize handshake — see IDLE-PATCH.LISP and inc/subrs.h.
+ *
+ * sdl_stage_desired_size: called from the SDL_EVENT_WINDOW_RESIZED handler.
+ * Records what the bitmap *would* be at the new window size, but does NOT
+ * change displaywidth/displayheight.  Lisp polls these via user-subrs
+ * DSP-DESIRED-W / DSP-DESIRED-H.
+ *
+ * dsp_commit_resize: called from Lisp via user-subr DSP-COMMIT-RESIZE
+ * when Lisp is in a quiescent state and ready to switch over.  Atomically
+ * updates displaywidth/displayheight/DisplayRasterWidth/DISP_MAX_Address
+ * and recreates the SDL texture.  Lisp follows up with \STARTDISPLAY to
+ * re-flow windows.
+ *
+ * In automation mode (please_fork == 0, used by the loadup pipeline)
+ * staging is suppressed: there's no idle hook to commit the change and
+ * letting it sit pending is harmless.
+ */
+void sdl_stage_desired_size(int window_w, int window_h) {
+  if (!please_fork) return;
+  int w = (window_w / sdl_pixelscale) / 32 * 32;
+  int h = window_h / sdl_pixelscale;
+  if (w < 32) w = 32;
+  if (h < 32) h = 32;
+  /* Cap to the 2 MB display-address-space budget (matches ldsout.c). */
+  const long display_max = 65536L * 16 * 2;
+  if ((long)w * h > display_max) h = display_max / w;
+  desired_displaywidth  = w;
+  desired_displayheight = h;
+}
+
+LispPTR dsp_commit_resize(int new_w, int new_h) {
+  if (new_w < 32 || new_h < 32) return NIL_PTR;
+
+  /* Capture the old extent BEFORE updating the dimensions.  We zero
+   * the bitmap memory across the old extent so that any leftover
+   * stride-N content can't be read back at stride-M after the commit
+   * and produce visual garbage.  Pages that extend beyond the old
+   * extent (i.e., Lisp will allocate them in \CreateScreenBitMap on
+   * grow) are zeroed by \NEWPAGE, so the full new bitmap reads as 0
+   * until Lisp redraws. */
+  size_t old_dlwords = 0;
+  if (DisplayRegion68k != NULL && displaywidth > 0 && displayheight > 0) {
+    old_dlwords = (size_t)displayheight * (displaywidth / 16);
+  }
+
+  sdl_displaywidth  = new_w;
+  sdl_displayheight = new_h;
+  displaywidth      = new_w;
+  displayheight     = new_h;
+  DisplayRasterWidth = displaywidth / 16;
+  if (DisplayRegion68k != NULL) {
+    DISP_MAX_Address = DisplayRegion68k + DisplayRasterWidth * displayheight;
+    if (old_dlwords > 0) {
+      memset(DisplayRegion68k, 0, old_dlwords * sizeof(DLword));
+    }
+  }
+
+#if defined(SDLRENDERING)
+  if (sdl_texture != NULL) SDL_DestroyTexture(sdl_texture);
+  sdl_texture = SDL_CreateTexture(sdl_renderer, sdl_pixelformat->format,
+                                  SDL_TEXTUREACCESS_STREAMING,
+                                  sdl_displaywidth, sdl_displayheight);
+  if (sdl_texture != NULL) {
+    SDL_SetTextureScaleMode(sdl_texture, SDL_SCALEMODE_NEAREST);
+    /* SDL_CreateTexture leaves GPU memory undefined.  Clear it
+     * explicitly so the user doesn't see leftover garbage from the
+     * old texture (or from whatever else lived in that memory)
+     * during the brief window between commit and Lisp's \STARTDISPLAY
+     * repaint. */
+    void *pixels = NULL;
+    int   pitch  = 0;
+    if (SDL_LockTexture(sdl_texture, NULL, &pixels, &pitch)) {
+      memset(pixels, 0, (size_t)pitch * sdl_displayheight);
+      SDL_UnlockTexture(sdl_texture);
+    }
+  }
+#endif
+
+  /* Reset damage tracking and the update-needed flag.  The bitmap
+   * content was written at the old stride; reading it at the new
+   * stride would produce visual garbage.  Lisp's \STARTDISPLAY
+   * follows and repaints background + windows; those writes go to
+   * the bitmap at the new stride and sdl_update_display blits only
+   * the legitimately-redrawn regions. */
+  min_x = min_y = INT_MAX;
+  max_x = max_y = 0;
+  display_update_needed = 0;
+  return ATOM_T;
 }
 static int last_keystate[512] = {0};
 void sdl_set_invert(int flag) {
@@ -1399,10 +1583,60 @@ void sdl_setMousePosition(int x, int y) {
 #if defined(SDLRENDERING)
 void sdl_update_display() {
   sdl_bitblt_to_texture(min_x, min_y, max_x - min_x, max_y - min_y);
+
+  /* Get the current window size in actual pixels and reset both the
+   * viewport and our tile-loop bounds to match.  i3 (and other window
+   * managers) may have resized the window after SDL_CreateRenderer,
+   * but the renderer's viewport stays at its creation-time value
+   * unless we update it here.  Without this, draws below the
+   * original-size viewport get clipped and the area shows stale
+   * content. */
+  int out_w = 0, out_h = 0;
 #if SDL_MAJOR_VERSION == 2
-  SDL_RenderCopy(sdl_renderer, sdl_texture, NULL, NULL);
+  SDL_GetWindowSize(sdl_window, &out_w, &out_h);
+  SDL_Rect vp = { 0, 0, out_w, out_h };
+  SDL_RenderSetViewport(sdl_renderer, &vp);
 #else
-  SDL_RenderTexture(sdl_renderer, sdl_texture, NULL, NULL);
+  SDL_GetWindowSizeInPixels(sdl_window, &out_w, &out_h);
+  SDL_Rect vp = { 0, 0, out_w, out_h };
+  SDL_SetRenderViewport(sdl_renderer, &vp);
+#endif
+
+  SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255);
+  SDL_RenderClear(sdl_renderer);
+
+  /* Refresh the shade tile by sampling pixels from a stable corner of
+   * the Lisp bitmap, then tile it across the full renderer output.
+   * This makes the outside-the-bitmap fill match whatever pattern Lisp
+   * is currently using for WINDOWBACKGROUNDSHADE. */
+  sdl_refresh_shade_tile();
+  if (sdl_shade_texture != NULL) {
+    const int tile = SDL_SHADE_DIM;
+    for (int y = 0; y < out_h; y += tile) {
+      for (int x = 0; x < out_w; x += tile) {
+#if SDL_MAJOR_VERSION == 2
+        SDL_Rect dst = { x, y, tile, tile };
+        SDL_RenderCopy(sdl_renderer, sdl_shade_texture, NULL, &dst);
+#else
+        SDL_FRect dst = { (float)x, (float)y, (float)tile, (float)tile };
+        SDL_RenderTexture(sdl_renderer, sdl_shade_texture, NULL, &dst);
+#endif
+      }
+    }
+  }
+
+  /* Render the bitmap at its native pixel size at the window top-left.
+   * Window > bitmap: shade letterbox around it.  Window < bitmap:
+   * bitmap is clipped at the window edge.  Text never scales. */
+#if SDL_MAJOR_VERSION == 2
+  SDL_Rect bdst = { 0, 0, sdl_displaywidth * sdl_pixelscale,
+                    sdl_displayheight * sdl_pixelscale };
+  SDL_RenderCopy(sdl_renderer, sdl_texture, NULL, &bdst);
+#else
+  SDL_FRect bdst = { 0.0f, 0.0f,
+                     (float)(sdl_displaywidth  * sdl_pixelscale),
+                     (float)(sdl_displayheight * sdl_pixelscale) };
+  SDL_RenderTexture(sdl_renderer, sdl_texture, NULL, &bdst);
 #endif
   SDL_RenderPresent(sdl_renderer);
 }
@@ -1457,10 +1691,10 @@ void process_SDLevents() {
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_RESIZED:
-            /* XXX: what about integer multiple of 32 requirements here? */
             sdl_windowwidth = event.window.data1;
             sdl_windowheight = event.window.data2;
             sdl_update_viewport(sdl_windowwidth, sdl_windowheight);
+            sdl_stage_desired_size(sdl_windowwidth, sdl_windowheight);
             break;
           case SDL_WINDOWEVENT_FOCUS_GAINED:
             sdl_window_focusp = 1;
@@ -1474,10 +1708,10 @@ void process_SDLevents() {
         break;
 #else
       case SDL_EVENT_WINDOW_RESIZED:
-        /* XXX: what about integer multiple of 32 requirements here? */
         sdl_windowwidth = event.window.data1;
         sdl_windowheight = event.window.data2;
         sdl_update_viewport(sdl_windowwidth, sdl_windowheight);
+        sdl_stage_desired_size(sdl_windowwidth, sdl_windowheight);
         break;
       case SDL_EVENT_WINDOW_FOCUS_GAINED:
         sdl_window_focusp = 1;
@@ -1614,12 +1848,10 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
   sdl_displayheight = h;
   sdl_windowwidth = w * s;
   sdl_windowheight = h * s;
-  printf("requested width: %d, height: %d\n", sdl_displaywidth, sdl_displayheight);
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized. SDL_Error: %s\n", SDL_GetError());
     return 1;
   }
-  printf("initialised\n");
   /* Mark the window resizable so tiling window managers (i3, sway, ...)
    * treat it as a normal window instead of a fixed-size dialog/utility
    * and tile it.  SDL_WINDOW_RESIZABLE doesn't force the user to be
@@ -1631,13 +1863,11 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
 #else
   sdl_window = SDL_CreateWindow(windowtitle, sdl_windowwidth, sdl_windowheight, SDL_WINDOW_RESIZABLE);
 #endif
-  printf("Window created\n");
   if (sdl_window == NULL) {
     printf("Window could not be created. SDL_Error: %s\n", SDL_GetError());
     return 2;
   }
 #if defined(SDLRENDERING)
-  printf("Creating renderer...\n");
 #if SDL_MAJOR_VERSION == 2
   sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED);
 #else
@@ -1662,16 +1892,33 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
    * Pick a portable 32-bit format and let the renderer convert internally. */
   sdl_pixelformat = SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA8888);
 #endif
-  printf("Creating texture...\n");
   sdl_texture = SDL_CreateTexture(sdl_renderer, sdl_pixelformat->format,
                                   SDL_TEXTUREACCESS_STREAMING,
                                   sdl_displaywidth, sdl_displayheight);
+  /* Nearest-neighbor scaling so 1-bit text stays sharp at all
+   * window sizes; otherwise SDL3's linear filter blurs the pixels. */
+  if (sdl_texture != NULL)
+    SDL_SetTextureScaleMode(sdl_texture, SDL_SCALEMODE_NEAREST);
   sdl_foreground_color = sdl_MapColorName(sdl_pixelformat,
                                           foregroundColorName[0] ? foregroundColorName : "black");
   sdl_background_color = sdl_MapColorName(sdl_pixelformat,
                                           backgroundColorName[0] ? backgroundColorName : "white");
   sdl_foreground = sdl_foreground_color;
   sdl_background = sdl_background_color;
+
+  /* Allocate the shade tile.  Its pixels are refreshed each frame from
+   * a stable corner of the Lisp bitmap (see sdl_refresh_shade_tile)
+   * so the area outside the bitmap automatically tracks whatever
+   * WINDOWBACKGROUNDSHADE pattern Lisp is currently painting. */
+  sdl_shade_texture = SDL_CreateTexture(sdl_renderer, sdl_pixelformat->format,
+                                        SDL_TEXTUREACCESS_STREAMING,
+                                        SDL_SHADE_DIM, SDL_SHADE_DIM);
+  if (sdl_shade_texture != NULL)
+    SDL_SetTextureScaleMode(sdl_shade_texture, SDL_SCALEMODE_NEAREST);
+
+  /* No minimum window size: the user is free to shrink the window below
+   * the Lisp bitmap dimensions; the bitmap is simply clipped at the
+   * right/bottom edges and the visible portion still draws correctly. */
 #if SDL_MAJOR_VERSION == 2
   sdl_bytesperpixel = sdl_pixelformat->BytesPerPixel;
 #else
@@ -1704,6 +1951,5 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
       sdl_displaywidth * sdl_bytesperpixel, sdl_pixelformat->format);
 #endif
 #endif
-  printf("SDL initialised\n");
   return 0;
 }

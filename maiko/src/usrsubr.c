@@ -33,10 +33,30 @@ int UserSubr(int user_subr_index, int num_args, unsigned *args) {
     case user_subr_BLOCK_UNTIL_EVENT: {
       int max_ms;
       if (num_args < 1) { result = NIL_PTR; break; }
-      N_GETNUMBER(args[0], max_ms, badarg);
+      N_GETNUMBER(args[0], max_ms, bue_badarg);
       result = block_until_event(max_ms);
       break;
-    badarg:
+    bue_badarg:
+      result = NIL_PTR;
+      break;
+    }
+
+    case user_subr_DSP_DESIRED_W:
+      result = S_POSITIVE | (0xFFFF & desired_displaywidth);
+      break;
+
+    case user_subr_DSP_DESIRED_H:
+      result = S_POSITIVE | (0xFFFF & desired_displayheight);
+      break;
+
+    case user_subr_DSP_COMMIT_RESIZE: {
+      int new_w, new_h;
+      if (num_args < 2) { result = NIL_PTR; break; }
+      N_GETNUMBER(args[0], new_w, cr_badarg);
+      N_GETNUMBER(args[1], new_h, cr_badarg);
+      result = dsp_commit_resize(new_w, new_h);
+      break;
+    cr_badarg:
       result = NIL_PTR;
       break;
     }

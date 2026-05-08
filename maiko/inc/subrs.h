@@ -148,4 +148,7 @@
 #define user_subr_DUMMY                               012
 #define user_subr_SAMPLE_USER_SUBR                    00
 #define user_subr_BLOCK_UNTIL_EVENT                   01
+#define user_subr_DSP_DESIRED_W                       02
+#define user_subr_DSP_DESIRED_H                       03
+#define user_subr_DSP_COMMIT_RESIZE                   04
 #endif

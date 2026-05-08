@@ -25,8 +25,8 @@ Some of my priorities include:
 1. Simplify and correct system build (done)
 2. Stop the system from pegging the CPU (done)
 3. Port from a dependency on X11 (with some SDL2 support) to SDL3 (done)
-4. Correct screen handling to support dynamic window sizes rather than a limited range of static window sizes
-5. Stop pollution of the home directory
+4. Correct screen handling to support dynamic window sizes rather than a limited range of static window sizes (done)
+5. Stop pollution of the home directory (not needed)
 6. Native ports to macOS and Windows (main work done on Linux)
 
 The main home for this system is https://github.com/blakemcbride/MedleyInterlisp
