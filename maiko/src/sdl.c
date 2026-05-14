@@ -1500,7 +1500,12 @@ void sdl_stage_desired_size(int window_w, int window_h) {
   int h = window_h / sdl_pixelscale;
   if (w < 32) w = 32;
   if (h < 32) h = 32;
-  /* Cap to the 2 MB display-address-space budget (matches ldsout.c). */
+  /* Cap to the 2 MB display-address-space budget (matches ldsout.c).
+   * The cap is architectural: the bitmap lives between DISPLAY_OFFSET
+   * and IFPAGE_OFFSET in lispmap.h (0x120000 to 0x140000 in LispPTR
+   * units = 0x40000 bytes = 2,097,152 bits / pixels at 1bpp).
+   * Exceeding it overwrites IFPAGE/DTD/MISCSTATS Lisp structures and
+   * causes the dispatcher to crash on corrupted pointers. */
   const long display_max = 65536L * 16 * 2;
   if ((long)w * h > display_max) h = display_max / w;
   desired_displaywidth  = w;
@@ -1541,6 +1546,7 @@ LispPTR dsp_commit_resize(int new_w, int new_h) {
                                   sdl_displaywidth, sdl_displayheight);
   if (sdl_texture != NULL) {
     SDL_SetTextureScaleMode(sdl_texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetTextureBlendMode(sdl_texture, SDL_BLENDMODE_NONE);
     /* SDL_CreateTexture leaves GPU memory undefined.  Clear it
      * explicitly so the user doesn't see leftover garbage from the
      * old texture (or from whatever else lived in that memory)
@@ -1758,7 +1764,12 @@ void process_SDLevents() {
         int ix, iy;
         float x, y;
 #endif
-        if (!sdl_window_focusp) break;
+        /* No focus gate: SDL only delivers MOUSE_MOTION when the pointer
+         * is over our window, which is precisely when we want to track
+         * it.  sdl_window_focusp tracks *keyboard* focus, which on some
+         * X11 window managers never gets set; gating motion on it left
+         * Lisp's cursor stuck at (0,0) and made title-bar menus
+         * unclickable on Linux. */
         SDL_GetMouseState(&x, &y);
         x /= sdl_pixelscale;
         y /= sdl_pixelscale;
@@ -1897,8 +1908,16 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
                                   sdl_displaywidth, sdl_displayheight);
   /* Nearest-neighbor scaling so 1-bit text stays sharp at all
    * window sizes; otherwise SDL3's linear filter blurs the pixels. */
-  if (sdl_texture != NULL)
+  if (sdl_texture != NULL) {
     SDL_SetTextureScaleMode(sdl_texture, SDL_SCALEMODE_NEAREST);
+    /* Force BLENDMODE_NONE.  RGBA-supporting formats default to
+     * BLENDMODE_BLEND in SDL3, which makes undefined/zero-alpha texels
+     * render transparent against the black RenderClear in
+     * sdl_update_display.  Our 1-bit bitmap maps to fully-opaque
+     * fg/bg pixels; ignore alpha entirely so the GPU path matches the
+     * software path. */
+    SDL_SetTextureBlendMode(sdl_texture, SDL_BLENDMODE_NONE);
+  }
   sdl_foreground_color = sdl_MapColorName(sdl_pixelformat,
                                           foregroundColorName[0] ? foregroundColorName : "black");
   sdl_background_color = sdl_MapColorName(sdl_pixelformat,
@@ -1913,8 +1932,10 @@ int init_SDL(char *windowtitle, int w, int h, int s) {
   sdl_shade_texture = SDL_CreateTexture(sdl_renderer, sdl_pixelformat->format,
                                         SDL_TEXTUREACCESS_STREAMING,
                                         SDL_SHADE_DIM, SDL_SHADE_DIM);
-  if (sdl_shade_texture != NULL)
+  if (sdl_shade_texture != NULL) {
     SDL_SetTextureScaleMode(sdl_shade_texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetTextureBlendMode(sdl_shade_texture, SDL_BLENDMODE_NONE);
+  }
 
   /* No minimum window size: the user is free to shrink the window below
    * the Lisp bitmap dimensions; the bitmap is simply clipped at the

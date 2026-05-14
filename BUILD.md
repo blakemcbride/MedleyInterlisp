@@ -216,6 +216,22 @@ Connect a VNC client to the printed display (e.g. `:1`) on `localhost`. Not avai
 
 At the Interlisp prompt: `(LOGOUT)`. At the Common Lisp prompt: `(IL:LOGOUT)`. Logout writes `~/lisp.virtualmem` (override with `-k FILE` or the `LDEDESTSYSOUT` environment variable). The next `./medley -u` resumes from that image.
 
+## System Limitations
+
+The following limitations apply to the current system. They are inherent in the underlying Interlisp implementation and the structure of the saved sysouts; working around them requires substantial engineering beyond ordinary code changes.
+
+- **Maximum internal screen size is approximately 2 million pixels.** The Medley internal screen cannot exceed about 2,097,152 pixels total. Practical defaults that fit within this limit include 1408×1488 (balanced), 1280×1638 (taller, narrower), 1024×2048 (tallest, narrowest), and 1920×1092 (widest, shorter). Picking dimensions whose product exceeds the cap clamps the height down.
+
+- **Resizing the outer window does not enlarge the Lisp screen.** When the outer Medley window is made larger than the internal screen — either manually or by a tiling window manager (i3, sway, etc.) — Medley fills the extra space with the desktop shade pattern, but internal Lisp windows cannot be moved into that area. There is a visible boundary at the bottom-right of the internal screen.
+
+- **Prompt Window may appear with a black background on first launch.** When Medley starts from a freshly built sysout (no previously saved `~/lisp.virtualmem`), the Prompt Window content area may show as black instead of the usual white. The Exec window may also briefly appear with reversed colors. The Exec window self-corrects as soon as Lisp produces output (greet message, prompt scrolling); the Prompt Window remains black until something writes to it. Both cosmetic anomalies disappear after `(LOGOUT)` and a subsequent `./medley -u` resume from `~/lisp.virtualmem`.
+
+- **Monochrome display only.** Medley's screen is a 1-bit black-and-white bitmap by design, reflecting the original Interlisp environment. There is no color rendering mode.
+
+- **Linux tiling-WM caveat.** On Linux with tiling window managers, the outer window will be resized to fit a tile. The internal screen size stays fixed regardless. If you prefer Medley as a floating window in i3/sway, mark it floating in your window-manager configuration.
+
+- **16-bit word legacy.** The Interlisp memory model is built around 16-bit words. Many internal data structures inherit limits from this base unit: page numbers, atom indices, string lengths, array sizes, and various counts within the saved sysout are 16-bit quantities. In the current 256MB ("BIGBIGVM") build, the total Lisp address space is large, but individual objects and counts still carry these legacy limits. Most ordinary Lisp programs never approach them; very large data structures or extreme uses of system tables can.
+
 ## CI builds
 
 The same builds run from GitHub Actions:

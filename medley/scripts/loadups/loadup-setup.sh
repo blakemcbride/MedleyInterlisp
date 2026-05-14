@@ -115,8 +115,29 @@ then
   fi
 fi
 
-# obsolete? scr="-sc 1024x768 -g 1042x790"
-geometry=1024x768
+# Loadup geometry.  Must match medley_geometry.sh's default screensize
+# (computed for -sc, the only geometry flag SDL Maiko actually parses),
+# otherwise:
+#   - sdl_displaywidth at sysout-save (= Lisp's per-row bitmap stride)
+#     differs from runtime, producing vertical-stripe corruption when
+#     internal windows are moved.
+#   - Lisp's saved SCREENWIDTH/SCREENHEIGHT cap where internal windows
+#     can be dragged, leaving any larger outer SDL window with an
+#     unreachable area.
+#
+# Maximum bitmap pixel count is capped at 65536*16*2 = 2,097,152 pixels
+# (display_max in main.c / xinit.c / sdl.c / ldsout.c).  The cap is
+# tied to the bitmap pages mmaped by the starter.sysout bootstrap;
+# raising it without rebuilding starter.sysout segfaults (memory beyond
+# the mapped range is unbacked).
+#
+# 1408x1488 = 2,094,304 pixels (< 2M cap, width is a multiple of 32 as
+# required by init_SDL's alignment).  Trade-off vs the original
+# 1024x768: smaller width than the medley.command default 1462, but
+# nearly 2x the height -- which matters more on tall i3 tiles.  Must
+# match the screensize default in
+# medley/scripts/medley/medley_geometry.sh.
+geometry=1408x1488
 
 touch "${LOADUP_WORKDIR}"/loadup.timestamp
 

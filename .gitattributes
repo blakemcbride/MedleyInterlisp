@@ -1,0 +1,22 @@
+# Default: any file Git auto-detects as text is normalized to LF in the repo
+# and in the working tree, regardless of the cloner's core.autocrlf setting.
+# Git for Windows defaults to core.autocrlf=true, which otherwise rewrites
+# text files to CRLF on checkout and breaks bash, cmake, and make on Cygwin
+# and MSYS.
+#
+# This is a no-op on Linux and macOS — those checkouts are already LF and
+# stay LF. Binary file types (sysouts, fonts, .LCOM, .DFASL, .TEDIT, .SKETCH,
+# etc.) are declared in medley/.gitattributes and remain untouched.
+
+* text=auto eol=lf
+
+# Belt-and-suspenders: explicit overrides for shell scripts and make
+# fragments, in case Git's auto-detection misclassifies any of them.
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.command       text eol=lf
+*.mk            text eol=lf
+*.pl            text eol=lf
+
+Makefile        text eol=lf
+makefile-*      text eol=lf

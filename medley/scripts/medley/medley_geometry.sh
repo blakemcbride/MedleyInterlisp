@@ -70,11 +70,24 @@ then
     usage "${err_msg}"
   fi
 else
-  screensize="1440x900"
+  # Default Lisp screen size.  Must match the loadup geometry in
+  # medley/scripts/loadups/loadup-setup.sh so sdl_displaywidth (the
+  # per-row bitmap stride) agrees between sysout-save and runtime;
+  # otherwise C reads the bitmap at a different stride than Lisp
+  # writes it and window-move operations show vertical-stripe
+  # corruption.
+  #
+  # The product (1408*1488 = 2,094,304 pixels) sits just below the
+  # architectural cap of 2,097,152 pixels imposed by the Lispworld
+  # memory layout (DISPLAY region between DISPLAY_OFFSET and
+  # IFPAGE_OFFSET in maiko/inc/lispmap.h is 0x40000 bytes).  Pushing
+  # past it requires regenerating starter.sysout with a relocated
+  # IFPAGE -- substantial engineering project, not in scope.
+  screensize="1408x1488"
   if [ "${noscroll}" = false ];
   then
-    geometry="1462x922"
+    geometry="1430x1510"
   else
-    geometry="1440x900"
+    geometry="1408x1488"
   fi
 fi
