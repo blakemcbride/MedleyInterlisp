@@ -1,20 +1,38 @@
 # Building MedleyInterlisp
 
-End-to-end instructions to build the VM (Maiko), the Lisp sysouts, and run the system. Run all commands from the repository root unless noted otherwise.
+Broadly speaking, the system has two main components:
 
-The shortest path:
+- C-based Virtual Machine
+- Lisp image file
+
+This file will tell you how to build and run the system.
+
+The system uses SDL3 in order to gain GUI portability across Linux, macOS, and Windows.
+
+## Build
+
+Once the prerequisits have been installed (see below), simply type:
 
 ```sh
 make            # build the VM and the lisp/full sysouts
+```
+
+
+To run the system:
+
+
+```sh
 cd medley
 ./medley -f     # start Medley from full.sysout
 ```
 
-The rest of this document covers prerequisites, optional targets, the underlying steps, and start-up flags.
+The system supports Common Lisp and Interlisp.  When you first start it, you will be presented with a Common Lisp window.
+
+To exit the system, type:  (IL:LOGOUT)
 
 ## Prerequisites
 
-A C compiler (clang preferred), CMake ≥ 3.15, and **SDL3**. X11 dev libraries are no longer required; pass `-DMAIKO_DISPLAY_X11=ON` to also build the X11 emulator (`ldex`).
+A C compiler, CMake ≥ 3.15, and **SDL3**. X11 dev libraries are no longer required; pass `-DMAIKO_DISPLAY_X11=ON` to also build the X11 emulator (`ldex`).
 
 ### Linux (Debian / Ubuntu)
 ```sh
@@ -32,15 +50,21 @@ sudo dnf install libX11-devel
 ```
 
 ### macOS
+
+Requires the Xcode Command Line Tools (which provide `clang`, `make`, and the system headers) and [Homebrew](https://brew.sh) for the remaining dependencies.
+
 ```sh
-brew install cmake sdl3
-# Optional: also build the X11 emulator
+xcode-select --install                  # clang, make, system headers (skip if already installed)
+brew install cmake pkg-config sdl3
+# Optional: also build the X11 emulator (-DMAIKO_DISPLAY_X11=ON)
 brew install --cask xquartz
 ```
 
+Apple Silicon (`darwin.aarch64`) and Intel (`darwin.x86_64`) are both supported; the build detects the architecture automatically.
+
 ### Windows (Cygwin)
 
-The Windows build runs under [Cygwin](https://cygwin.com) with the SDL3 backend. Native Windows toolchains (MSVC, MSYS2 UCRT64) are **not** supported — the VM relies on a POSIX surface (`fork`, termios/PTY, `SIGALRM`/`setitimer`, AF_UNIX sockets) and the build pipeline is bash-driven, so Cygwin is the only viable path. X11 is not used on Windows; build SDL3 only.
+The Windows build runs under [Cygwin](https://cygwin.com) with the SDL3 backend. X11 is not used on Windows.
 
 1. Install Cygwin from https://cygwin.com (run `setup-x86_64.exe`).
 2. Add the required packages — either tick them in the setup GUI, or from a Windows command prompt run:
@@ -60,15 +84,6 @@ Notes:
 - All build and run commands must be issued from inside a Cygwin shell. The loadup scripts and `medley.command` are bash scripts and use Cygwin path conventions.
 - Do not pass `-DMAIKO_DISPLAY_X11=ON` on Windows. The legacy `bin/makefile-cygwin.x86_64-x` X11 makefile is retained only as a historical artifact and is not a supported build path.
 - The `--vnc` launcher flag is not available on Windows/Cygwin (see "Headless / VNC" below).
-
-### `apps.sysout` (optional)
-
-Building `apps.sysout` requires the NoteCards sources as a sibling of this repo:
-```sh
-cd ..
-git clone https://github.com/Interlisp/notecards.git
-cd MedleyInterlisp
-```
 
 ## Step 1 — Build with `make`
 
