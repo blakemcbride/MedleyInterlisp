@@ -38,6 +38,29 @@ brew install cmake sdl3
 brew install --cask xquartz
 ```
 
+### Windows (Cygwin)
+
+The Windows build runs under [Cygwin](https://cygwin.com) with the SDL3 backend. Native Windows toolchains (MSVC, MSYS2 UCRT64) are **not** supported — the VM relies on a POSIX surface (`fork`, termios/PTY, `SIGALRM`/`setitimer`, AF_UNIX sockets) and the build pipeline is bash-driven, so Cygwin is the only viable path. X11 is not used on Windows; build SDL3 only.
+
+1. Install Cygwin from https://cygwin.com (run `setup-x86_64.exe`).
+2. Add the required packages — either tick them in the setup GUI, or from a Windows command prompt run:
+   ```
+   setup-x86_64.exe -q -P gcc-core,make,cmake,pkg-config,libSDL3-devel,git,bash
+   ```
+   Recommended additions for the Lisp loadups and day-to-day use: `coreutils`, `findutils`, `grep`, `sed`, `gawk`, `xz`, `gzip`, `tar`, `which`, `procps-ng`.
+3. From a **Cygwin terminal** (not PowerShell or `cmd.exe`), clone the repository and run the same commands as on Linux/macOS:
+   ```sh
+   git clone https://github.com/blakemcbride/MedleyInterlisp.git
+   cd MedleyInterlisp
+   make
+   ```
+   The defaults (`MAIKO_DISPLAY_SDL=3`, `MAIKO_DISPLAY_X11=OFF`) produce a Cygwin SDL3 binary; no X server is needed.
+
+Notes:
+- All build and run commands must be issued from inside a Cygwin shell. The loadup scripts and `medley.command` are bash scripts and use Cygwin path conventions.
+- Do not pass `-DMAIKO_DISPLAY_X11=ON` on Windows. The legacy `bin/makefile-cygwin.x86_64-x` X11 makefile is retained only as a historical artifact and is not a supported build path.
+- The `--vnc` launcher flag is not available on Windows/Cygwin (see "Headless / VNC" below).
+
 ### `apps.sysout` (optional)
 
 Building `apps.sysout` requires the NoteCards sources as a sibling of this repo:
@@ -149,7 +172,7 @@ By default Medley runs through SDL3 (`ldesdl`).  SDL3 transparently uses Wayland
 
 - **Linux (Wayland or X11):** start in any normal session — no extra setup.
 - **macOS:** no extra setup with SDL3.  (XQuartz is only needed if you opt into the X11 emulator with `-d X11`.)
-- **WSL2:** SDL3 works through WSLg if available; otherwise install an X server (e.g. VcXsrv) and use `-d X11`.
+- **Windows (Cygwin):** no extra setup — SDL3 renders directly through the native Windows compositor. WSL/WSL2 is not a supported environment for this fork; build and run from a Cygwin terminal (see Prerequisites).
 - **Headless / SSH:** use `--vnc` (see below) or run `Xvfb`/`Xvnc` and set `DISPLAY`.
 
 To force the X11 emulator instead of SDL3 — `./medley -d X11 ...` (requires building with `-DMAIKO_DISPLAY_X11=ON`).
@@ -231,9 +254,3 @@ The following limitations apply to the current system. They are inherent in the 
 - **Linux tiling-WM caveat.** On Linux with tiling window managers, the outer window will be resized to fit a tile. The internal screen size stays fixed regardless. If you prefer Medley as a floating window in i3/sway, mark it floating in your window-manager configuration.
 
 - **16-bit word legacy.** The Interlisp memory model is built around 16-bit words. Many internal data structures inherit limits from this base unit: page numbers, atom indices, string lengths, array sizes, and various counts within the saved sysout are 16-bit quantities. In the current 256MB ("BIGBIGVM") build, the total Lisp address space is large, but individual objects and counts still carry these legacy limits. Most ordinary Lisp programs never approach them; very large data structures or extreme uses of system tables can.
-
-## CI builds
-
-The same builds run from GitHub Actions:
-- `maiko/.github/workflows/build.yml` — VM build across Linux + macOS
-- `medley/.github/workflows/buildReleaseInclDocker.yml` — full build, release publish, Docker image (manual `workflow_dispatch`)
