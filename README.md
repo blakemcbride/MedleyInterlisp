@@ -1,8 +1,5 @@
 # Medley Interlisp
 
-**Upon further testing, some bugs have been discovered.  A correction is in progress.**
-
-
 The Medley system is one of the retro implementations of the Interlisp language and programming environment. 
 One of its chief differentiations is the fact that the core virtual machine (VM, Maiko) was written in the C language. 
 This made it the only portable implementation.
