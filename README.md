@@ -1,6 +1,6 @@
 # Medley Interlisp
 
-** Upon further testing, some bugs have been discovered.  A correction is in progress.**
+**Upon further testing, some bugs have been discovered.  A correction is in progress.**
 
 
 The Medley system is one of the retro implementations of the Interlisp language and programming environment. 
