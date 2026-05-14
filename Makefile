@@ -10,6 +10,20 @@ CMAKE_BUILD_DIR := maiko/build
 LOADUPS_DIR := medley/loadups
 LOADUPS_BUILD_DIR := $(LOADUPS_DIR)/build
 
+# Cygwin-only: scrub Strawberry Perl and Chocolatey out of PATH, then put
+# Cygwin's /usr/local/bin and /usr/bin first, and pin CMake's make program
+# to Cygwin's make. Without this, CMake may pick up Windows-native binaries
+# from $PATH (e.g. Strawberry Perl's gmake at
+# /cygdrive/c/Strawberry/c/bin/gmake) and generate Makefiles with mixed
+# Cygwin/Windows path styles. The Windows port depends only on Cygwin.
+# No effect on Linux or macOS.
+CMAKE_EXTRA_ARGS :=
+ifneq ($(findstring CYGWIN,$(shell uname -s 2>/dev/null)),)
+  CYGWIN_SAFE_PATH := $(shell echo "$$PATH" | tr ':' '\n' | grep -ivE 'strawberry|chocolatey' | paste -sd: -)
+  export PATH := /usr/local/bin:/usr/bin:$(CYGWIN_SAFE_PATH)
+  CMAKE_EXTRA_ARGS := -DCMAKE_MAKE_PROGRAM=$(shell command -v make)
+endif
+
 .PHONY: all maiko sysouts apps aux db clean realclean help
 
 all: maiko sysouts
@@ -27,15 +41,19 @@ help:
 	@echo "  help       Show this message"
 
 maiko:
-	cmake -S maiko -B $(CMAKE_BUILD_DIR)
+	cmake -S maiko -B $(CMAKE_BUILD_DIR) $(CMAKE_EXTRA_ARGS)
 	cmake --build $(CMAKE_BUILD_DIR)
 	cmake --install $(CMAKE_BUILD_DIR)
 
+# Invoke the real loadup script by path rather than via the medley/loadup
+# symlink. Git for Windows checks symlinks out as plain text files when
+# core.symlinks is false (the default), which breaks ./loadup on Cygwin.
+# This is a no-op on Linux/macOS — same script, same CWD.
 sysouts: maiko
-	cd medley && ./loadup
+	cd medley && ./scripts/loadups/loadup
 
 apps: maiko
-	cd medley && ./loadup -apps
+	cd medley && ./scripts/loadups/loadup -apps
 
 aux: maiko
 	cd medley && ./scripts/loadups/loadup-aux.sh

@@ -25,6 +25,8 @@ Blake's stated priorities (from `README.md`):
 
 Lean toward changes that move these forward; flag changes that work against them.
 
+**Windows port path:** Cygwin + SDL3. Native Windows toolchains (MSVC, MSYS2 UCRT64) are not currently targeted — the VM's POSIX surface (fork, termios/PTY, SIGALRM/setitimer, AF_UNIX) and the bash-driven loadup pipeline make Cygwin the tractable path. `inc/maiko/platform.h` already has a `__CYGWIN__` branch with `MAIKO_EMULATE_TIMER_INTERRUPTS` / `MAIKO_EMULATE_ASYNC_INTERRUPTS`. Build with the default `MAIKO_DISPLAY_SDL=3`, `MAIKO_DISPLAY_X11=OFF`; X11 is not used on Windows. `bin/makefile-cygwin.x86_64-x` is the legacy X11 makefile and is not the recommended Windows build path.
+
 ## Top-level layout
 
 The repo root contains:
@@ -34,7 +36,7 @@ The repo root contains:
 - `LICENSE` — single license for the integrated fork
 - `CLAUDE.md` — this guide
 
-There is **no top-level launcher, no top-level `.github/workflows/`, no top-level build script.** CI lives inside `maiko/.github/workflows/` and `medley/.github/workflows/`. To do anything you `cd` into `maiko/` or `medley/`.
+There is a **top-level `Makefile`** that drives the whole build (`make` → builds Maiko via CMake, then runs `medley/loadup`; also `make apps`, `make aux`, `make db`, `make clean`, `make realclean`). There is no top-level launcher and no top-level `.github/workflows/`; CI lives inside `maiko/.github/workflows/` and `medley/.github/workflows/`. Lower-level work still happens inside `maiko/` or `medley/`.
 
 ## maiko/ (the VM)
 

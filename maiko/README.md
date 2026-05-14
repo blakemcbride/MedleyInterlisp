@@ -56,3 +56,14 @@ cd maiko/bin
 
 * Recommended path: SDL3 (`brew install sdl3`).  X11 still works via XQuartz (https://www.xquartz.org/releases) if `MAIKO_DISPLAY_X11=ON`.
 * SDL libraries: see https://libsdl.org
+
+### Building For Windows (Cygwin)
+
+The Windows build runs under Cygwin (https://cygwin.com) with the SDL3 backend.  Native Windows builds (MSVC, MSYS2 UCRT64) are not currently supported.
+
+* Required Cygwin packages: `gcc-core`, `make`, `cmake`, `pkg-config`, `libSDL3-devel`.
+* From a Windows shell, install them with Cygwin's setup utility:
+  ```
+  setup-x86_64.exe -q -P gcc-core,make,cmake,pkg-config,libSDL3-devel
+  ```
+* From a Cygwin terminal, build with the CMake instructions above.  The defaults (`MAIKO_DISPLAY_SDL=3`, `MAIKO_DISPLAY_X11=OFF`) produce a Cygwin SDL3 binary; no X server is needed.
